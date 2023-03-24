@@ -42,7 +42,7 @@ class test_database(APIView):
             update_field = {
                 "status":"nothing to update"
             }
-            response = dowellconnection(*qrcode_management,"find",field,update_field)
+            response = dowellconnection(*qrcode_management,"fetch",field,update_field)
             print(response)
             return Response(json.loads(response),status=status.HTTP_201_CREATED)
         else:
