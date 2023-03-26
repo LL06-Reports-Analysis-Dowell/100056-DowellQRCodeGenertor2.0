@@ -8,7 +8,7 @@ import requests
 from database.connection import dowellconnection
 from database.event import get_event_id
 from database.database_management import *
-
+from api.serializers import *
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -18,21 +18,26 @@ class test_database(APIView):
         name = request.data.get('name')
         description = request.data.get('description')
         company_id = request.data.get('company_id')
-        if name and description and company_id:
-            field = {
-                "eventId":get_event_id()['event_id'],
-                "name":  name,
-                "description": description,
-                "company_id": company_id
-            }
-            update_field = {
-                "status":"nothing to update"
-            }
+        field = {
+            "eventId":get_event_id()['event_id'],
+            "name":  name,
+            "description": description,
+            "company_id": company_id
+        }
+        update_field = {
+            "status":"nothing to update"
+        }
+        serializer = testDatabases(data=field)
+        if serializer.is_valid():
             response = dowellconnection(*qrcode_management,"insert",field,update_field)
             print(response)
             return Response(json.loads(response),status=status.HTTP_201_CREATED)
         else:
-            return Response({"INFO":"Error"},status=status.HTTP_400_BAD_REQUEST)
+            default_errors = serializer.errors
+            new_error = {}
+            for field_name, field_errors in default_errors.items():
+                new_error[field_name] = field_errors[0]
+            return Response(new_error,status=status.HTTP_400_BAD_REQUEST)
 
     def get(self,request,company_id):
         if company_id:
