@@ -4,10 +4,10 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import requests
 from database.connection import dowellconnection
 from database.event import get_event_id
 from database.database_management import *
+from .serializers import OrderSerializer
 
 
 

@@ -4,4 +4,5 @@ from api.views import *
 urlpatterns = [
     path('test_database/',test_database.as_view()),
     path('test_database/<str:company_id>/',test_database.as_view()),
+    path('shipment/',YourView.as_view()),
 ]
