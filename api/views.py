@@ -41,17 +41,14 @@ class DoWellQrCodeView(APIView):
             "company_id": company_id,
             "create_by" : create_by,
             "logo": logo,
+            "qrcode": img_base64
         }
         update_field = {
             "status":"nothing to update"
         }
-        qr_code = {
-            "img_base64":img_base64
-        }
-
+    
         serializer = DoWellQrCodeSerializer(data=field)
         if serializer.is_valid():
             response = dowellconnection(*qrcode_management,"insert",field, update_field)
-            respons = (qr_code)
-            return Response((json.loads(response),(respons)), status=status.HTTP_201_CREATED)
+            return Response({"Response":response,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
