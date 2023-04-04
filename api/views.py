@@ -52,3 +52,42 @@ class DoWellQrCodeView(APIView):
             response = dowellconnection(*qrcode_management,"insert",field, update_field)
             return Response({"Response":response,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class test(APIView):
+
+    def post(self, request):
+        field = {
+            "name":request.data.get("name"),
+            "company_id":request.data.get("company_id")
+        }
+        update_field = {
+            "status":"nothing to update"
+        }
+        response = dowellconnection(*qrcode_management,"insert",field, update_field)
+        return Response(json.loads(response), status=status.HTTP_201_CREATED)
+    
+    def get(self,request,company_id):
+        field = {
+            "company_id":company_id,
+        }
+        update_field = {
+            "status":"nothing to update"
+        }
+        response = dowellconnection(*qrcode_management,"fetch",field, update_field)
+        return Response(json.loads(response), status=status.HTTP_201_CREATED)
+    
+    def put(self, request):
+        field = {
+            "id":request.data.get("id"),
+            "name":request.data.get("name")
+        }
+        update_field = {
+            "name":request.data.get("name")
+        }
+        response = dowellconnection(*qrcode_management,"update",field, update_field)
+        return Response(json.loads(response), status=status.HTTP_201_CREATED)
+
