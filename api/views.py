@@ -17,7 +17,10 @@ from django.views.decorators.csrf import csrf_exempt
 class codeqr(APIView):
     def post(self, request):
         link = request.data.get("link")
+        product_name = request.data.get("product_name")
         logo = request.data.get("logo")
+        create_by = request.data.get("create_by")
+        company_id = request.data.get("company_id")
 
         qr_code = qrcode.QRCode(version=1, 
                             error_correction=qrcode.constants.ERROR_CORRECT_L, 
@@ -25,6 +28,7 @@ class codeqr(APIView):
         qr_code.add_data(logo)
         qr_code.make(fit=True)
         img_qr = qr_code.make_image(fill_color="black", back_color="white")
+        
         buffer = BytesIO()
         img_qr.save(buffer, 'PNG')
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -33,14 +37,23 @@ class codeqr(APIView):
         field = {
             "link": link,
             "logo": logo,
+            "create_by" : create_by,
+            "company_id": company_id,
+            "product_name":  product_name,
             "qrcode": img_base64
         }
         update_field = {
-            "name":request.data.get("name")
+            "status":"nothing to update"
         }
 
-        # buffer = BytesIO()
-        # img_qr.save( format='PNG')
+        
 
-        response = dowellconnection(*qrcode_management,"update",field, update_field)
-        return Response(json.loads(response), status=status.HTTP_201_CREATED)
+        serializer = DoWellQrCodeSerializer(data=field)
+        if serializer.is_valid():
+            response = dowellconnection(*qrcode_management,"insert",field, update_field)
+            return Response({"Response":response,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+
