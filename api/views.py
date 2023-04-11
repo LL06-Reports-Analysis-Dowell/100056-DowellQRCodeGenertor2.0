@@ -59,5 +59,10 @@ class codeqr(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+# generate_image = qrcode.make("Youtube")
+# generate_image.save('image1.png')
 
+
+# Binary data is a type of digital data that is represented using a binary system of 0s and 1s. In computing,
+# binary data typically refers to any data that is not text-based, such as images, audio files, video files, and executable programs.
 
