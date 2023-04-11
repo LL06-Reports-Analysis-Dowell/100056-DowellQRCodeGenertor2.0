@@ -1,4 +1,5 @@
 import json
+from tkinter import Image
 import qrcode
 import base64
 from io import BytesIO
@@ -18,10 +19,13 @@ class codeqr(APIView):
     def post(self, request):
         link = request.data.get("link")
         product_name = request.data.get("product_name")
-        logo = request.data.get("logo")
+        logo = request.data.get('logo')
         create_by = request.data.get("create_by")
         company_id = request.data.get("company_id")
 
+
+        # logo_data = decode_base64(logo)
+        # logo_image = Image.open
         qr_code = qrcode.QRCode(version=1, 
                             error_correction=qrcode.constants.ERROR_CORRECT_L, 
                             box_size=10, border=4)
