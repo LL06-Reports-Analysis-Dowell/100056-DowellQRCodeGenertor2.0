@@ -25,10 +25,10 @@ class codeqr(APIView):
         qr_code = qrcode.QRCode(version=1, 
                             error_correction=qrcode.constants.ERROR_CORRECT_L, 
                             box_size=10, border=4)
-        qr_code.add_data(logo)
+        qr_code.add_data(link)
         qr_code.make(fit=True)
         img_qr = qr_code.make_image(fill_color="black", back_color="white")
-        
+
         buffer = BytesIO()
         img_qr.save(buffer, 'PNG')
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
