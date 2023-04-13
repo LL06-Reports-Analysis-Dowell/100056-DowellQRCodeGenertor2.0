@@ -29,7 +29,8 @@ class codeqr(APIView):
         create_by = request.data.get("create_by")
         company_id = request.data.get("company_id")
 
-        logo_size = 100 # Set default logo size
+        # logo_size = 100 # Set default logo size
+        # logo_image = Image.open("image/logo.png")
 
         if logo and logo.size > 0:
             logo_contents = logo.read()
