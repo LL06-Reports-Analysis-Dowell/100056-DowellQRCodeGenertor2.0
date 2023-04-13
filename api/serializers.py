@@ -10,3 +10,4 @@ class DoWellQrCodeSerializer(serializers.Serializer):
 
 
     # logo = serializers.ImageField(allow_null=True, allow_empty_file=False)
+    #  logo = serializers.SerializerMethodField()

@@ -1,3 +1,4 @@
+import io
 import json
 from tkinter import Image
 import qrcode
@@ -18,18 +19,26 @@ from django.views.decorators.csrf import csrf_exempt
 
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqr(APIView):
+
+
     def post(self, request):
         link = request.data.get("link")
         product_name = request.data.get("product_name")
         logo = request.FILES.get('logo')
+        print("Fileimageeee:", logo)
         create_by = request.data.get("create_by")
         company_id = request.data.get("company_id")
 
-        # logo_image = Image.open("image/logo.png")
-        logo_image = Image.open(BytesIO(base64.b64decode(logo)))
-        logo_image = logo_image.convert("RGBA")
+        logo_size = 100 # Set default logo size
 
-        print("Logo image size:", logo_image.size)
+        if logo and logo.size > 0:
+            logo_contents = logo.read()
+            logo_image = Image.open(io.BytesIO(logo_contents))
+            print("Logo image size:", logo_image.size)
+            # Resize the logo to the desired size
+            logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
+        else:
+            logo_image = None
 
         # Create the QR code image
         qr_code = qrcode.QRCode(version=1, 
@@ -40,25 +49,28 @@ class codeqr(APIView):
         img_qr = qr_code.make_image(fill_color="black", back_color="white")
         print("QR code size:", img_qr.size)
 
-        # Calculate the position to place the logo
-        logo_size = min(img_qr.size[0], img_qr.size[1]) * 25 // 100 # Change this value to adjust the size of the logo
-        logo_x = (img_qr.size[0] - logo_size) // 2
-        logo_y = (img_qr.size[1] - logo_size) // 2
+        if logo_image:
+            # Calculate the position to place the logo
+            logo_size = min(img_qr.size[0], img_qr.size[1]) * 25 // 100 # Change this value to adjust the size of the logo
+            logo_x = (img_qr.size[0] - logo_size) // 2
+            logo_y = (img_qr.size[1] - logo_size) // 2
 
-        # Resize the logo to the desired size
-        logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
+            # Resize the logo to the desired size
+            logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
 
-        # Paste the logo on the QR code image
-        img_qr.paste(logo_image, (logo_x, logo_y))
+            # Paste the logo on the QR code image
+            img_qr.paste(logo_image, (logo_x, logo_y))
 
-        # Encode the logo image to base64
-        buffer = BytesIO()
-        logo_image.save(buffer, format="PNG")
-        logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            # Encode the logo image to base64
+            buffer = BytesIO()
+            logo_image.save(buffer, format="PNG")
+            logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        else:
+            logo_base64 = None
 
         # Encode the QR code image to base64
         buffer = BytesIO()
-        img_qr.save(buffer, 'PNG')
+        img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
         field = {
@@ -73,7 +85,7 @@ class codeqr(APIView):
             "status":"nothing to update"
         }
 
-        
+
 
         serializer = DoWellQrCodeSerializer(data=field)
         if serializer.is_valid():
