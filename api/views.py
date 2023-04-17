@@ -103,3 +103,17 @@ class codeqr(APIView):
 # Binary data is a type of digital data that is represented using a binary system of 0s and 1s. In computing,
 # binary data typically refers to any data that is not text-based, such as images, audio files, video files, and executable programs.
 
+@method_decorator(csrf_exempt, name='dispatch')
+class fetchdata(APIView):
+
+    def get(self, request , company_id):
+        field = {
+           "company_id": company_id 
+        }
+        update_field = {
+            "status":"nothing to update"
+        }
+
+        response = dowellconnection(*qrcode_management,"fetch",field, update_field)
+        return Response({"Response":json.loads(response)}, status=status.HTTP_201_CREATED)
+        
