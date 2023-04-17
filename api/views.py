@@ -29,8 +29,8 @@ class codeqr(APIView):
         create_by = request.data.get("create_by")
         company_id = request.data.get("company_id")
 
-        # logo_size = 100 # Set default logo size
-        # logo_image = Image.open("image/logo.png")
+        logo_size = 100 # Set default logo size
+        # logo_image = Image.open("logo.png")
 
         if logo and logo.size > 0:
             logo_contents = logo.read()
@@ -66,6 +66,7 @@ class codeqr(APIView):
             buffer = BytesIO()
             logo_image.save(buffer, format="PNG")
             logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            print(logo_base64)
         else:
             logo_base64 = None
 
@@ -73,7 +74,7 @@ class codeqr(APIView):
         buffer = BytesIO()
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-
+        print(img_base64)
         field = {
             "link": link,
             "logo": logo_base64,
@@ -91,7 +92,7 @@ class codeqr(APIView):
         serializer = DoWellQrCodeSerializer(data=field)
         if serializer.is_valid():
             response = dowellconnection(*qrcode_management,"insert",field, update_field)
-            return Response({"Response":response,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
+            return Response({"Response":response,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
