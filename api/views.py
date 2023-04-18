@@ -6,7 +6,9 @@ import base64
 from io import BytesIO
 import logging
 from api.serializers import *
-from PIL import Image, ImageDraw, ImageOps
+
+import numpy as np
+from PIL import Image, ImageDraw, ImageOps, ImageFilter
 from rest_framework import status
 from rest_framework.views import APIView
 from database.database_management import *
@@ -43,9 +45,7 @@ class codeqr(APIView):
             draw = ImageDraw.Draw(mask) 
             draw.ellipse((0, 0, logo_size, logo_size), fill=255)
             logo_image.putalpha(mask)
-
-            
-            
+            logo_edges = ImageOps.colorize(logo_image.convert('L').filter(ImageFilter.FIND_EDGES), "black", "green")
         else:
             logo_image = None
 
@@ -100,8 +100,8 @@ class codeqr(APIView):
 
         serializer = DoWellQrCodeSerializer(data=field)
         if serializer.is_valid():
-            response = dowellconnection(*qrcode_management,"insert",field, update_field)
-            return Response({"Response":response,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
+            # response = dowellconnection(*qrcode_management,"insert",field, update_field)
+            return Response({"Response":field,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
