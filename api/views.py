@@ -6,7 +6,7 @@ import base64
 from io import BytesIO
 import logging
 from api.serializers import *
-from PIL import Image
+from PIL import Image, ImageDraw, ImageOps
 from rest_framework import status
 from rest_framework.views import APIView
 from database.database_management import *
@@ -23,6 +23,7 @@ class codeqr(APIView):
 
     def post(self, request):
         link = request.data.get("link")
+        print("This the link", link)
         product_name = request.data.get("product_name")
         logo = request.FILES.get('logo')
         print("Fileimageeee:", logo)
@@ -38,14 +39,22 @@ class codeqr(APIView):
             print("Logo image size:", logo_image.size)
             # Resize the logo to the desired size
             logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
+            mask = Image.new('L', (logo_size, logo_size), 0)
+            draw = ImageDraw.Draw(mask) 
+            draw.ellipse((0, 0, logo_size, logo_size), fill=255)
+            logo_image.putalpha(mask)
+
+            
+            
         else:
             logo_image = None
 
         # Create the QR code image
         qr_code = qrcode.QRCode(version=1, 
-                                error_correction=qrcode.constants.ERROR_CORRECT_L, 
+                                error_correction=qrcode.constants.ERROR_CORRECT_Q, 
                                 box_size=10, border=4)
         qr_code.add_data(link)
+        print("Haiyaaaa", link)
         qr_code.make(fit=True)
         img_qr = qr_code.make_image(fill_color="black", back_color="white")
         print("QR code size:", img_qr.size)
@@ -74,7 +83,7 @@ class codeqr(APIView):
         buffer = BytesIO()
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        print(img_base64)
+        # print(img_base64)
         field = {
             "link": link,
             "logo": logo_base64,
@@ -116,4 +125,20 @@ class fetchdata(APIView):
 
         response = dowellconnection(*qrcode_management,"fetch",field, update_field)
         return Response({"Response":json.loads(response)}, status=status.HTTP_201_CREATED)
-        
+    
+
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class getdata(APIView):
+
+    def get(self, request , product_name):
+        field = {
+           "product_name":  product_name
+        }
+        update_field = {
+            "status":"nothing to update"
+        }
+
+        response = dowellconnection(*qrcode_management,"fetch",field, update_field)
+        return Response({"Response":json.loads(response)}, status=status.HTTP_201_CREATED)
