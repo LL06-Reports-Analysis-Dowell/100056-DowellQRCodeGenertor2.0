@@ -1,6 +1,6 @@
 import io
 import json
-from tkinter import Image
+# from tkinter import Image
 import qrcode
 import base64
 from io import BytesIO
@@ -12,6 +12,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageOps, ImageFilter
 from rest_framework import status
 from rest_framework.views import APIView
+from api.utils import change_image_color_, resize_image
 from database.database_management import *
 from rest_framework.response import Response
 from database.connection import dowellconnection
@@ -62,13 +63,17 @@ class codeqr(APIView):
         create_by = request.data.get("create_by")
         company_id = request.data.get("company_id")
 
+        logo_color = request.data.get("logo_color")
         logo_size = 100 # Set default logo size
+        
         # logo_image = Image.open("logo.png")
 
         if logo and logo.size > 0:
             logo_contents = logo.read()
             logo_image = Image.open(io.BytesIO(logo_contents))
             print("Logo image size:", logo_image.size)
+            
+
             # Resize the logo to the desired size
             logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
             
@@ -130,6 +135,21 @@ class codeqr(APIView):
             return Response({"Response":response,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    def get(self, request):
+        company_id = request.GET.get('company_id')
+        product_name = request.GET.get('product_name')
+
+        if company_id:
+            field = {"company_id": company_id}
+        elif product_name:
+            field = {"product_name": product_name}
+        else:
+            return Response({"error": "Please provide either company_id or product_name"}, status=status.HTTP_400_BAD_REQUEST)
+
+        update_field = {"status": "nothing to update"}
+
+        response = dowellconnection(*qrcode_management, "fetch", field, update_field)
+        return Response({"Response": json.loads(response)}, status=status.HTTP_200_OK)
 
 # generate_image = qrcode.make("Youtube")
 # generate_image.save('image1.png')
@@ -144,11 +164,13 @@ class codeqrupdate(APIView):
         create_by = request.data.get("create_by")
         company_id = request.data.get("company_id")
         logo_size = request.data.get("logo_size", 100)  # Get logo size from request data or set default
-        logo_color = request.data.get("logo_color", "black")  # Get logo color from request data or set default
+        logo_color = request.data.get("logo_color", "#000000")  # Get logo color from request data or set default
+        qrcode_color = request.data.get("qrcode_color", "black")
 
         print("This is the logo color", logo_color)
         print("This is the logo", logo)
         # Validate logo size
+        
         try:
             logo_size = int(logo_size)
             if logo_size <= 0:
@@ -159,13 +181,17 @@ class codeqrupdate(APIView):
         # Validate logo color
         if not is_valid_hex_color(logo_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         if logo and logo.size > 0:
             logo_contents = logo.read()
             logo_image = Image.open(io.BytesIO(logo_contents))
             print("Logo image size:", logo_image.size)
-            # Resize the logo to the desired size
+            
+            # Resize the logo to the desired size and change color
             logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
+            print("logo_size after1", logo_image.size)
+            change_image_color_(logo, logo_color)
+            
         else:
             logo_image = None
 
@@ -173,7 +199,7 @@ class codeqrupdate(APIView):
         qr_code = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_Q, box_size=10, border=4)
         qr_code.add_data(link)
         qr_code.make(fit=True)
-        img_qr = qr_code.make_image(fill_color="black", back_color="white")
+        img_qr = qr_code.make_image(fill_color=qrcode_color, back_color="white")
         print("QR code size:", img_qr.size)
 
         if logo_image:
@@ -184,13 +210,14 @@ class codeqrupdate(APIView):
 
             # Resize the logo to the desired size
             logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
+            print("logo_size after2", logo_image.size)
 
             # Paste the logo on the QR code image
             img_qr.paste(logo_image, (logo_x, logo_y))
 
             # Change logo color
-            if logo_color != "black":
-                img_qr = change_image_color(img_qr, "black", logo_color)
+            # if logo_color != "black":
+            #     img_qr = change_image_color(img_qr, "black", logo_color)
 
             # Encode the logo image to base64
             buffer = BytesIO()
@@ -213,6 +240,7 @@ class codeqrupdate(APIView):
             "product_name":  product_name,
             "logo_size": logo_size,
             "logo_color":logo_color,
+            "qrcode_color": qrcode_color,
             "qrcode": img_base64
         }
         update_field = {
@@ -233,33 +261,33 @@ class codeqrupdate(APIView):
 # Binary data is a type of digital data that is represented using a binary system of 0s and 1s. In computing,
 # binary data typically refers to any data that is not text-based, such as images, audio files, video files, and executable programs.
 
-@method_decorator(csrf_exempt, name='dispatch')
-class fetchdata(APIView):
+# @method_decorator(csrf_exempt, name='dispatch')
+# class fetchdata(APIView):
 
-    def get(self, request , company_id):
-        field = {
-           "company_id": company_id 
-        }
-        update_field = {
-            "status":"nothing to update"
-        }
+#     def get(self, request , company_id):
+#         field = {
+#            "company_id": company_id 
+#         }
+#         update_field = {
+#             "status":"nothing to update"
+#         }
 
-        response = dowellconnection(*qrcode_management,"fetch",field, update_field)
-        return Response({"Response":json.loads(response)}, status=status.HTTP_201_CREATED)
+#         response = dowellconnection(*qrcode_management,"fetch",field, update_field)
+#         return Response({"Response":json.loads(response)}, status=status.HTTP_201_CREATED)
     
 
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class getdata(APIView):
+# @method_decorator(csrf_exempt, name='dispatch')
+# class getdata(APIView):
 
-    def get(self, request , product_name):
-        field = {
-           "product_name":  product_name
-        }
-        update_field = {
-            "status":"nothing to update"
-        }
+#     def get(self, request , product_name):
+#         field = {
+#            "product_name":  product_name
+#         }
+#         update_field = {
+#             "status":"nothing to update"
+#         }
 
-        response = dowellconnection(*qrcode_management,"fetch",field, update_field)
-        return Response({"Response":json.loads(response)}, status=status.HTTP_201_CREATED)
+#         response = dowellconnection(*qrcode_management,"fetch",field, update_field)
+#         return Response({"Response":json.loads(response)}, status=status.HTTP_201_CREATED)
