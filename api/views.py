@@ -5,6 +5,7 @@ import qrcode
 import base64
 from io import BytesIO
 import logging
+import re
 from api.serializers import *
 
 import numpy as np
@@ -20,24 +21,33 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 def is_valid_hex_color(color):
-    if not color.startswith("#"):
+    """
+    Checks if the given string is a valid hex color code.
+    """
+    if not isinstance(color, str):
         return False
-    if len(color) != 7:
-        return False
-    try:
-        int(color[1:], 16)
-    except ValueError:
+    if not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color):
         return False
     return True
 
 def change_image_color(image, color_from, color_to):
-    if not is_valid_hex_color(color_from) or not is_valid_hex_color(color_to):
-        raise ValueError("Invalid hex color code.")
+    """
+    Changes the color of the given image from color_from to color_to.
+    """
+    if not is_valid_hex_color(color_from):
+        raise ValueError("Invalid hex color code for color_from.")
+    if not is_valid_hex_color(color_to):
+        raise ValueError("Invalid hex color code for color_to.")
 
+    # Convert color codes to RGB tuples
+    rgb_from = tuple(int(color_from[i:i+2], 16) for i in (1, 3, 5))
+    rgb_to = tuple(int(color_to[i:i+2], 16) for i in (1, 3, 5))
+
+    # Replace the color in the image
     data = np.array(image)
     r, g, b, a = np.rollaxis(data, axis=-1)
-    mask = (r == int(color_from[1:3], 16)) & (g == int(color_from[3:5], 16)) & (b == int(color_from[5:], 16))
-    data[..., :-1][mask.T] = [int(color_to[1:3], 16), int(color_to[3:5], 16), int(color_to[5:], 16)]
+    mask = (r == rgb_from[0]) & (g == rgb_from[1]) & (b == rgb_from[2])
+    data[..., :-1][mask] = rgb_to
     return Image.fromarray(data)
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqr(APIView):
@@ -111,13 +121,13 @@ class codeqr(APIView):
         update_field = {
             "status":"nothing to update"
         }
-
+# python qrcode
 
 
         serializer = DoWellQrCodeSerializer(data=field)
         if serializer.is_valid():
-            # response = dowellconnection(*qrcode_management,"insert",field, update_field)
-            return Response({"Response":field,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
+            response = dowellconnection(*qrcode_management,"insert",field, update_field)
+            return Response({"Response":response,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -137,6 +147,7 @@ class codeqrupdate(APIView):
         logo_color = request.data.get("logo_color", "black")  # Get logo color from request data or set default
 
         print("This is the logo color", logo_color)
+        print("This is the logo", logo)
         # Validate logo size
         try:
             logo_size = int(logo_size)
