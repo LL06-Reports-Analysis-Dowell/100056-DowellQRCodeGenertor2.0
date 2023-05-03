@@ -40,6 +40,7 @@ class codeqr(APIView):
         link = request.data.get("link")
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size"))
+        qrcode_color = request.data.get('qrcode_color')
         # product_name = request.data.get("product_name")
         # create_by = request.data.get("create_by")
     
@@ -48,7 +49,6 @@ class codeqr(APIView):
         if logo and logo.size > 0:
             logo_contents = logo.read()
             logo_image = Image.open(io.BytesIO(logo_contents))
-            print("Logo image size:", logo_image.size)
             
             # Resize the logo to the desired size
             logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
@@ -80,7 +80,6 @@ class codeqr(APIView):
             buffer = BytesIO()
             logo_image.save(buffer, format="PNG")
             logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-            # print(logo_base64)
         else:
             logo_base64 = None
 
@@ -88,17 +87,17 @@ class codeqr(APIView):
         buffer = BytesIO()
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        print(img_base64)
+
+        logoSize = int(request.data.get("logo_size"))
         field = {
             "link": link,
             "logo": logo_base64,
             "qrcode": img_base64,
-            "logo_size": logo_size,
+            "logo_size": logoSize,
             "company_id": company_id,
             # "create_by" : create_by,
             # "product_name":  product_name,
         }
-
         update_field = {
             "status":"nothing to update"
         }
@@ -146,8 +145,6 @@ class codeqrupdate(APIView):
         logo_color = request.data.get("logo_color", "#000000")  # Get logo color from request data or set default
         qrcode_color = request.data.get("qrcode_color", "black")
 
-        print("This is the logo color", logo_color)
-        print("This is the logo", logo)
         # Validate logo size
         
         try:
