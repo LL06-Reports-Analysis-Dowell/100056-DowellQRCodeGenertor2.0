@@ -41,22 +41,22 @@ Create a new Django project by running the following command in your terminal:
     *python3 -m venv djangoenv
 ## Create a new workspace in postman and do apost request
 
-## Passing the request json in the postman under port http://127.0.0.1:8000/api/codeqr/
+## Create a QRcode with a company id:
 
-    {
-   "link": "https://www.netflix.com/ke/",
-   "product_name": "internet",
-   "logo": "logo.png"
-   "create_by": "Iregi",
-   "company_id": "3344uy"
-   }
-
-## Example of response
-    {
-    "Response": {
-        "link": "https://www.netflix.com/ke/",
-        "logo": "iVBORw0KGgoAAAANSUhEUgAAAFIAAABSCAIAAABIThTMAAARn0lEQVR4nO1ceXAc1Zn/fe919/SMRppDt2RrfUiyMdjYYbETg7mXMySLKVKBQM4lriKwCTmAQCqbra1NTIpdsoHKLlkgoUJIIBwhOCHHmiWcNob4tpEPYZ2WLGlGoxmNZqb7vW//aFkCWSPNyAe1Mb8a/fPU/fr79XvvO99rYmacfBDvtwDvDz6gfTLhA9onE4z34Zk8+ncYBDrRIhx/2gwwe2aSiCA8kkcQ1e+95"......
-    },
-    "qrcode": "iVBORw0KGgoAAAANSUhEUgAAAUoAAAFKAQAAAABTUiuoAAAD6UlEQVR4nO3bsWskZRjH8e+TmdxGEGYkVxyo3CIcnIIQUbCcEQtLsfAaLfIfKHY23oudlVfbuCCClWgjVsdMd4XCFmK9BxYnnjoDEnPZmTwW72xym3k3+ya42YjvW2yybz55+c2+".....
+    company_id : "example-company"
+    logo: "image.png"
+    POST REQUEST : http://127.0.0.1:8000/api/codeqr/
 
 
+## Update the Qrcode with Following Input Fields:
+
+    link: "example.com"
+    company_id: "example1company"
+    Qrcode_color: #ff000
+    logo: "image.png"
+    PUT REQUEST: http://127.0.0.1:8000/api/codeqrupdate/<str:company_id>
+
+
+## Fetch the QRcode using Company_id as Query parameter:
+
+    GET REQUEST : http://127.0.0.1:8000/api/codeqr/?company_id=company_id
