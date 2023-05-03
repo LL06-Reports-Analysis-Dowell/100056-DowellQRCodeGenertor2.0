@@ -8,7 +8,6 @@ import logging
 import re
 from api.serializers import *
 
-import numpy as np
 from PIL import Image, ImageDraw, ImageOps, ImageFilter
 from rest_framework import status
 from rest_framework.views import APIView
@@ -31,25 +30,7 @@ def is_valid_hex_color(color):
         return False
     return True
 
-def change_image_color(image, color_from, color_to):
-    """
-    Changes the color of the given image from color_from to color_to.
-    """
-    if not is_valid_hex_color(color_from):
-        raise ValueError("Invalid hex color code for color_from.")
-    if not is_valid_hex_color(color_to):
-        raise ValueError("Invalid hex color code for color_to.")
 
-    # Convert color codes to RGB tuples
-    rgb_from = tuple(int(color_from[i:i+2], 16) for i in (1, 3, 5))
-    rgb_to = tuple(int(color_to[i:i+2], 16) for i in (1, 3, 5))
-
-    # Replace the color in the image
-    data = np.array(image)
-    r, g, b, a = np.rollaxis(data, axis=-1)
-    mask = (r == rgb_from[0]) & (g == rgb_from[1]) & (b == rgb_from[2])
-    data[..., :-1][mask] = rgb_to
-    return Image.fromarray(data)
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqr(APIView):
 
