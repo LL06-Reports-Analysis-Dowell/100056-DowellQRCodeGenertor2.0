@@ -33,20 +33,16 @@ def is_valid_hex_color(color):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqr(APIView):
-
+    serializer_class = DoWellQrCodeSerializer
 
     def post(self, request):
-        link = request.data.get("link")
-        print("This the link", link)
-        product_name = request.data.get("product_name")
-        logo = request.FILES.get('logo')
-        print("Fileimageeee:", logo)
-        create_by = request.data.get("create_by")
         company_id = request.data.get("company_id")
-
-        logo_color = request.data.get("logo_color")
-        logo_size = 100 # Set default logo size
-        
+        link = request.data.get("link")
+        logo = request.FILES.get('logo')
+        logo_size = int(request.data.get("logo_size"))
+        # product_name = request.data.get("product_name")
+        # create_by = request.data.get("create_by")
+    
         # logo_image = Image.open("logo.png")
 
         if logo and logo.size > 0:
@@ -54,7 +50,6 @@ class codeqr(APIView):
             logo_image = Image.open(io.BytesIO(logo_contents))
             print("Logo image size:", logo_image.size)
             
-
             # Resize the logo to the desired size
             logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
             
@@ -66,10 +61,8 @@ class codeqr(APIView):
                                 error_correction=qrcode.constants.ERROR_CORRECT_Q, 
                                 box_size=10, border=4)
         qr_code.add_data(link)
-        print("Haiyaaaa", link)
         qr_code.make(fit=True)
         img_qr = qr_code.make_image(fill_color="black", back_color="white")
-        print("QR code size:", img_qr.size)
 
         if logo_image:
             # Calculate the position to place the logo
@@ -87,7 +80,7 @@ class codeqr(APIView):
             buffer = BytesIO()
             logo_image.save(buffer, format="PNG")
             logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-            print(logo_base64)
+            # print(logo_base64)
         else:
             logo_base64 = None
 
@@ -95,25 +88,30 @@ class codeqr(APIView):
         buffer = BytesIO()
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        # print(img_base64)
+        print(img_base64)
         field = {
             "link": link,
             "logo": logo_base64,
-            "create_by" : create_by,
+            "qrcode": img_base64,
+            "logo_size": logo_size,
             "company_id": company_id,
-            "product_name":  product_name,
-            "qrcode": img_base64
+            # "create_by" : create_by,
+            # "product_name":  product_name,
         }
+
         update_field = {
             "status":"nothing to update"
         }
-# python qrcode
 
-
+        # python qrcode
         serializer = DoWellQrCodeSerializer(data=field)
+        # serializer = DoWellQrCodeSerializer(data=field)
         if serializer.is_valid():
-            response = dowellconnection(*qrcode_management,"insert",field, update_field)
-            return Response({"Response":response,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
+            serializer.save(is_active=False)
+            # response = dowellconnection(*qrcode_management,"insert",field, update_field)
+            # return Response({"Response":serializer.data ,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
+            return Response({"Response":serializer.data}, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self, request):

@@ -10,6 +10,8 @@ class QrCode(models.Model):
     company_id = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
 
+    logo = models.TextField(blank=True, null=True)
+    qrcode = models.TextField(blank=True, null=True)
     logo_size = models.CharField(max_length=255, null=True, blank=True)
     qrcode_color = models.CharField(max_length=255, blank=True, null=True)
 
