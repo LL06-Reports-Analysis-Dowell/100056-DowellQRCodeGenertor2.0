@@ -115,38 +115,35 @@ class codeqr(APIView):
     
     def get(self, request):
         company_id = request.GET.get('company_id')
-        product_name = request.GET.get('product_name')
 
         if company_id:
-            field = {"company_id": company_id}
-        elif product_name:
-            field = {"product_name": product_name}
+            try:
+                qrCode = QrCode.objects.get(company_id=company_id)
+                serializer = self.serializer_class(qrCode, many=False)
+                return Response({"data": serializer.data})
+            except qrCode.DoesNotExist:
+                return Response({"error": "Not Found"})
         else:
             return Response({"error": "Please provide either company_id or product_name"}, status=status.HTTP_400_BAD_REQUEST)
 
-        update_field = {"status": "nothing to update"}
+        # update_field = {"status": "nothing to update"}
+        # response = dowellconnection(*qrcode_management, "fetch", field, update_field)
+        # return Response({"Response": json.loads(response)}, status=status.HTTP_200_OK)
 
-        response = dowellconnection(*qrcode_management, "fetch", field, update_field)
-        return Response({"Response": json.loads(response)}, status=status.HTTP_200_OK)
 
-# generate_image = qrcode.make("Youtube")
-# generate_image.save('image1.png')
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqrupdate(APIView):
-    def post(self, request):
-        link = request.data.get("link")
-        product_name = request.data.get("product_name")
-        logo = request.FILES.get('logo')
-        create_by = request.data.get("create_by")
+    def put(self, request, id):
+
         company_id = request.data.get("company_id")
-        logo_size = request.data.get("logo_size", 100)  # Get logo size from request data or set default
-        logo_color = request.data.get("logo_color", "#000000")  # Get logo color from request data or set default
-        qrcode_color = request.data.get("qrcode_color", "black")
+        link = request.data.get("link")
+        logo = request.FILES.get('logo')
+        logo_size = int(request.data.get("logo_size"))
+        qrcode_color = request.data.get('qrcode_color')
 
         # Validate logo size
-        
         try:
             logo_size = int(logo_size)
             if logo_size <= 0:
@@ -155,19 +152,14 @@ class codeqrupdate(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate logo color
-        if not is_valid_hex_color(logo_color):
+        if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
         
         if logo and logo.size > 0:
             logo_contents = logo.read()
             logo_image = Image.open(io.BytesIO(logo_contents))
-            print("Logo image size:", logo_image.size)
             
-            # Resize the logo to the desired size and change color
-            logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
-            print("logo_size after1", logo_image.size)
-            change_image_color_(logo, logo_color)
-            
+            logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)            
         else:
             logo_image = None
 
@@ -176,7 +168,7 @@ class codeqrupdate(APIView):
         qr_code.add_data(link)
         qr_code.make(fit=True)
         img_qr = qr_code.make_image(fill_color=qrcode_color, back_color="white")
-        print("QR code size:", img_qr.size)
+
 
         if logo_image:
             # Calculate the position to place the logo
@@ -186,20 +178,14 @@ class codeqrupdate(APIView):
 
             # Resize the logo to the desired size
             logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
-            print("logo_size after2", logo_image.size)
 
             # Paste the logo on the QR code image
             img_qr.paste(logo_image, (logo_x, logo_y))
-
-            # Change logo color
-            # if logo_color != "black":
-            #     img_qr = change_image_color(img_qr, "black", logo_color)
 
             # Encode the logo image to base64
             buffer = BytesIO()
             logo_image.save(buffer, format="PNG")
             logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-            print(logo_base64)
         else:
             logo_base64 = None
 
@@ -208,27 +194,34 @@ class codeqrupdate(APIView):
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+        logoSize = int(request.data.get("logo_size"))
         field = {
             "link": link,
             "logo": logo_base64,
-            "create_by" : create_by,
+            "qrcode": img_base64,
+            "logo_size": logoSize,
             "company_id": company_id,
-            "product_name":  product_name,
-            "logo_size": logo_size,
-            "logo_color":logo_color,
-            "qrcode_color": qrcode_color,
-            "qrcode": img_base64
+            "qrcode_color": qrcode_color
+            # "create_by" : create_by,
+            # "product_name":  product_name,
         }
+       
         update_field = {
             "status":"nothing to update"
         }
 
+        try:
+            code = QrCode.objects.get(company_id = id)
+            serializer = DoWellQrCodeSerializer(code, data=field, many=False)
+            if serializer.is_valid():
+                serializer.save(is_active=True, qrcode_color=qrcode_color)
+                # response = dowellconnection(*qrcode_management,"insert",field, update_field)
+                return Response({"Response":serializer.data}, status=status.HTTP_201_CREATED)
+        except :
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-        serializer = DoWellQrCodeSerializer(data=field)
-        if serializer.is_valid():
-            response = dowellconnection(*qrcode_management,"insert",field, update_field)
-            return Response({"Response":response,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
            
+
+ 
+      
 

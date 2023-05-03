@@ -7,7 +7,7 @@ from django.db import models
 
 class QrCode(models.Model):
     link = models.URLField(max_length=255, blank=True, null=True)
-    company_id = models.CharField(max_length=255)
+    company_id = models.CharField(max_length=255, unique=True)
     is_active = models.BooleanField(default=False)
 
     logo = models.TextField(blank=True, null=True)

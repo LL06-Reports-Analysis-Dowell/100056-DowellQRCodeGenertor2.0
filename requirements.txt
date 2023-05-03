@@ -7,7 +7,10 @@ django-cors-headers==3.14.0
 djangorestframework==3.14.0
 idna==3.4
 Pillow==9.5.0
+psycopg2-binary==2.9.6
 pypng==0.20220715.0
+pyscopg2==66.0.2
+pyshorteners==1.0.1
 python-decouple==3.8
 pytz==2023.3
 qrcode==7.4.2
