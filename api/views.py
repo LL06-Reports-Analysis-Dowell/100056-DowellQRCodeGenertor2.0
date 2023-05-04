@@ -11,24 +11,15 @@ from api.serializers import *
 from PIL import Image, ImageDraw, ImageOps, ImageFilter
 from rest_framework import status
 from rest_framework.views import APIView
-from api.utils import change_image_color_, resize_image
+from api.utils import is_valid_hex_color, create_qrcode, logo_position, resize_logo
 from database.database_management import *
 from rest_framework.response import Response
 from database.connection import dowellconnection
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+# create post put
 
-
-def is_valid_hex_color(color):
-    """
-    Checks if the given string is a valid hex color code.
-    """
-    if not isinstance(color, str):
-        return False
-    if not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color):
-        return False
-    return True
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -43,56 +34,18 @@ class codeqr(APIView):
         qrcode_color = request.data.get('qrcode_color')
         # product_name = request.data.get("product_name")
         # create_by = request.data.get("create_by")
-    
-        # logo_image = Image.open("logo.png")
+
 
         # set default logo size if no logo_size is found
-        if logo_size:
-            logo_size = int(logo_size)
-        else:
-            logo_size = 20
-        if logo and logo.size > 0:
-            logo_contents = logo.read()
-            logo_image = Image.open(io.BytesIO(logo_contents))
-            
-            # Resize the logo to the desired size
-            logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
-            
-        else:
-            logo_image = None
+        logo_image = resize_logo(logo, logo_size)
 
         # Create the QR code image
-        qr_code = qrcode.QRCode(version=1, 
-                                error_correction=qrcode.constants.ERROR_CORRECT_Q, 
-                                box_size=10, border=4)
         
-        if link:
-            qr_code.add_data(link)
-        else:
-            pass
-        qr_code.make(fit=True)
-        img_qr = qr_code.make_image(fill_color=qrcode_color, back_color="white")
+        img_qr = create_qrcode(link, qrcode_color)
+       
+        # Encode the QR code image to base64 and position logo at te center of the qrcode
 
-        if logo_image:
-            # Calculate the position to place the logo
-            qrcode_logoSize = min(img_qr.size[0], img_qr.size[1]) * 25 // 100 # Change this value to adjust the size of the logo
-            logo_x = (img_qr.size[0] - qrcode_logoSize) // 2
-            logo_y = (img_qr.size[1] - qrcode_logoSize) // 2
-
-            # Resize the logo to the desired size
-            logo_image = logo_image.resize((qrcode_logoSize, qrcode_logoSize), resample=Image.LANCZOS)
-
-            # Paste the logo on the QR code image
-            img_qr.paste(logo_image, (logo_x, logo_y))
-
-            # Encode the logo image to base64
-            buffer = BytesIO()
-            logo_image.save(buffer, format="PNG")
-            logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        else:
-            logo_base64 = None
-
-        # Encode the QR code image to base64
+        logo_base64 = logo_position(logo_image, img_qr)
         buffer = BytesIO()
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -147,7 +100,7 @@ class codeqrupdate(APIView):
         company_id = request.data.get("company_id")
         link = request.data.get("link")
         logo = request.FILES.get('logo')
-        logo_size = int(request.data.get("logo_size"))
+        logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', "#000000")
 
         # Validate logo size
@@ -162,46 +115,19 @@ class codeqrupdate(APIView):
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
         
-        if logo and logo.size > 0:
-            logo_contents = logo.read()
-            logo_image = Image.open(io.BytesIO(logo_contents))
-            
-            logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)            
-        else:
-            logo_image = None
-
+        logo_image = resize_logo(logo, logo_size)
         # Create the QR code image
-        qr_code = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_Q, box_size=10, border=4)
-        qr_code.add_data(link)
-        qr_code.make(fit=True)
-        img_qr = qr_code.make_image(fill_color=qrcode_color, back_color="white")
+        img_qr = create_qrcode(link, qrcode_color)
 
 
-        if logo_image:
-            # Calculate the position to place the logo
-            logo_size = min(img_qr.size[0], img_qr.size[1]) * 25 // 100  # Change this value to adjust the size of the logo
-            logo_x = (img_qr.size[0] - logo_size) // 2
-            logo_y = (img_qr.size[1] - logo_size) // 2
-
-            # Resize the logo to the desired size
-            logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
-
-            # Paste the logo on the QR code image
-            img_qr.paste(logo_image, (logo_x, logo_y))
-
-            # Encode the logo image to base64
-            buffer = BytesIO()
-            logo_image.save(buffer, format="PNG")
-            logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        else:
-            logo_base64 = None
+        logo_base64 = logo_position(logo_image, img_qr)
 
         # Encode the QR code image to base64
         buffer = BytesIO()
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-        logoSize = int(request.data.get("logo_size"))
+        logoSize = logo_size
         field = {
             "link": link,
             "logo": logo_base64,
