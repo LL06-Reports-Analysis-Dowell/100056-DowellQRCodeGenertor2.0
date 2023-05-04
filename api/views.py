@@ -39,13 +39,18 @@ class codeqr(APIView):
         company_id = request.data.get("company_id")
         link = request.data.get("link")
         logo = request.FILES.get('logo')
-        logo_size = int(request.data.get("logo_size"))
+        logo_size = request.data.get("logo_size")
         qrcode_color = request.data.get('qrcode_color')
         # product_name = request.data.get("product_name")
         # create_by = request.data.get("create_by")
     
         # logo_image = Image.open("logo.png")
 
+        # set default logo size if no logo_size is found
+        if logo_size:
+            logo_size = int(logo_size)
+        else:
+            logo_size = 20
         if logo and logo.size > 0:
             logo_contents = logo.read()
             logo_image = Image.open(io.BytesIO(logo_contents))
@@ -60,18 +65,22 @@ class codeqr(APIView):
         qr_code = qrcode.QRCode(version=1, 
                                 error_correction=qrcode.constants.ERROR_CORRECT_Q, 
                                 box_size=10, border=4)
-        qr_code.add_data(link)
+        
+        if link:
+            qr_code.add_data(link)
+        else:
+            pass
         qr_code.make(fit=True)
-        img_qr = qr_code.make_image(fill_color="black", back_color="white")
+        img_qr = qr_code.make_image(fill_color=qrcode_color, back_color="white")
 
         if logo_image:
             # Calculate the position to place the logo
-            logo_size = min(img_qr.size[0], img_qr.size[1]) * 25 // 100 # Change this value to adjust the size of the logo
-            logo_x = (img_qr.size[0] - logo_size) // 2
-            logo_y = (img_qr.size[1] - logo_size) // 2
+            qrcode_logoSize = min(img_qr.size[0], img_qr.size[1]) * 25 // 100 # Change this value to adjust the size of the logo
+            logo_x = (img_qr.size[0] - qrcode_logoSize) // 2
+            logo_y = (img_qr.size[1] - qrcode_logoSize) // 2
 
             # Resize the logo to the desired size
-            logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
+            logo_image = logo_image.resize((qrcode_logoSize, qrcode_logoSize), resample=Image.LANCZOS)
 
             # Paste the logo on the QR code image
             img_qr.paste(logo_image, (logo_x, logo_y))
@@ -88,15 +97,13 @@ class codeqr(APIView):
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-        logoSize = int(request.data.get("logo_size"))
+        logoSize = logo_size
         field = {
-            "link": link,
             "logo": logo_base64,
             "qrcode": img_base64,
             "logo_size": logoSize,
             "company_id": company_id,
-            # "create_by" : create_by,
-            # "product_name":  product_name,
+            "qrcode_color": qrcode_color,
         }
         update_field = {
             "status":"nothing to update"
@@ -141,7 +148,7 @@ class codeqrupdate(APIView):
         link = request.data.get("link")
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size"))
-        qrcode_color = request.data.get('qrcode_color')
+        qrcode_color = request.data.get('qrcode_color', "#000000")
 
         # Validate logo size
         try:
@@ -151,7 +158,7 @@ class codeqrupdate(APIView):
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate logo color
+    
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -201,9 +208,8 @@ class codeqrupdate(APIView):
             "qrcode": img_base64,
             "logo_size": logoSize,
             "company_id": company_id,
-            "qrcode_color": qrcode_color
-            # "create_by" : create_by,
-            # "product_name":  product_name,
+            "qrcode_color": qrcode_color,
+            "is_active": True
         }
        
         update_field = {
@@ -212,9 +218,9 @@ class codeqrupdate(APIView):
 
         try:
             code = QrCode.objects.get(company_id = id)
-            serializer = DoWellQrCodeSerializer(code, data=field, many=False)
+            serializer = DoWellQrCodeSerializer(code, data=field, partial=True)
             if serializer.is_valid():
-                serializer.save(is_active=True, qrcode_color=qrcode_color)
+                serializer.save()
                 # response = dowellconnection(*qrcode_management,"insert",field, update_field)
                 return Response({"Response":serializer.data}, status=status.HTTP_201_CREATED)
         except :
