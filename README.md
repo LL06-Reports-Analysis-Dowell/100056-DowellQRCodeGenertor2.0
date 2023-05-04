@@ -15,48 +15,84 @@ In this ReadMe file, we will be creating a simple QR code generator using Python
 ## Prerequisites
 
 Before you begin, make sure you have the following software installed on your computer:
-
-    .Python 3.x
-    .Django 3.x
-    .qrcode library (can be installed using pip)
-
-## Step 1: Setting up the Django project
-
-Create a new Django project by running the following command in your terminal:
-
+    .Python 3.7+
+    
+## Step 1: Setting up the Django project in your local machine
+    
+    Clone project by running the following command in your terminal:
     *git clone git@github.com:LL06-Reports-Analysis-Dowell/100056-DowellQRCodeGenertor2.0.git
 
-## Next, create a new Django app within the project:
+## Next, get into the Projects directory:
 
-    *cd /path/100056-DowellQRCodeGenertor2.0
-    *python manage.py startapp qr_app
+    Get into the projects directory by running:
+    *cd /100056-DowellQRCodeGenertor2.0
+
+    Create a virtual enviroment and activate it in the terminal using
+    *python3 -m venv venve
+    *source venve/bin/activate - linux
 
 ## Install the requirements
 
-    *pip install djangorestframework
-    *pip install django-cors-headers
-    *pip install requests
-    *mkvirtualenv a
-    *source djangoenv/bin/activate
-    *python3 -m venv djangoenv
-## Create a new workspace in postman and do apost request
+    *pip install -r requirements.txt
 
-## Passing the request json in the postman under port http://127.0.0.1:8000/api/codeqr/
-
+## Create a QRcode:
+    POST REQUEST : http://127.0.0.1:8000/api/codeqr/
+    This should be a form data:
     {
-   "link": "https://www.netflix.com/ke/",
-   "product_name": "internet",
-   "logo": "logo.png"
-   "create_by": "Iregi",
-   "company_id": "3344uy"
-   }
+        company_id : "example-company", - required
+        logo: "image.png", -optional
+        logo_size: "23", -optional defaults to 20 
+        qrcode_color: "#009933" - optional
+    }
 
-## Example of response
+    The response will be:
     {
-    "Response": {
-        "link": "https://www.netflix.com/ke/",
-        "logo": "iVBORw0KGgoAAAANSUhEUgAAAFIAAABSCAIAAABIThTMAAARn0lEQVR4nO1ceXAc1Zn/fe919/SMRppDt2RrfUiyMdjYYbETg7mXMySLKVKBQM4lriKwCTmAQCqbra1NTIpdsoHKLlkgoUJIIBwhOCHHmiWcNob4tpEPYZ2WLGlGoxmNZqb7vW//aFkCWSPNyAe1Mb8a/fPU/fr79XvvO99rYmacfBDvtwDvDz6gfTLhA9onE4z34Zk8+ncYBDrRIhx/2gwwe2aSiCA8kkcQ1e+95"......
-    },
-    "qrcode": "iVBORw0KGgoAAAANSUhEUgAAAUoAAAFKAQAAAABTUiuoAAAD6UlEQVR4nO3bsWskZRjH8e+TmdxGEGYkVxyo3CIcnIIQUbCcEQtLsfAaLfIfKHY23oudlVfbuCCClWgjVsdMd4XCFmK9BxYnnjoDEnPZmTwW72xym3k3+ya42YjvW2yybz55+c2+".....
+        "logo": "base64_string",
+        "qrcode: "base64_string"
+        "link": null,
+        "company_id": "example-company",
+        "logo_size": "20",
+        "qrcode_color": null,
+        "is_active": false
+    }
+    
+    
+## Update the Qrcode with Following Input Fields:
+    PUT REQUEST: http://127.0.0.1:8000/api/dowell_codeqrupdate/<str:company_id>
+
+    link: "https://example.com" - required
+    company_id: "example1company" - optional
+    qrcode_color: "#ff0000" - optional
+    logo: "image.png"   - optional
+
+    The response will be:
+    {
+        "logo": "base64_string",
+        "qrcode: "base64_string"
+        "link": "https://example.com",
+        "company_id": "example-company",
+        "logo_size": "20",
+        "qrcode_color": "#ff0000",
+        "product_name": "name",
+        "created_by": "ayush" 
+        "is_active": true
+    }
 
 
+## Fetch the QRcode using Company_id as Query parameter:
+
+    GET REQUEST : http://127.0.0.1:8000/api/dowell_codeqr/?company_id=company_id
+
+    The response:
+    {
+        "logo": "base64_string",
+        "qrcode: "base64_string"
+        "link": "https://example.com",
+        "company_id": "example-company",
+        "logo_size": "20",
+        "qrcode_color": "#993366",
+        "product_name": "name",
+        "created_by": "ayush" 
+        "is_active": boolean
+    }
+    
