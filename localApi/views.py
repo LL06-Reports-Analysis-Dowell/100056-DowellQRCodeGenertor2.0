@@ -6,12 +6,12 @@ import base64
 from io import BytesIO
 import logging
 import re
-from api.serializers import *
+from localApi.serializers import *
 
 from PIL import Image, ImageDraw, ImageOps, ImageFilter
 from rest_framework import status
 from rest_framework.views import APIView
-from api.utils import is_valid_hex_color, create_qrcode, logo_position, resize_logo
+from localApi.utils import is_valid_hex_color, create_qrcode, logo_position, resize_logo
 from database.database_management import *
 from rest_framework.response import Response
 from database.connection import dowellconnection

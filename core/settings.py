@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     "corsheaders",
-    'api'
+    'localApi',
+    'dowellApi'
 ]
 
 MIDDLEWARE = [
@@ -81,14 +82,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_DB'),
-        'USER': config('POSTGRES_USER'),
-        'HOST': config('POSTGRES_HOST'),
-        'PASSWORD': config('POSTGRES_PASSWORD'),
-        'PORT': config('POSTGRES_PORT')
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 
 # Password validation

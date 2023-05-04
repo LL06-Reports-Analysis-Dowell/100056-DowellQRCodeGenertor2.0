@@ -58,7 +58,7 @@ Before you begin, make sure you have the following software installed on your co
     
     
 ## Update the Qrcode with Following Input Fields:
-    PUT REQUEST: http://127.0.0.1:8000/api/codeqrupdate/<str:company_id>
+    PUT REQUEST: http://127.0.0.1:8000/api/dowell_codeqrupdate/<str:company_id>
 
     link: "https://example.com" - required
     company_id: "example1company" - optional
@@ -72,14 +72,16 @@ Before you begin, make sure you have the following software installed on your co
         "link": "https://example.com",
         "company_id": "example-company",
         "logo_size": "20",
-        "qrcode_color": null,
+        "qrcode_color": "#ff0000",
+        "product_name": "name",
+        "created_by": "ayush" 
         "is_active": true
     }
 
 
 ## Fetch the QRcode using Company_id as Query parameter:
 
-    GET REQUEST : http://127.0.0.1:8000/api/codeqr/?company_id=company_id
+    GET REQUEST : http://127.0.0.1:8000/api/dowell_codeqr/?company_id=company_id
 
     The response:
     {
@@ -89,6 +91,8 @@ Before you begin, make sure you have the following software installed on your co
         "company_id": "example-company",
         "logo_size": "20",
         "qrcode_color": "#993366",
+        "product_name": "name",
+        "created_by": "ayush" 
         "is_active": boolean
     }
     
