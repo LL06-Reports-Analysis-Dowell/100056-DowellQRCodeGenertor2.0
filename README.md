@@ -36,7 +36,8 @@ Before you begin, make sure you have the following software installed on your co
     *pip install -r requirements.txt
 
 ## Create a QRcode:
-    POST REQUEST : http://127.0.0.1:8000/api/codeqr/
+    POST REQUEST : http://127.0.0.1:8000/api/dowell_codeqr/ --server
+                    http://127.0.0.1:8000/api/codeqr/ --local
     This should be a form data:
     {
         company_id : "example-company", - required
@@ -58,7 +59,8 @@ Before you begin, make sure you have the following software installed on your co
     
     
 ## Update the Qrcode with Following Input Fields:
-    PUT REQUEST: http://127.0.0.1:8000/api/dowell_codeqrupdate/<str:company_id>
+    PUT REQUEST: http://127.0.0.1:8000/api/dowell_codeqrupdate/<str:company_id> --server
+                http://127.0.0.1:8000/api/codeqrupdate/<str:company_id> --local
 
     link: "https://example.com" - required
     company_id: "example1company" - optional
@@ -81,7 +83,8 @@ Before you begin, make sure you have the following software installed on your co
 
 ## Fetch the QRcode using Company_id as Query parameter:
 
-    GET REQUEST : http://127.0.0.1:8000/api/dowell_codeqr/?company_id=company_id
+    GET REQUEST : http://127.0.0.1:8000/api/dowell_codeqr/?company_id=company_id --server
+                http://127.0.0.1:8000/api/codeqr/?company_id=company_id --local
 
     The response:
     {
