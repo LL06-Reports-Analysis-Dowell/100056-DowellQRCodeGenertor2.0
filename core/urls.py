@@ -19,5 +19,6 @@ from django.urls import path , include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('localApi.urls')),
-    path('api/', include('dowellApi.urls'))
+    path('api/', include('dowellApi.urls')),
+    path('qrcode-api-v1/', include('qrcode_app.urls')),
 ]

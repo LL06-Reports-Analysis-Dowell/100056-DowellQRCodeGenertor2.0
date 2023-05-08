@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'rest_framework',
     "corsheaders",
     'localApi',
-    'dowellApi'
+    'dowellApi',
+    "qrcode_app"
 ]
 
 MIDDLEWARE = [
