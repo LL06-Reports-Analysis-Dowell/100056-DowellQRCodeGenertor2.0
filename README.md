@@ -21,22 +21,24 @@ Before you begin, make sure you have the following software installed on your co
 ## Step 1: Setting up the Django project in your local machine.
     
     Clone project by running the following command in your terminal:
-    *git clone git@github.com:LL06-Reports-Analysis-Dowell/100056-DowellQRCodeGenertor2.0.git
+    `git clone git@github.com:LL06-Reports-Analysis-Dowell/100056-DowellQRCodeGenertor2.0.git`
 
 ## Step 2: Run the Project in your local environment.
 
     Get into the projects directory by running:
-    *cd /100056-DowellQRCodeGenertor2.0
+    `cd /100056-DowellQRCodeGenertor2.0`
 
     Create a virtual enviroment and activate it in the terminal using
-    *python3 -m venv venve
-    *source venve/bin/activate - linux
+    ```
+    python3 -m venv venve
+    source venve/bin/activate - linux
+    ```
 
     Install the requirements
-    *pip install -r requirements.txt
+    `pip install -r requirements.txt`
 
     Run the project:
-    *python3 manage.py runserver
+    `python3 manage.py runserver`
 
 ## API Documentation 
 ## Creating QRcodes:
@@ -56,8 +58,8 @@ Before you begin, make sure you have the following software installed on your co
     Response Example:
 
     If the QR code was created successfully, the API will respond with a JSON object containing the following fields:
-
-    **{
+```
+    {
         "_id": "6435567b0d7b968d221dda18",
         "logo": "base64_string",
         "qrcode": "base64_string",
@@ -68,6 +70,7 @@ Before you begin, make sure you have the following software installed on your co
         "qrcode_color": "#009933",
         "is_active": boolean
     }
+```
 
 ## Fetching qrcode QRcodes:
     Endpoint: POST http://127.0.0.1:8000/api/dowell_codeqr/?product_name=product_name (server) 
@@ -77,7 +80,8 @@ Before you begin, make sure you have the following software installed on your co
     will be returned. Otherwise it will return a list of all qrcodes.
 
     Sample Response
-    **{
+    ```
+    {
         "response": {
             "isSuccess": true,
             "data": [
@@ -93,21 +97,23 @@ Before you begin, make sure you have the following software installed on your co
                 }
         }   ]
     }
+    ```
 
 
 
 ## Fetching a single Qrcode
         
     To fetch a single Qrcode, make a GET request to the appropriate endpoint with the Qrcode's ID as a parameter. For example, to fetch the Qrcode with ID "123", you would make a request to:
-
-    **http://127.0.0.1:8000/api/dowell_codeqrupdate/123 --server
-    **http://127.0.0.1:8000/api/codeqrupdate/123 --local
+    ```
+    http://127.0.0.1:8000/api/dowell_codeqrupdate/123 --server
+    http://127.0.0.1:8000/api/codeqrupdate/123 --local
+    ```
 
     The response will be a JSON object containing the Qrcode data, including its ID, link, logo, qrcode image, logo size, qrcode color, product name, creation date, and status.
 
     Example Response
-
-    ** {
+    ```
+     {
         "response": {
             "_id": "123",
             "link": "http://example.com",
@@ -120,14 +126,16 @@ Before you begin, make sure you have the following software installed on your co
             "is_active": boolean
         }
     }
+    ```
 
 ## Updating the Qrcode:
 
     To update a Qrcode, make a PUT request to the appropriate endpoint with the ID of the Qrcode you want to update, and include the fields that you want to update in the request body. 
     For example, to update the link and logo of a Qrcode with ID "1234", you would make a PUT request to 
-    
-    **http://127.0.0.1:8000/api/dowell_codeqrupdate/1234 --server
-    **http://127.0.0.1:8000/api/codeqrupdate/1234 --local
+    ```
+    http://127.0.0.1:8000/api/dowell_codeqrupdate/1234 --server
+    http://127.0.0.1:8000/api/codeqrupdate/1234 --local
+    ```
 
     The data to be sent should be in the form of a multipart/form-data with the following fields:
         link(required): The URL link that the Qrcode points to.
@@ -139,7 +147,8 @@ Before you begin, make sure you have the following software installed on your co
         created_by(optional): The user who created the Qrcode.
 
     Example of a successfull response will be:
-        **{
+    ```
+        {
             "response: {   
                 "_id": "6435567b0d7b968d221dda18",
                 "logo": "base64_encoded_logo_image",
@@ -153,24 +162,26 @@ Before you begin, make sure you have the following software installed on your co
                 "is_active": true
             }
         }
+        ```
     When the qrcode id is not found the Response will be:
 
-    **{
+    ```{
         "error": "'1234' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string"
         }
+    ```
 
 
 
 
-# hash value for qr id --done
-# link --done
-# link for activate --it can function with update endpoint
-# name of qrcode --should be product name
-# description 
-# number of qr code -*can be added as a query parameter in the create endpoint
-# color --done
-# logo image --done
-# enable functionality of qr code ??
-# status --is_active done
-# type of qr code 
-# product name --done
+hash value for qr id --done
+link --done
+link for activate --it can function with update endpoint
+name of qrcode --should be product name
+description 
+number of qr code -*can be added as a query parameter in the create endpoint
+color --done
+logo image --done
+enable functionality of qr code ??
+status --is_active done
+type of qr code 
+product name --done
