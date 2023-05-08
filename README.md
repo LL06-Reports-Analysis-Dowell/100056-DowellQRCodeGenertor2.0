@@ -53,8 +53,9 @@ Before you begin, make sure you have the following software installed on your co
 
 ## API Documentation 
 ## Creating QRcodes:
-    Endpoint: POST http://127.0.0.1:8000/api/dowell_codeqr/ (server) 
-            POST: http://127.0.0.1:8000/api/codeqr/ (local)
+    Endpoint: 
+    POST: http://127.0.0.1:8000/api/dowell_codeqr/ (server) 
+    POST: http://127.0.0.1:8000/api/codeqr/ (local)
 
     This endpoint is used to create a QR code. The data to be sent should 
     be in the form of a multipart/form-data with the following fields:
@@ -63,31 +64,23 @@ Before you begin, make sure you have the following software installed on your co
     be used as the background color of the QR code. Defaults to black 
     if not provided.
 
-    product_name: (optional) A string representing the unique identifier
-    for the company for which the QR code is being generated.
-
-    logo: (optional) An image file representing the logo to be displayed 
-    in the center of the QR code. If no image is provided, the QR code
-    will be generated without a logo.
-
-    logo_size: (optional) An integer representing the size (in pixels)
-    of the logo to be displayed in the center of the QR code. 
-    Defaults to 20 if not provided.
 
     Response Example:
 
     If the QR code was created successfully, the API will respond 
-    with a JSON object containing the following fields:
-
+    with a JSON object containing the following fields. The _id field
+    will be generated automatically.
     {
         "_id": "6435567b0d7b968d221dda18",
-        "logo": "base64_string",
+        "logo": null,
         "qrcode": "base64_string",
-        "link": "https://example.com",
-        "product_name": "example-company",
-        "qrcode_type: null
+        "link": null,
+        "product_name": null,
+        "created_by": "name",
+        "qrcode_type: null,
         "logo_size": 20,
         "qrcode_color": "#009933",
+        "description": null,
         "is_active": boolean
     }
 
@@ -112,10 +105,13 @@ Before you begin, make sure you have the following software installed on your co
                     "_id": "6435567b0d7b968d221dda18",
                     "link": "https://example.com/",
                     "logo": "base64_string",
-                    "create_by": "name",
-                    "company_id": "string",
-                    "product_name": "internet",
                     "qrcode": "base64_string",
+                    "qrcode_color: "#ff0000",
+                    "created_by": "name",
+                    "company_id": "string",
+                    "qrcode_type: null,
+                    "product_name": "internet",
+                    "description": "example description"
                     "is_active": boolean
                 }
         }   ]
@@ -142,13 +138,15 @@ Before you begin, make sure you have the following software installed on your co
      {
         "response": {
             "_id": "123",
-            "link": "http://example.com",
-            "logo": "base64_encoded_logo_image",
-            "qrcode": "base64_encoded_qrcode_image",
-            "logo_size": 20,
-            "qrcode_color": "#009933",
-            "product_name": "example_product",
-            "created_by": "example_user",
+            "link": "https://example.com/",
+            "logo": "base64_string",
+            "qrcode": "base64_string",
+            "qrcode_color: "#ff0000",
+            "created_by": "name",
+            "company_id": "string",
+            "qrcode_type: "string",
+            "product_name": "internet",
+            "description": "example description"
             "is_active": boolean
         }
     }
@@ -175,6 +173,7 @@ Before you begin, make sure you have the following software installed on your co
         qrcode_color(optional): The color of the Qrcode.
         product_name(oprtional): The name of the product associated with the Qrcode.
         created_by(optional): The user who created the Qrcode.
+        description(optional): Description of the Qrcode.
 
     Example of a successfull response will be:
     
@@ -188,7 +187,8 @@ Before you begin, make sure you have the following software installed on your co
                 "logo_size": "20",
                 "qrcode_color": "#ff0000",
                 "product_name": "name",
-                "created_by": "ayush" 
+                "created_by": "ayush",
+                "description": "example description" 
                 "is_active": true
             }
         }
