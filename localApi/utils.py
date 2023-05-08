@@ -36,18 +36,22 @@ def is_valid_hex_color(color):
 
 def create_qrcode(link, qrcode_color):
 
-    qr_code = qrcode.QRCode(version=1, 
-                                error_correction=qrcode.constants.ERROR_CORRECT_Q, 
-                                box_size=10, border=4)
-        
+    qr_code = qrcode.QRCode(
+        version=1, 
+        error_correction=qrcode.constants.ERROR_CORRECT_Q, 
+        box_size=10, border=4
+    )
+
+    if not qrcode_color or qrcode_color == "" or qrcode_color == None:
+        qrcode_color = "#000000"
+
     if link:
-            qr_code.add_data(link)
+        qr_code.add_data(link)
     else:
         pass
     qr_code.make(fit=True)
+
     img_qr = qr_code.make_image(fill_color=qrcode_color, back_color="white")
-
-
     return img_qr
 
 def logo_position(logo_image, img_qr):
@@ -70,6 +74,5 @@ def logo_position(logo_image, img_qr):
         logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     else:
         logo_base64 = None
-
 
     return logo_base64

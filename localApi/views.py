@@ -32,8 +32,8 @@ class codeqr(APIView):
         logo = request.FILES.get('logo')
         logo_size = request.data.get("logo_size")
         qrcode_color = request.data.get('qrcode_color')
-        # product_name = request.data.get("product_name")
-        # create_by = request.data.get("create_by")
+        product_name = request.data.get("product_name")
+        created_by = request.data.get("created_by")
 
 
         # set default logo size if no logo_size is found
@@ -57,44 +57,56 @@ class codeqr(APIView):
             "logo_size": logoSize,
             "company_id": company_id,
             "qrcode_color": qrcode_color,
+            "product_name": product_name,
+            "created_by": created_by
         }
         update_field = {
             "status":"nothing to update"
         }
 
-        # python qrcode
-        serializer = DoWellQrCodeSerializer(data=field)
-        # serializer = DoWellQrCodeSerializer(data=field)
+        # response
+        serializer = DoWellDetailQrCodeSerializer(data=field)
+
         if serializer.is_valid():
             serializer.save(is_active=False)
-            # response = dowellconnection(*qrcode_management,"insert",field, update_field)
-            # return Response({"Response":serializer.data ,"logo":logo_base64,"qrcode":img_base64}, status=status.HTTP_201_CREATED)
             return Response({"Response":serializer.data}, status=status.HTTP_201_CREATED)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self, request):
-        company_id = request.GET.get('company_id')
+        try:
+            company_id = request.GET.get('company_id')
+        except:
+            pass
 
         if company_id:
             try:
                 qrCode = QrCode.objects.get(company_id=company_id)
-                serializer = self.serializer_class(qrCode, many=False)
+                serializer = DoWellDetailQrCodeSerializer(qrCode, many=False)
                 return Response({"data": serializer.data})
             except qrCode.DoesNotExist:
                 return Response({"error": "Not Found"})
-        else:
-            return Response({"error": "Please provide either company_id or product_name"}, status=status.HTTP_400_BAD_REQUEST)
+        elif not company_id:
+            qrCode = QrCode.objects.all()
+            serializer = DoWellDetailQrCodeSerializer(qrCode, many=True)
+            return Response({"data": serializer.data})
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        # update_field = {"status": "nothing to update"}
-        # response = dowellconnection(*qrcode_management, "fetch", field, update_field)
-        # return Response({"Response": json.loads(response)}, status=status.HTTP_200_OK)
 
 
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqrupdate(APIView):
+    serializer_class = DoWellUpdateQrCodeSerializer
+    def get(self, request, id):
+        try:
+            qr_code = QrCode.objects.get(company_id=id)
+            serializer = DoWellDetailQrCodeSerializer(qr_code, many=False)
+            return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+        except:
+            return Response({"error": 'qrcode not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+    
     def put(self, request, id):
 
         company_id = request.data.get("company_id")
@@ -102,6 +114,8 @@ class codeqrupdate(APIView):
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', "#000000")
+        product_name = request.data.get("product_name", None)
+        created_by = request.data.get("created_by", None)
 
         # Validate logo size
         try:
@@ -135,6 +149,8 @@ class codeqrupdate(APIView):
             "logo_size": logoSize,
             "company_id": company_id,
             "qrcode_color": qrcode_color,
+            "product_name": product_name,
+            "created_by": created_by,
             "is_active": True
         }
        
@@ -144,13 +160,13 @@ class codeqrupdate(APIView):
 
         try:
             code = QrCode.objects.get(company_id = id)
-            serializer = DoWellQrCodeSerializer(code, data=field, partial=True)
+            serializer = self.serializer_class(code, data=field, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                # response = dowellconnection(*qrcode_management,"insert",field, update_field)
                 return Response({"Response":serializer.data}, status=status.HTTP_201_CREATED)
-        except :
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'error': 'qrcode with that company_id does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
            
 

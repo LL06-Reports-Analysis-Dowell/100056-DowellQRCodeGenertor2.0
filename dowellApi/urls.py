@@ -6,4 +6,4 @@ urlpatterns = [
     path('dowell_codeqrupdate/<str:id>', codeqrupdate.as_view()),
 ]
 
-
+    

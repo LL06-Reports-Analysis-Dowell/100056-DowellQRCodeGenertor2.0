@@ -14,6 +14,8 @@ class QrCode(models.Model):
     qrcode = models.TextField(blank=True, null=True)
     logo_size = models.CharField(max_length=255, null=True, blank=True)
     qrcode_color = models.CharField(max_length=255, blank=True, null=True)
+    product_name = models.CharField(max_length=255, blank=True, null=True)
+    created_by = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.company_id
