@@ -1,6 +1,3 @@
-"""
-This views deals with production version of the application
-"""
 import json
 import qrcode
 import base64
