@@ -6,4 +6,3 @@ qrcode_management = [
     "1028001",
     "ABCDE",
 ]
-
