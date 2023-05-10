@@ -3,6 +3,7 @@ from app.views import *
 
 urlpatterns = [
     path('server-status/', serverStatus.as_view()),
-    path('create-qr-code/', createQrCode.as_view()),
-    path('create-qr-code/<str:name>/', createQrCode.as_view()),
+
+    path('qr-code/', codeqr.as_view()),
+    path('update-qr-code/<str:id>/', codeqrupdate.as_view()),
 ]
