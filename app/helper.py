@@ -145,16 +145,6 @@ def logo_position(logo_image, img_qr):
 
 
 
-def save_base64_image(base64_string, filename):
-    # Decode base64 string to bytes
-    img_data = base64.b64decode(base64_string)
-
-    # Write bytes to file
-    with open(filename, 'wb') as f:
-        f.write(img_data)
-
-    # Print success message
-    print(f'Successfully saved image as')
 
 
 def get_base64_image(base64_image):
