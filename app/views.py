@@ -2,6 +2,7 @@
 import json
 import base64
 from io import BytesIO
+import threading
 import cloudinary.uploader
 from rest_framework import status
 from rest_framework.views import APIView
@@ -10,7 +11,7 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from .helper import get_base64_image_in_bytes, is_valid_hex_color, create_qrcode, logo_position, resize_logo, dowellconnection, update_cloudinary_image, upload_image_to_cloudinary
+from .helper import create_uuid, get_base64_image_in_bytes, is_valid_hex_color, create_qrcode, logo_position, resize_logo, dowellconnection, update_cloudinary_image, upload_image_to_cloudinary
 from .constant import *
 
 from .serializers import DoWellUpdateQrCodeSerializer
@@ -39,16 +40,23 @@ class codeqr(APIView):
         image = upload_image_to_cloudinary(img_base64)
 
         field = {
-            "qrcode": img_base64,
+            "qrcode_id": create_uuid(),
             "qrcode_image_url": image
         }
         update_field = {
             "status":"nothing to update"
         }
 
+        insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+        insertion_thread.start()
+        return Response({"response": field}, status=status.HTTP_201_CREATED)
+
+     
+    def mongodb_worker(self, field, update_field):
         response = dowellconnection(*qrcode_management,"insert", field, update_field)
         response = json.loads(response)
-        return Response({"response": response, "data": field}, status=status.HTTP_201_CREATED)
+        print(response)
+    
     
     def get(self, request):
         try:
@@ -78,7 +86,7 @@ class codeqr(APIView):
 class codeqrupdate(APIView):
 
     def get_object(self, request, id):
-        field = {"_id": id}  
+        field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
         if response["isSuccess"]:
@@ -86,24 +94,26 @@ class codeqrupdate(APIView):
         
     
     def get(self, request, id):
-        field = {"_id": id}  
+        field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
 
         # Check if the fetch was successful
         if response["isSuccess"]:
-            return Response({"response": response["data"][0]}, status=status.HTTP_200_OK)
+            return Response({"response": response["data"]}, status=status.HTTP_200_OK)
         else:
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
    
     
-
     def put(self, request, id):
 
         # get cloudinary qrcode image in order to update it
+        logo_url = ""
+        
         try:
             qrcode_ = self.get_object(request, id)
             qrcode_image_url = qrcode_["qrcode_image_url"]
+            logo_url = qrcode_["logo_url"]
         except: 
             pass
 
@@ -116,6 +126,7 @@ class codeqrupdate(APIView):
         created_by = request.data.get("created_by")
         is_active = request.data.get("is_active", True)
 
+        print(logo)
         # Validate logo size
         try:
             logo_size = int(logo_size)
@@ -142,20 +153,26 @@ class codeqrupdate(APIView):
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
         # decode base64_image to bytes(required by cloudinary)
-        img = get_base64_image_in_bytes(img_base64)
+        qrcode_img = get_base64_image_in_bytes(img_base64)
+        logo_image = get_base64_image_in_bytes(logo_base64)
 
-        # update qrcode_image_link in cloudinary
-        qrcode_image_url = update_cloudinary_image(qrcode_image_url, img)
+        # update qrcode and logo image in cloudinary
+        qrcode_image_url = update_cloudinary_image(qrcode_image_url, qrcode_img)
+
+        # upload logo image to cloudinary
+        if not logo_url:
+            logo_url = upload_image_to_cloudinary(logo_base64)
+        else:
+            logo_url = update_cloudinary_image(logo_url, logo_image)
 
         logoSize = logo_size
         field = {
-            "_id": id
+            "qrcode_id": id
         }
        
         update_field = {
             "link": link,
-            "logo": logo_base64,
-            "qrcode": img_base64,
+            "logo_url": logo_url,
             "logo_size": logoSize,
             "company_id": company_id,
             "qrcode_color": qrcode_color,

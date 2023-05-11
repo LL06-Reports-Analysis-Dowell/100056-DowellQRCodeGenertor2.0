@@ -1,3 +1,4 @@
+import uuid
 import json
 import requests
 
@@ -176,3 +177,10 @@ def update_cloudinary_image(image_url, your_updated_image_file):
     response = cloudinary.uploader.upload(your_updated_image_file, public_id=public_id)
     new_image_url = response['secure_url']
     return new_image_url
+
+
+
+def create_uuid():
+    unique_id = uuid.uuid1().int >> 64
+    unique_id = str(unique_id)
+    return unique_id
