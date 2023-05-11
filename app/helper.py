@@ -8,8 +8,15 @@ import qrcode
 import base64
 from io import BytesIO
 import io
-
 import cloudinary
+
+
+cloudinary.config(
+    cloud_name="din7lejen",
+    api_key=835315697185388,
+    api_secret="6uovHssSAvgpP-j82Z2qrra3bEE"
+)
+
 
 def dowellconnection(cluster,database,collection,document,team_member_ID,function_ID,command,field,update_field):
     url = "http://uxlivinglab.pythonanywhere.com"
@@ -145,9 +152,7 @@ def logo_position(logo_image, img_qr):
 
 
 
-
-
-def get_base64_image(base64_image):
+def get_base64_image_in_bytes(base64_image):
     # Decode the base64 encoded image
     image_data = base64.b64decode(base64_image)
     image = BytesIO(image_data)
@@ -155,14 +160,19 @@ def get_base64_image(base64_image):
 
 def upload_image_to_cloudinary(img):
     #decode base64_image to bytes
-    img = get_base64_image(img)
+    img = get_base64_image_in_bytes(img)
 
-    cloudinary.config(
-        cloud_name="din7lejen",
-        api_key=835315697185388,
-        api_secret="6uovHssSAvgpP-j82Z2qrra3bEE"
-    )
     #upload image to cloudinary and return image_url
     upload_result = cloudinary.uploader.upload(img)
     image_url = upload_result.get('url')
     return image_url
+
+
+def update_cloudinary_image(image_url, your_updated_image_file):
+    # Extract the public_id of the existing image from the image URL
+    public_id = image_url.split('/')[-1].split('.')[0]
+
+    # Upload the updated image to Cloudinary and retrieve the URL of the new image
+    response = cloudinary.uploader.upload(your_updated_image_file, public_id=public_id)
+    new_image_url = response['secure_url']
+    return new_image_url

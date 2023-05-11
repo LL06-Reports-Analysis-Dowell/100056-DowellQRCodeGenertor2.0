@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from .helper import is_valid_hex_color, create_qrcode, logo_position, resize_logo, dowellconnection, upload_image_to_cloudinary
+from .helper import get_base64_image_in_bytes, is_valid_hex_color, create_qrcode, logo_position, resize_logo, dowellconnection, update_cloudinary_image, upload_image_to_cloudinary
 from .constant import *
 
 from .serializers import DoWellUpdateQrCodeSerializer
@@ -77,6 +77,14 @@ class codeqr(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqrupdate(APIView):
 
+    def get_object(self, request, id):
+        field = {"_id": id}  
+        res = dowellconnection(*qrcode_management, "fetch", field, {})
+        response = json.loads(res)
+        if response["isSuccess"]:
+            return response["data"][0]
+        
+    
     def get(self, request, id):
         field = {"_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
@@ -91,6 +99,14 @@ class codeqrupdate(APIView):
     
 
     def put(self, request, id):
+
+        # get cloudinary qrcode image in order to update it
+        try:
+            qrcode_ = self.get_object(request, id)
+            qrcode_image_url = qrcode_["qrcode_image_url"]
+        except: 
+            pass
+
         company_id = request.data.get("company_id")
         link = request.data.get("link")
         logo = request.FILES.get('logo')
@@ -108,21 +124,28 @@ class codeqrupdate(APIView):
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
         
+        # resize logo
         logo_image = resize_logo(logo, logo_size)
+        
         # Create the QR code image
         img_qr = create_qrcode(link, qrcode_color)
 
-
+        # center logo in the qrcode
         logo_base64 = logo_position(logo_image, img_qr)
 
         # Encode the QR code image to base64
         buffer = BytesIO()
         img_qr.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+        # decode base64_image to bytes(required by cloudinary)
+        img = get_base64_image_in_bytes(img_base64)
+
+        # update qrcode_image_link in cloudinary
+        qrcode_image_url = update_cloudinary_image(qrcode_image_url, img)
 
         logoSize = logo_size
         field = {
@@ -138,6 +161,7 @@ class codeqrupdate(APIView):
             "qrcode_color": qrcode_color,
             "product_name": product_name,
             "created_by": created_by,
+            "qrcode_image_url": qrcode_image_url,
             "is_active": is_active
         }
 
@@ -153,9 +177,7 @@ class codeqrupdate(APIView):
                 return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-           
-
- 
+    
       
 
 
