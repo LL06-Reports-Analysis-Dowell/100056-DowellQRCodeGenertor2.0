@@ -3,7 +3,7 @@ import json
 import base64
 from io import BytesIO
 import threading
-import cloudinary.uploader
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .helper import create_uuid, get_base64_image_in_bytes, is_valid_hex_color, create_qrcode, logo_position, resize_logo, dowellconnection, update_cloudinary_image, upload_image_to_cloudinary
 from .constant import *
 
-from .serializers import DoWellUpdateQrCodeSerializer
+from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer
 
 
 
@@ -28,9 +28,36 @@ class serverStatus(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqr(APIView):
     def post(self, request):
+        # get post data
+        company_id = request.data.get("company_id")
+        link = request.data.get("link")
+        logo = request.FILES.get('logo')
+        logo_size = int(request.data.get("logo_size", "20"))
+        qrcode_color = request.data.get('qrcode_color', "#000000")
+        product_name = request.data.get("product_name")
+        created_by = request.data.get("created_by")
+        description = request.data.get("description")
+        is_active = request.data.get("is_active", False)
+
+        # Validate logo size
+        try:
+            if logo_size <= 0:
+                raise ValueError("Logo size must be a positive integer.")
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not is_valid_hex_color(qrcode_color):
+            return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
+        
         # Create the QR code image
-        img_qr = create_qrcode(link="", qrcode_color="#000000")
-       
+        img_qr = create_qrcode(link, qrcode_color)
+
+        # resize logo
+        logo_image = resize_logo(logo, logo_size)
+
+        # center logo in the qrcode
+        logo_base64 = logo_position(logo_image, img_qr)
+
         # Encode the QR code image to base64 and position logo at te center of the qrcode
         buffer = BytesIO()
         img_qr.save(buffer, format="PNG")
@@ -39,23 +66,42 @@ class codeqr(APIView):
         #upload image to cloudinary
         image = upload_image_to_cloudinary(img_base64)
 
+        if logo:
+            logo_url = upload_image_to_cloudinary(logo_base64)
+        else:
+            logo_url = None
+
         field = {
             "qrcode_id": create_uuid(),
-            "qrcode_image_url": image
+            "qrcode_image_url": image,
+            "logo_url": logo_url,
+            "logo_size": logo_size,
+            "qrcode_color": qrcode_color,
+            "link": link,
+            "company_id": company_id,
+            "product_name": product_name,
+            "created_by": created_by,
+            "description": description,
+            "is_active": is_active,
         }
+
         update_field = {
             "status":"nothing to update"
         }
-
-        insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
-        insertion_thread.start()
-        return Response({"response": field}, status=status.HTTP_201_CREATED)
+        
+        serializer = DoWellQrCodeSerializer(data=field)
+        if serializer.is_valid():
+            try:
+                insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+                insertion_thread.start()
+                return Response({"response": field}, status=status.HTTP_201_CREATED)
+            except:
+                return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
      
     def mongodb_worker(self, field, update_field):
-        response = dowellconnection(*qrcode_management,"insert", field, update_field)
-        response = json.loads(response)
-        print(response)
+        dowellconnection(*qrcode_management,"insert", field, update_field)
     
     
     def get(self, request):
@@ -124,12 +170,11 @@ class codeqrupdate(APIView):
         qrcode_color = request.data.get('qrcode_color', "#000000")
         product_name = request.data.get("product_name")
         created_by = request.data.get("created_by")
+        description = request.data.get("description")
         is_active = request.data.get("is_active", True)
 
-        print(logo)
         # Validate logo size
         try:
-            logo_size = int(logo_size)
             if logo_size <= 0:
                 raise ValueError("Logo size must be a positive integer.")
         except ValueError as e:
@@ -171,15 +216,16 @@ class codeqrupdate(APIView):
         }
        
         update_field = {
-            "link": link,
+            "qrcode_image_url": qrcode_image_url,
             "logo_url": logo_url,
             "logo_size": logoSize,
-            "company_id": company_id,
             "qrcode_color": qrcode_color,
+            "link": link,
+            "company_id": company_id,
             "product_name": product_name,
             "created_by": created_by,
-            "qrcode_image_url": qrcode_image_url,
-            "is_active": is_active
+            "description": description,
+            "is_active": is_active,
         }
 
         serializer = DoWellUpdateQrCodeSerializer(data=update_field)

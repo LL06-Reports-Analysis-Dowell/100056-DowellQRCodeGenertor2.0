@@ -1,5 +1,6 @@
 import uuid
 import json
+from django.http import Http404
 import requests
 
 import re
@@ -9,8 +10,11 @@ import qrcode
 import base64
 from io import BytesIO
 import io
+import cloudinary.uploader
 import cloudinary
 
+from rest_framework.response import Response
+from rest_framework import status
 
 cloudinary.config(
     cloud_name="din7lejen",
@@ -81,11 +85,7 @@ def get_event_id():
 
 
 
-def resize_logo(logo, logo_size):
-    if logo_size:
-        logo_size = int(logo_size)
-    else:
-        logo_size = 20
+def resize_logo(logo, logo_size):  
     if logo and logo.size > 0:
         logo_contents = logo.read()
         logo_image = Image.open(io.BytesIO(logo_contents))

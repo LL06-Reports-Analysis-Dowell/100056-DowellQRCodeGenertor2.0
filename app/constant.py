@@ -6,3 +6,7 @@ qrcode_management = [
     "1028001",
     "ABCDE",
 ]
+
+qrcode_ = [
+    "qr","qrcodegenerator","qrcode_details","qrcode_details","2343322","ABCDE"
+]
