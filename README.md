@@ -70,15 +70,15 @@ Action                                           |
 
 
 
-| GET        | /qr-code/                         | To Get All Qrcode Created.
+| GET        | /qr-code/                                   | To Get All Qrcode Created.
              |
 
 
-| GET        | /update-qr-code/<id>/             | To retrieve the Qrcode Created by passing the query parameter 
+| GET        | /update-qr-code/<id>/                       | To retrieve the Qrcode Created by passing the query parameter 
 company_id   |
 
 
-| PUT        | /update-qr-code/<id>/             | To Update the qr_code with data.
+| PUT        | /update-qr-code/<id>/                       | To Update the qr_code with data.
              |
 
 
