@@ -1,20 +1,14 @@
+import io
 import uuid
 import json
-from django.http import Http404
-import requests
-
 import re
-from PIL import Image
-import base64
 import qrcode
-import base64
-from io import BytesIO
-import io
+import requests
+from PIL import Image, ImageDraw
+
 import cloudinary.uploader
 import cloudinary
 
-from rest_framework.response import Response
-from rest_framework import status
 
 cloudinary.config(
     cloud_name="din7lejen",
@@ -76,27 +70,13 @@ def get_event_id():
         "bookmarks": "a book marks"
     }
 
-    r=requests.post(url,json=data)
+    r = requests.post(url,json=data)
     if r.status_code == 201:
         return json.loads(r.text)
     else: 
         return json.loads(r.text)['error']
 
 
-
-
-def resize_logo(logo, logo_size):  
-    if logo and logo.size > 0:
-        logo_contents = logo.read()
-        logo_image = Image.open(io.BytesIO(logo_contents))
-        
-        # Resize the logo to the desired size
-        logo_image = logo_image.resize((logo_size, logo_size), resample=Image.LANCZOS)
-        
-    else:
-        logo_image = None
-
-    return logo_image
 
 def is_valid_hex_color(color):
     """
@@ -108,8 +88,8 @@ def is_valid_hex_color(color):
         return False
     return True
 
-def create_qrcode(link, qrcode_color):
-
+def create_qrcode(link, qrcode_color, logo):
+    # create qr_code
     qr_code = qrcode.QRCode(
         version=1, 
         error_correction=qrcode.constants.ERROR_CORRECT_Q, 
@@ -125,45 +105,45 @@ def create_qrcode(link, qrcode_color):
         pass
     qr_code.make(fit=True)
 
-    img_qr = qr_code.make_image(fill_color=qrcode_color, back_color="white")
+    img_qr = qr_code.make_image(fill_color=qrcode_color, back_color="white").convert('RGB')
+    
+    if logo:
+        logo_file = logo # Already converted to bytes in views.py
+        basewidth = 100
+
+        # Open the image using PIL's Image.open() method
+        logo_image = Image.open(logo_file)
+
+        # adjust image size
+        wpercent = (basewidth/float(logo_image.size[0]))
+        hsize = int((float(logo_image.size[1])*float(wpercent)))
+        logo = logo_image.resize((basewidth, hsize), Image.ANTIALIAS)
+
+        # Create a mask from the logo image
+        logo_mask = Image.new("L", logo.size, 0)
+        draw = ImageDraw.Draw(logo_mask)
+        draw.ellipse((0, 0, hsize, hsize), fill=255)
+
+        # set size of QR code
+        pos = ((img_qr.size[0] - logo.size[0]) // 2,
+                (img_qr.size[1] - logo.size[1]) // 2)
+        
+        img_qr.paste(logo, pos)
+        
+        img_qr = image_to_bytes(img_qr)
+        return img_qr   
+    img_qr = image_to_bytes(img_qr)
     return img_qr
 
-def logo_position(logo_image, img_qr):
 
-    if logo_image:
-           
-        qrcode_logoSize = min(img_qr.size[0], img_qr.size[1]) * 25 // 100 
-        logo_x = (img_qr.size[0] - qrcode_logoSize) // 2
-        logo_y = (img_qr.size[1] - qrcode_logoSize) // 2
-
-        # Resize the logo to the desired size
-        logo_image = logo_image.resize((qrcode_logoSize, qrcode_logoSize), resample=Image.LANCZOS)
-
-        # Paste the logo on the QR code image
-        img_qr.paste(logo_image, (logo_x, logo_y))
-
-        # Encode the logo image to base64
-        buffer = BytesIO()
-        logo_image.save(buffer, format="PNG")
-        logo_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    else:
-        logo_base64 = None
-
-    return logo_base64
-
-
-
-def get_base64_image_in_bytes(base64_image):
-    # Decode the base64 encoded image
-    image_data = base64.b64decode(base64_image)
-    image = BytesIO(image_data)
-    return image.getvalue()
+   
+def image_to_bytes(image):
+    bytes_io = io.BytesIO()
+    image.save(bytes_io, format='PNG')
+    image_bytes = bytes_io.getvalue()
+    return image_bytes
 
 def upload_image_to_cloudinary(img):
-    #decode base64_image to bytes
-    img = get_base64_image_in_bytes(img)
-
-    #upload image to cloudinary and return image_url
     upload_result = cloudinary.uploader.upload(img)
     image_url = upload_result.get('url')
     return image_url

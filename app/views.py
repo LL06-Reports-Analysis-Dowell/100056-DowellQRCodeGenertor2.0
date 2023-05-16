@@ -3,7 +3,8 @@ import json
 import base64
 from io import BytesIO
 import threading
-
+from PIL import Image
+import io
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,7 +12,11 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from .helper import create_uuid, get_base64_image_in_bytes, is_valid_hex_color, create_qrcode, logo_position, resize_logo, dowellconnection, update_cloudinary_image, upload_image_to_cloudinary
+from .helper import (
+    create_uuid, is_valid_hex_color, create_qrcode,
+    dowellconnection, update_cloudinary_image, 
+    upload_image_to_cloudinary
+)
 from .constant import *
 
 from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer
@@ -49,31 +54,21 @@ class codeqr(APIView):
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create the QR code image
-        img_qr = create_qrcode(link, qrcode_color)
-
-        # resize logo
-        logo_image = resize_logo(logo, logo_size)
-
-        # center logo in the qrcode
-        logo_base64 = logo_position(logo_image, img_qr)
-
-        # Encode the QR code image to base64 and position logo at te center of the qrcode
-        buffer = BytesIO()
-        img_qr.save(buffer, format="PNG")
-        img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-
-        #upload image to cloudinary
-        image = upload_image_to_cloudinary(img_base64)
-
         if logo:
-            logo_url = upload_image_to_cloudinary(logo_base64)
+            logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)
+            logo_url = upload_image_to_cloudinary(logo_file)
         else:
             logo_url = None
 
+        # Create the QR code image and center logo if passed
+        img_qr = create_qrcode(link, qrcode_color, logo)
+
+        #upload qrcode_image to cloudinary
+        qr_code_url = upload_image_to_cloudinary(img_qr)
+
         field = {
             "qrcode_id": create_uuid(),
-            "qrcode_image_url": image,
+            "qrcode_image_url": qr_code_url,
             "logo_url": logo_url,
             "logo_size": logo_size,
             "qrcode_color": qrcode_color,
@@ -183,34 +178,24 @@ class codeqrupdate(APIView):
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
         
-        # resize logo
-        logo_image = resize_logo(logo, logo_size)
-        
+        if not logo and not logo_url:
+            logo_url = None
+        elif not logo_url and logo:
+            logo_file = logo.read()
+            logo_url = upload_image_to_cloudinary(logo_file)
+        elif logo_url and logo:
+            logo_url = update_cloudinary_image(logo_url, logo)
+        else:
+            pass
+
         # Create the QR code image
-        img_qr = create_qrcode(link, qrcode_color)
-
-        # center logo in the qrcode
-        logo_base64 = logo_position(logo_image, img_qr)
-
-        # Encode the QR code image to base64
-        buffer = BytesIO()
-        img_qr.save(buffer, format="PNG")
-        img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-
-        # decode base64_image to bytes(required by cloudinary)
-        qrcode_img = get_base64_image_in_bytes(img_base64)
-        logo_image = get_base64_image_in_bytes(logo_base64)
+        img_qr = create_qrcode(link, qrcode_color, logo)
 
         # update qrcode and logo image in cloudinary
-        qrcode_image_url = update_cloudinary_image(qrcode_image_url, qrcode_img)
-
-        # upload logo image to cloudinary
-        if not logo_url:
-            logo_url = upload_image_to_cloudinary(logo_base64)
-        else:
-            logo_url = update_cloudinary_image(logo_url, logo_image)
+        qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
 
         logoSize = logo_size
+
         field = {
             "qrcode_id": id
         }
