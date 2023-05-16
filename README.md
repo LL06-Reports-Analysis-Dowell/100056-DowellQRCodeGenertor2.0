@@ -58,28 +58,22 @@ Before you begin, make sure you have the following software installed on your co
 - Base URL: `https://100099.pythonanywhere.com/api/v1/`
 
 
-| HTTP Verbs | Endpoints                                   | 
-Action                                           |
-| ---------- | ------------------------------------------- | 
------------------------------------------------- |
+| HTTP Verbs | Endpoints                                   | Action                                                                     |
+| ---------- | ------------------------------------------- | ---------------------------------------------------------------------------|
 
 
-| POST       | /qr-code/                                   | To create Qrcode.
-             | 
+| POST       | /qr-code/                                   | To create Qrcode.                                                          | 
 
 
 
 
-| GET        | /qr-code/                                   | To Get All Qrcode Created.
-             |
+| GET        | /qr-code/                                   | To Get All Qrcode Created.                                                 |
 
 
-| GET        | /update-qr-code/<id>/                       | To retrieve the Qrcode Created by passing the query parameter 
-company_id   |
+| GET        | /update-qr-code/<id>/                       | To retrieve the Qrcode Created by passing the query parameter company_id   |
 
 
-| PUT        | /update-qr-code/<id>/                       | To Update the qr_code with data.
-             |
+| PUT        | /update-qr-code/<id>/                       | To Update the qr_code with data.                                           |
 
 
 
