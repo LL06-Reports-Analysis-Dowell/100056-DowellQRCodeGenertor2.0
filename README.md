@@ -58,21 +58,28 @@ Before you begin, make sure you have the following software installed on your co
 - Base URL: `https://100099.pythonanywhere.com/api/v1/`
 
 
-| HTTP Verbs | Endpoints                                   | Action                                           |
-| ---------- | ------------------------------------------- | ------------------------------------------------ |
+| HTTP Verbs | Endpoints                                   | 
+Action                                           |
+| ---------- | ------------------------------------------- | 
+------------------------------------------------ |
 
 
-| POST       | /qr-code/                                   | To Create Qrcode by passing the company_id.      |
+| POST       | /qr-code/                                   | To create Qrcode.
+             | 
 
 
 
-| GET        | /qr-code/                                    | To Get All Qrcode Created.                         |
+
+| GET        | /qr-code/                         | To Get All Qrcode Created.
+             |
 
 
-| GET        | /update-qr-code/2982427012418900461/        | To retrieve the Qrcode Created by the a company_id |
+| GET        | /update-qr-code/<id>/             | To retrieve the Qrcode Created by passing the query parameter 
+company_id   |
 
 
-| PUT        | /update-qr-code/2982427012418900461/        | To Update the qr_code with data.        |
+| PUT        | /update-qr-code/<id>/             | To Update the qr_code with data.
+             |
 
 
 
@@ -241,20 +248,7 @@ Before you begin, make sure you have the following software installed on your co
                                     Endpoint:
                                     GET: https://100099.pythonanywhere.com/api/v1/qr-code (client)
                                     ```
-                                    ### List Method for the Qr_code
-                                    Endpoint:
-                                    GET: https://100099.pythonanywhere.com/api/v1/qr-code (client)
-                                    ```
-                                    ### List Method for the Qr_code
-                                    Endpoint:
-                                    GET: https://100099.pythonanywhere.com/api/v1/qr-code (client)
-                                    ```
-                                    ### List Method for the Qr_code
-                                    Endpoint:
-                                    GET: https://100099.pythonanywhere.com/api/v1/qr-code (client)
-                                    ```
-                                    ### List Method for the Qr_code
-
+                                 
 
 ## Fetching qrcode QRcodes:
     Endpoint: 
