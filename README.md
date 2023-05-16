@@ -52,9 +52,41 @@ Before you begin, make sure you have the following software installed on your co
     python3 manage.py runserver
 
 ## API Documentation 
+
+### API Endpoints
+
+- Base URL: `https://100099.pythonanywhere.com/api/v1/`
+
+
+| HTTP Verbs | Endpoints                                   | Action                                           |
+| ---------- | ------------------------------------------- | ------------------------------------------------ |
+
+
+| POST       | /qr-code/                                   | To Create Qrcode by passing the company_id.      |
+
+
+
+| GET        | /qr-code/                                    | To Get All Qrcode Created.                         |
+
+
+| GET        | /update-qr-code/2982427012418900461/        | To retrieve the Qrcode Created by the a company_id |
+
+
+| PUT        | /update-qr-code/2982427012418900461/        | To Update the qr_code with data.        |
+
+
+
 ## Creating QRcodes:
     Endpoint: 
-    POST: http://127.0.0.1:8000/api/v1/qr-code/ (server) 
+    POST: https://100099.pythonanywhere.com/api/v1/qr-code/ (server) 
+
+    Request Body
+
+    ```
+    {
+        "company_id": "129492388099ew03239661",
+    }
+    ```
 
     This endpoint is used to create a QR code. The data to be sent should 
     be in the form of a multipart/form-data with the following fields:
@@ -64,23 +96,172 @@ Before you begin, make sure you have the following software installed on your co
     if not provided.
 
 
-    Response Example:
+    Response Example: (200)
 
     If the QR code was created successfully, the API will respond 
     with a JSON object containing the following fields. The _id field
     will be generated automatically.
+
+```Response Body
+
     {
     "response": {
-        "qrcode_id": "129492388099ew03239661",
-        "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v168381fffee0413/vtapr9x9bl6oj2m1wm7r.png"
+        "qrcode_id": "2982427012418900461",
+        "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
+        "logo_url": null,
+        "logo_size": 20,
+        "qrcode_color": "#000000",
+        "link": null,
+        "company_id": "Doo....it well",
+        "product_name": null,
+        "created_by": null,
+        "description": null,
+        "is_active": false
     }
 }
+
+## Get Method for the Qr_code
+    Endpoint:
+    GET: https://100099.pythonanywhere.com/api/v1/qr-code/{qrcode_id} (server)
+    Request Body
+    ```
+    {
+        "company_id": "129492388099ew03239661",
+        }
+        ```
+        This endpoint is used to get the QR code. The data to be sent should
+        be in the form of a multipart/form-data with the following fields:
+        company_id: (optional) A string representing the id of the company
+        to be used to get the QR code. Defaults to the logged in user if not
+        provided.
+        Response Example: (200)
+        ```
+        {
+            "response": {
+                "qrcode_id": "2982427012418900461",
+                "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
+                "logo_url": null,
+                "logo_size": 20,
+                "qrcode_color": "#000000",
+                "link": null,
+                "company_id": "Doo....it well",
+                "product_name": null,
+                "created_by": null,
+                "description": null,
+                "is_active": false
+                }
+                }
+                ```
+                ### Delete Method for the Qr_code
+                Endpoint:
+                DELETE: https://100099.pythonanywhere.com/api/v1/qr-code/{qrcode_id} (server)
+                Request Body
+                ```
+                {
+                    "company_id": "129492388099ew03239661",
+                    }
+                    ```
+                    This endpoint is used to delete the QR code. The data to be
+                    sent should be in the form of a multipart/form-data with the
+                    following fields:
+                    company_id: (optional) A string representing the id of the
+                    company to be used to delete the QR code. Defaults to the
+                    logged in user if not provided.
+                    Response Example: (200)
+                    ```
+                    {
+                        "response": {
+                            "qrcode_id": "2982427012418900461",
+                            "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
+                            "logo_url": null,
+                            "logo_size": 20,
+                            "qrcode_color": "#000000",
+                            "link": null,
+                            "company_id": "Doo....it well",
+                            "product_name": null,
+                            "created_by": null,
+                            "description": null,
+                            "is_active": false
+                            }
+                            }
+                            ```
+                            ### Update Method for the Qr_code
+                            Endpoint:
+                            PUT: https://100099.pythonanywhere.com/api/v1/qr-code/{qrcode_id} (server)
+                            Request Body
+                            ```
+                            {
+                                "company_id": "129492388099ew03239661",
+                                "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
+                                "logo_url": null,
+                                "logo_size": 20,
+                                "qrcode_color": "#000000",
+                                "link": null,
+                                "company_id": "Doo....it well",
+                                "product_name": null,
+                                "created_by": null,
+                                "description": null,
+                                "is_active": false
+                                }
+                                ```
+                                ### Update Method for the Qr_code
+                                Endpoint:
+                                PUT: https://100099.pythonanywhere.com/api/v1/qr-code/{qrcode_id} (client)
+                                Request Body
+                                ```
+                                {
+                                    "company_id": "129492388099ew03239661",
+                                    "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
+                                    "logo_url": null,
+                                    "logo_size": 20,
+                                    "qrcode_color": "#000000",
+                                    "link": null,
+                                    "company_id": "Doo....it well",
+                                    "product_name": null,
+                                    "created_by": null,
+                                    "description": null,
+                                    "is_active": false
+                                    }
+                                    ```
+                                    ### Delete Method for the Qr_code
+                                    Endpoint:
+                                    DELETE: https://100099.pythonanywhere.com/api/v1/qr-code/{qrcode_id} (server)
+                                    ```
+                                    ```
+                                    ### Delete Method for the Qr_code
+                                    Endpoint:
+                                    DELETE: https://100099.pythonanywhere.com/api/v1/qr-code/{qrcode_id} (client)
+                                    ```
+                                    ### List Method for the Qr_code
+                                    Endpoint:
+                                    GET: https://100099.pythonanywhere.com/api/v1/qr-code (server)
+                                    ```
+                                    ```
+                                    ### List Method for the Qr_code
+                                    Endpoint:
+                                    GET: https://100099.pythonanywhere.com/api/v1/qr-code (client)
+                                    ```
+                                    ### List Method for the Qr_code
+                                    Endpoint:
+                                    GET: https://100099.pythonanywhere.com/api/v1/qr-code (client)
+                                    ```
+                                    ### List Method for the Qr_code
+                                    Endpoint:
+                                    GET: https://100099.pythonanywhere.com/api/v1/qr-code (client)
+                                    ```
+                                    ### List Method for the Qr_code
+                                    Endpoint:
+                                    GET: https://100099.pythonanywhere.com/api/v1/qr-code (client)
+                                    ```
+                                    ### List Method for the Qr_code
 
 
 ## Fetching qrcode QRcodes:
     Endpoint: 
-    POST http://127.0.0.1:8000/apiupdate-qr-code//?product_name=product_name (server) (*Fetching by query param)
-    POST http://127.0.0.1:8000/apiupdate-qr-code/ (server) (*Fetch All qrcodes)
+    POST https://100099.pythonanywhere.com/api/v1/apiupdate-qr-code//?product_name=product_name (server) (*Fetching by query param)
+    POST https://100099.pythonanywhere.com/api/v1/apiupdate-qr-code/ (server) (*Fetch All qrcodes)
+
+    
     
     This endpoint is used to fetch QR codes generated by the application.
     The endpoint takes a product name as a parameter in the request body. 
@@ -88,6 +269,7 @@ Before you begin, make sure you have the following software installed on your co
     will be returned. Otherwise it will return a list of all qrcodes.
 
     Sample Response
+    Status 200
     
     {
         "response": {
@@ -116,7 +298,7 @@ Before you begin, make sure you have the following software installed on your co
     To fetch a single Qrcode, make a GET request to the appropriate
     endpoint with the Qrcode's ID as a parameter. For example, to
     fetch the Qrcode with ID "123", you would make a request to:
-    GET : http://127.0.0.1:8000/api/v1/update-qr-code/12949238809we903239661/
+    GET : https://100099.pythonanywhere.com/api/v1/update-qr-code/12949238809we903239661/
     
     The response will be a JSON object containing the 
     Qrcode data, including its ID, link, logo, qrcode image,
@@ -151,7 +333,25 @@ Before you begin, make sure you have the following software installed on your co
     For example, to update the link and logo of a Qrcode with ID "1234", 
     you would make a PUT request to 
     ## Endpoint
-    PUT: http://127.0.0.1:8000/api/v1/update-qr-code/12949238ddc809903239661/
+    PUT: https://100099.pythonanywhere.com/api/v1/update-qr-code/12949238ddc809903239661/
+
+    Request Body
+
+        {   
+            "response": {
+                "qrcode_id": "2982427012418900461",
+                "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
+                "logo_url": null,
+                "logo_size": 20,
+                "qrcode_color": "#000000",
+                "link": null,
+                "company_id": "Doo....it well",
+                "product_name": null,
+                "created_by": null,
+                "description": null,
+                "is_active": false
+            }
+        }
     
     
 
@@ -189,3 +389,28 @@ Before you begin, make sure you have the following software installed on your co
                 12-byte input or a 24-character hex string"
         }
     
+
+
+### Technologies Used
+
+- [Python](https://nodejs.org/) is a programming language that lets you work more quickly and integrate your systems
+  more effectively.
+- [Django](https://www.djangoproject.com/) is a high-level Python web framework that encourages rapid development and
+  clean, pragmatic design.
+- [Django Rest Framework](https://www.django-rest-framework.org/) Django REST framework is a powerful and flexible
+  toolkit for building Web APIs.
+- [MongoDB](https://www.mongodb.com/) is a free open source NOSQL document database with scalability and flexibility.
+  Data are stored in flexible JSON-like documents.
+
+### License
+
+This project is available for use under
+the [Apache](https://github.com/LL06-Reports-Analysis-Dowell/100056-DowellQRCodeGenertor2.0/blob/main/LICENSE) License.
+
+```
+
+```
+
+```
+
+```
