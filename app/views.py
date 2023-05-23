@@ -26,6 +26,10 @@ from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer
 #  Each item in the list represents a set of data for generating a QR code. The code iterates over each item,
 #  processes it, and collects the results in a list. 
 # Finally, the results are returned as a response, containing information about the success or failure of each QR code generation.
+# This updated code merges the functionality of both classes into a single CodeQR class. 
+# It includes the necessary decorators, combines the logic for generating multiple QR codes with default values,
+#  and incorporates the existing code logic for each generated QR code. The response includes the list of generated QR code data (qr_codes) 
+# and the results of the existing code logic (results).
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -35,14 +39,33 @@ class serverStatus(APIView):
     
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class codeqr(APIView):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def post(self, request):
         data = request.data
+        qr_code_no = data.get("qr-code_no")  # Get the number of QR codes
 
+        qr_codes = []
         results = []
 
-        for item in data:
+        for i in range(qr_code_no):
+            # Generate the QR code with default values
+            qr_code_data = {
+                "company_id": "Default Company ID",
+                "link": "https://example.com",
+                "logo_size": 20,
+                "qrcode_color": "#000000",
+                "product_name": f"Product {i+1}",
+                "created_by": "Default User",
+                "description": "Default Description",
+                "is_active": False
+            }
+
+            # Perform the existing code logic for each QR code
+            item = qr_code_data
             # get post data
             company_id = item.get("company_id")
             link = item.get("link")
@@ -107,7 +130,14 @@ class codeqr(APIView):
             else:
                 results.append({"error": serializer.errors})
 
-        return Response(results, status=status.HTTP_201_CREATED)
+            qr_codes.append(qr_code_data)
+
+        # Return the list of QR code data as the response
+        response_data = {
+            "results": results,
+            "qr_codes": qr_codes
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
      
     def mongodb_worker(self, field, update_field):
