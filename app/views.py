@@ -22,6 +22,11 @@ from .constant import *
 from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer
 
 
+# In the below code, the codeqr class now accepts a list of QR code data in the request body.
+#  Each item in the list represents a set of data for generating a QR code. The code iterates over each item,
+#  processes it, and collects the results in a list. 
+# Finally, the results are returned as a response, containing information about the success or failure of each QR code generation.
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
@@ -33,66 +38,76 @@ class serverStatus(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqr(APIView):
     def post(self, request):
-        # get post data
-        company_id = request.data.get("company_id")
-        link = request.data.get("link")
-        logo = request.FILES.get('logo')
-        logo_size = int(request.data.get("logo_size", "20"))
-        qrcode_color = request.data.get('qrcode_color', "#000000")
-        product_name = request.data.get("product_name")
-        created_by = request.data.get("created_by")
-        description = request.data.get("description")
-        is_active = request.data.get("is_active", False)
+        data = request.data
 
-        # Validate logo size
-        try:
-            if logo_size <= 0:
-                raise ValueError("Logo size must be a positive integer.")
-        except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        results = []
 
-        if not is_valid_hex_color(qrcode_color):
-            return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if logo:
-            logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)
-            logo_url = upload_image_to_cloudinary(logo_file)
-        else:
-            logo_url = None
+        for item in data:
+            # get post data
+            company_id = item.get("company_id")
+            link = item.get("link")
+            logo = item.FILES.get('logo')
+            logo_size = int(item.get("logo_size", "20"))
+            qrcode_color = item.get('qrcode_color', "#000000")
+            product_name = item.get("product_name")
+            created_by = item.get("created_by")
+            description = item.get("description")
+            is_active = item.get("is_active", False)
 
-        # Create the QR code image and center logo if passed
-        img_qr = create_qrcode(link, qrcode_color, logo)
-
-        #upload qrcode_image to cloudinary
-        qr_code_url = upload_image_to_cloudinary(img_qr)
-
-        field = {
-            "qrcode_id": create_uuid(),
-            "qrcode_image_url": qr_code_url,
-            "logo_url": logo_url,
-            "logo_size": logo_size,
-            "qrcode_color": qrcode_color,
-            "link": link,
-            "company_id": company_id,
-            "product_name": product_name,
-            "created_by": created_by,
-            "description": description,
-            "is_active": is_active,
-        }
-
-        update_field = {
-            "status":"nothing to update"
-        }
-        
-        serializer = DoWellQrCodeSerializer(data=field)
-        if serializer.is_valid():
+            # Validate logo size
             try:
-                insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
-                insertion_thread.start()
-                return Response({"response": field}, status=status.HTTP_201_CREATED)
-            except:
-                return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                if logo_size <= 0:
+                    raise ValueError("Logo size must be a positive integer.")
+            except ValueError as e:
+                results.append({"error": str(e)})
+                continue
+
+            if not is_valid_hex_color(qrcode_color):
+                results.append({"error": "Invalid logo color. Must be a valid hex color code."})
+                continue
+
+            if logo:
+                logo_file = logo.read()
+                logo_url = upload_image_to_cloudinary(logo_file)
+            else:
+                logo_url = None
+
+            # Create the QR code image and center logo if passed
+            img_qr = create_qrcode(link, qrcode_color, logo)
+
+            # Upload qrcode_image to cloudinary
+            qr_code_url = upload_image_to_cloudinary(img_qr)
+
+            field = {
+                "qrcode_id": create_uuid(),
+                "qrcode_image_url": qr_code_url,
+                "logo_url": logo_url,
+                "logo_size": logo_size,
+                "qrcode_color": qrcode_color,
+                "link": link,
+                "company_id": company_id,
+                "product_name": product_name,
+                "created_by": created_by,
+                "description": description,
+                "is_active": is_active,
+            }
+
+            update_field = {
+                "status": "nothing to update"
+            }
+
+            serializer = DoWellQrCodeSerializer(data=field)
+            if serializer.is_valid():
+                try:
+                    insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+                    insertion_thread.start()
+                    results.append({"response": field})
+                except:
+                    results.append({"error": "An error occurred while starting the insertion thread"})
+            else:
+                results.append({"error": serializer.errors})
+
+        return Response(results, status=status.HTTP_201_CREATED)
 
      
     def mongodb_worker(self, field, update_field):
