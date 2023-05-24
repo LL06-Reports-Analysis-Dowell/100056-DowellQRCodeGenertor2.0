@@ -45,52 +45,37 @@ class codeqr(APIView):
         return super().dispatch(*args, **kwargs)
 
     def post(self, request):
-        data = request.data
-        qr_code_no = data.get("qr-code_no")  # Get the number of QR codes
+        company_id = request.data.get("company_id")
+        link = request.data.get("link")
+        logo = request.FILES.get('logo')  
+        logo_size = int(request.data.get("logo_size", "20"))
+        qrcode_color = request.data.get('qrcode_color', "#000000")
+        product_name = request.data.get("product_name")
+        created_by = request.data.get("created_by")
+        description = request.data.get("description")
+        is_active = request.data.get("is_active", False)
+        quantity = int(request.data.get("quantity"))
 
-        qr_codes = []
-        results = []
+        try:
+            if logo_size <= 0:
+                raise ValueError("Logo size must be a positive integer.")
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        for i in range(qr_code_no):
-            # Generate the QR code with default values
-            qr_code_data = {
-                "company_id": "Default Company ID",
-                "link": "https://example.com",
-                "logo_size": 20,
-                "qrcode_color": "#000000",
-                "product_name": f"Product {i+1}",
-                "created_by": "Default User",
-                "description": "Default Description",
-                "is_active": False
-            }
+        if not is_valid_hex_color(qrcode_color):
+            return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
+                
+        
+        if logo:
+            logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)     
+        else:
+            pass
 
-            # Perform the existing code logic for each QR code
-            item = qr_code_data
-            # get post data
-            company_id = item.get("company_id")
-            link = item.get("link")
-            logo = item.FILES.get('logo')
-            logo_size = int(item.get("logo_size", "20"))
-            qrcode_color = item.get('qrcode_color', "#000000")
-            product_name = item.get("product_name")
-            created_by = item.get("created_by")
-            description = item.get("description")
-            is_active = item.get("is_active", False)
-
-            # Validate logo size
-            try:
-                if logo_size <= 0:
-                    raise ValueError("Logo size must be a positive integer.")
-            except ValueError as e:
-                results.append({"error": str(e)})
-                continue
-
-            if not is_valid_hex_color(qrcode_color):
-                results.append({"error": "Invalid logo color. Must be a valid hex color code."})
-                continue
+        # if quantity:
+        for _ in range(quantity):
+            logo_url = None
 
             if logo:
-                logo_file = logo.read()
                 logo_url = upload_image_to_cloudinary(logo_file)
             else:
                 logo_url = None
@@ -98,7 +83,7 @@ class codeqr(APIView):
             # Create the QR code image and center logo if passed
             img_qr = create_qrcode(link, qrcode_color, logo)
 
-            # Upload qrcode_image to cloudinary
+            #upload qrcode_image to cloudinary
             qr_code_url = upload_image_to_cloudinary(img_qr)
 
             field = {
@@ -116,28 +101,20 @@ class codeqr(APIView):
             }
 
             update_field = {
-                "status": "nothing to update"
+                "status":"nothing to update"
             }
-
+            
             serializer = DoWellQrCodeSerializer(data=field)
             if serializer.is_valid():
                 try:
                     insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                     insertion_thread.start()
-                    results.append({"response": field})
+                    # return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
-                    results.append({"error": "An error occurred while starting the insertion thread"})
-            else:
-                results.append({"error": serializer.errors})
+                    return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"response": f"{quantity} QR codes created successfully."}, status=status.HTTP_201_CREATED)
 
-            qr_codes.append(qr_code_data)
-
-        # Return the list of QR code data as the response
-        response_data = {
-            "results": results,
-            "qr_codes": qr_codes
-        }
-        return Response(response_data, status=status.HTTP_201_CREATED)
 
      
     def mongodb_worker(self, field, update_field):
