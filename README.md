@@ -60,10 +60,11 @@ python3 manage.py runserver
 
 | HTTP Verbs | Endpoints                      | Action                                               |
 |------------|--------------------------------|------------------------------------------------------|
-| POST       | /qr-code/             | To Create Qrcode by passing the company_id.              |
-| GET       | /qr-code/  | To Get All Qrcode Created.                         |
-| GET        | /update-qr-code/:id/  |To retrieve the Qrcode Created by the a company_id|
-|PUT|/update-qr-code/:id/|To Update the qr_code with data. |
+| POST       | /qr-code/                      | To Create Qrcode by passing the company_id.          |
+| GET        | /qr-code/                      | To Get All Qrcode Created.                           |
+| GET        | /update-qr-code/:id/           | To retrieve the Qrcode Created by the a company_id   |
+| PUT        | /update-qr-code/:id/ .         | To Update the qr_code with data.                     |
+
 
 ##  Endpoints Definition(Request - Response):
 
@@ -75,14 +76,15 @@ Request Body
 ```json
 {
     "company_id": "<company_id>",
+    "quantity": "2"
 }
 ```
-Note : 
+
+Note: 
 This endpoint is used to create a QR code. The data to be sent should 
-be in the form of a multipart/form-data with the following fields:
-- qrcode_color: (optional) A string representing the hex color code to
-be used as the background color of the QR code. Defaults to black 
-if not provided.
+be in the form of a multipart/form-data:
+The quantity field will determine the number of qrcodes created.
+
 
 
 Response - 200 
@@ -100,7 +102,7 @@ will be generated automatically.
         "logo_size": 20,
         "qrcode_color": "#000000",
         "link": null,
-        "company_id": "Doo....it well",
+        "company_id": "Dowell",
         "product_name": null,
         "created_by": null,
         "description": null,
