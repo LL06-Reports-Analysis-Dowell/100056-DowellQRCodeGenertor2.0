@@ -19,7 +19,7 @@ from .helper import (
 )
 from .constant import *
 
-from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer
+from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer, ProductTypeSerializer
 
 
 # In the below code, the codeqr class now accepts a list of QR code data in the request body.
@@ -46,15 +46,17 @@ class codeqr(APIView):
 
     def post(self, request):
         company_id = request.data.get("company_id")
+        qrcode_type = request.data.get("qrcode_type")
         link = request.data.get("link")
         logo = request.FILES.get('logo')  
         logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', "#000000")
-        product_name = request.data.get("product_name")
+
         created_by = request.data.get("created_by")
         description = request.data.get("description")
         is_active = request.data.get("is_active", False)
         quantity = int(request.data.get("quantity"))
+
 
         try:
             if logo_size <= 0:
@@ -86,6 +88,8 @@ class codeqr(APIView):
             #upload qrcode_image to cloudinary
             qr_code_url = upload_image_to_cloudinary(img_qr)
 
+            
+
             field = {
                 "qrcode_id": create_uuid(),
                 "qrcode_image_url": qr_code_url,
@@ -94,17 +98,31 @@ class codeqr(APIView):
                 "qrcode_color": qrcode_color,
                 "link": link,
                 "company_id": company_id,
-                "product_name": product_name,
+                
                 "created_by": created_by,
                 "description": description,
                 "is_active": is_active,
+                "qrcode_type": qrcode_type,
+                
             }
 
             update_field = {
                 "status":"nothing to update"
             }
             
-            serializer = DoWellQrCodeSerializer(data=field)
+            if qrcode_type == "Product":
+                title = request.data.get("title")
+                product_name = request.data.get("product_name")
+                website = request.data.get("website")
+                product_field = {
+                    "product_name": product_name,
+                    "title": title,
+                    "website": website
+                }
+                field = {**field, **product_field}
+                serializer = ProductTypeSerializer(data=field)
+            else:
+                serializer = DoWellQrCodeSerializer(data=field)
             if serializer.is_valid():
                 try:
                     insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
