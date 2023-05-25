@@ -60,10 +60,10 @@ python3 manage.py runserver
 
 | HTTP Verbs | Endpoints                      | Action                                               |
 |------------|--------------------------------|------------------------------------------------------|
-| POST       | /qr-code/                      | To Create Qrcode by passing the company_id.          |
-| GET        | /qr-code/                      | To Get All Qrcode Created.                           |
-| GET        | /update-qr-code/:id/           | To retrieve the Qrcode Created by the a company_id   |
-| PUT        | /update-qr-code/:id/ .         | To Update the qr_code with data.                     |
+| POST       | qr-code/                      | To Create Qrcode by passing the company_id and quantity         |
+| GET        | qr-code/                      | To Get All Qrcode Created.                           |
+| GET        | update-qr-code/:id/           | To retrieve the Qrcode Created by the a company_id   |
+| PUT        | update-qr-code/:id/ .         | To Update the qr_code with data.                     |
 
 
 ##  Endpoints Definition(Request - Response):
@@ -83,32 +83,17 @@ Request Body
 Note: 
 This endpoint is used to create a QR code. The data to be sent should 
 be in the form of a multipart/form-data:
-The quantity field will determine the number of qrcodes created.
-
-
+The quantity field is required will determine the number of qrcodes created.
 
 Response - 200 
 
 Note : If the QR code was created successfully, the API will respond 
-with a JSON object containing the following fields. The _id field
-will be generated automatically.
+with a JSON object containing the following fields.
 
 ```json
     {
-    "response": {
-        "qrcode_id": "2982427012418900461",
-        "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
-        "logo_url": null,
-        "logo_size": 20,
-        "qrcode_color": "#000000",
-        "link": null,
-        "company_id": "Dowell",
-        "product_name": null,
-        "created_by": null,
-        "description": null,
-        "is_active": false
+        "response": "<quantity> QR codes created successfully."
     }
-}
 ```
 
 GET: `/qr-code/:id/`
