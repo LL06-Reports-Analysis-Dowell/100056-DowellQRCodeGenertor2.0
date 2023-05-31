@@ -76,7 +76,8 @@ Request Body
 ```json
 {
     "company_id": "<company_id>",
-    "quantity": "2"
+    "quantity": "2",
+    "qrcode_type": "Link"
 }
 ```
 
@@ -84,6 +85,20 @@ Note:
 This endpoint is used to create a QR code. The data to be sent should 
 be in the form of a multipart/form-data:
 The quantity field will determine the number of qrcodes created.
+The qrcode_type will have multiple choices. i.e Vcard, Product etc. Each of
+them will have different properties. 
+To get the properties send the payload as it is and the response will show
+the properties which are suppossed to be input.
+e.g If you pass the qrcode_type as "Link" as shown above the response will be 
+as shown below, indicating that it requires a link property.
+
+```json
+{
+    "link": [
+        "This field may not be null."
+    ]
+}
+```
 
 
 

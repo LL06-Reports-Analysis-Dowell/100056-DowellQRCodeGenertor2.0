@@ -9,6 +9,8 @@ from PIL import Image, ImageDraw
 import cloudinary.uploader
 import cloudinary
 
+from app.serializers import DoWellQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
+
 
 cloudinary.config(
     cloud_name="din7lejen",
@@ -164,3 +166,71 @@ def create_uuid():
     unique_id = uuid.uuid1().int >> 64
     unique_id = str(unique_id)
     return unique_id
+
+
+
+def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url):
+    serializer = None    
+    if qrcode_type == "Product":
+        title = request.data.get("title")
+        product_name = request.data.get("product_name")
+        website = request.data.get("website")
+        product = {
+            "product_name": product_name,
+            "title": title,
+            "website": website
+        }
+        field = {**field, **product}
+        serializer = ProductTypeSerializer(data=field)
+
+        # return serializer
+        
+    elif qrcode_type == "Vcard":
+        first_name = request.data.get("first_name")
+        last_name = request.data.get("last_name")
+        phone_number = request.data.get("phone_number")
+        street_address = request.data.get("address.street_address")
+        city = request.data.get("address.city")
+        state = request.data.get("address.state")
+        zip_code = request.data.get("address.zip_code")
+        country = request.data.get("address.country")
+
+        img_qr = create_qrcode(request.data, qrcode_color, logo)
+        qr_code_url = upload_image_to_cloudinary(img_qr)
+
+        vcard = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "phone_number": phone_number,
+            "address": {
+                "street_address": street_address,
+                "city": city,
+                "state": state,
+                "zip_code": zip_code,
+                "country": country,
+            }
+        }
+
+        field = {**field, **vcard}
+        serializer = VcardSerializer(data=field)
+
+        # return serializer
+        
+    elif qrcode_type == "Link":
+        link = request.data.get("link")
+        img_qr = create_qrcode(link, qrcode_color, logo)
+        qr_code_url = upload_image_to_cloudinary(img_qr)
+        link_ = {
+            "link": link,
+            "qrcode_image_url": qr_code_url,
+            "logo_url": logo_url,
+        }
+        field = {**field, **link_}
+        serializer = LinkTypeSerializer(data=field)
+
+        # return serializer
+        
+    else:
+        serializer = DoWellQrCodeSerializer(data=field)
+    return serializer, field
+
