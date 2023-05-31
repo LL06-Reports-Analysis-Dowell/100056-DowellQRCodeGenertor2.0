@@ -14,12 +14,12 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
     create_uuid, is_valid_hex_color, create_qrcode,
-    dowellconnection, update_cloudinary_image, 
+    dowellconnection, qrcode_type_defination, update_cloudinary_image, 
     upload_image_to_cloudinary
 )
 from .constant import *
 
-from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer
+from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
 
 
 # In the below code, the codeqr class now accepts a list of QR code data in the request body.
@@ -46,15 +46,17 @@ class codeqr(APIView):
 
     def post(self, request):
         company_id = request.data.get("company_id")
-        link = request.data.get("link")
+        qrcode_type = request.data.get("qrcode_type")
+        # link = request.data.get("link")
         logo = request.FILES.get('logo')  
         logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', "#000000")
-        product_name = request.data.get("product_name")
+
         created_by = request.data.get("created_by")
         description = request.data.get("description")
         is_active = request.data.get("is_active", False)
         quantity = int(request.data.get("quantity"))
+
 
         try:
             if logo_size <= 0:
@@ -80,31 +82,34 @@ class codeqr(APIView):
             else:
                 logo_url = None
 
-            # Create the QR code image and center logo if passed
-            img_qr = create_qrcode(link, qrcode_color, logo)
+            # # Create the QR code image and center logo if passed
+            # img_qr = create_qrcode(link, qrcode_color, logo)
 
-            #upload qrcode_image to cloudinary
-            qr_code_url = upload_image_to_cloudinary(img_qr)
+            # #upload qrcode_image to cloudinary
+            # qr_code_url = upload_image_to_cloudinary(img_qr)
 
             field = {
                 "qrcode_id": create_uuid(),
-                "qrcode_image_url": qr_code_url,
-                "logo_url": logo_url,
+                # "qrcode_image_url": qr_code_url,
+                # "logo_url": logo_url,
                 "logo_size": logo_size,
                 "qrcode_color": qrcode_color,
-                "link": link,
+                # "link": link,
                 "company_id": company_id,
-                "product_name": product_name,
                 "created_by": created_by,
                 "description": description,
                 "is_active": is_active,
+                "qrcode_type": qrcode_type,
+                
             }
 
             update_field = {
                 "status":"nothing to update"
             }
-            
-            serializer = DoWellQrCodeSerializer(data=field)
+
+            # This function checks qrcode_type field and assign them appropriate properties
+            serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
+
             if serializer.is_valid():
                 try:
                     insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
@@ -112,8 +117,9 @@ class codeqr(APIView):
                     # return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"response": f"{quantity} QR codes created successfully."}, status=status.HTTP_201_CREATED)
+                return Response({"response": f"{quantity} QR codes created successfully."}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 
 
      
@@ -249,5 +255,14 @@ class codeqrupdate(APIView):
 
     
       
+
+
+
+
+
+
+
+
+
 
 
