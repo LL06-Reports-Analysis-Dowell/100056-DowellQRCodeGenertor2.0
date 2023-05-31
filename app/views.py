@@ -19,7 +19,7 @@ from .helper import (
 )
 from .constant import *
 
-from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer, ProductTypeSerializer
+from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer, ProductTypeSerializer, VcardSerializer
 
 
 # In the below code, the codeqr class now accepts a list of QR code data in the request body.
@@ -121,6 +121,28 @@ class codeqr(APIView):
                 }
                 field = {**field, **product_field}
                 serializer = ProductTypeSerializer(data=field)
+
+            elif qrcode_type == "Vcard":
+                first_name = request.data.get("first_name")
+                last_name = request.data.get("last_name")
+                phone_number = request.data.get("phone_number")
+                address = request.data.get("address")
+
+                vcard_field = {
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "phone_number": phone_number,
+                    # "address": {
+                    #     "street_address": address.street_address,
+                    #     "city": address.city,
+                    #     "state": address.state,
+                    #     "zip_code": address.zip_code,
+                    #     "country": address.country,
+                    # }
+                }
+
+                field = {**field, **vcard_field}
+                serializer = VcardSerializer(data=field)
             else:
                 serializer = DoWellQrCodeSerializer(data=field)
             if serializer.is_valid():
@@ -130,7 +152,7 @@ class codeqr(APIView):
                     # return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response({"response": f"{quantity} QR codes created successfully."}, status=status.HTTP_201_CREATED)
 
 
