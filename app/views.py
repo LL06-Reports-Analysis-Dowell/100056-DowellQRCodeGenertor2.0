@@ -19,18 +19,7 @@ from .helper import (
 )
 from .constant import *
 
-from .serializers import DoWellQrCodeSerializer, DoWellUpdateQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
-
-
-# In the below code, the codeqr class now accepts a list of QR code data in the request body.
-#  Each item in the list represents a set of data for generating a QR code. The code iterates over each item,
-#  processes it, and collects the results in a list. 
-# Finally, the results are returned as a response, containing information about the success or failure of each QR code generation.
-# This updated code merges the functionality of both classes into a single CodeQR class. 
-# It includes the necessary decorators, combines the logic for generating multiple QR codes with default values,
-#  and incorporates the existing code logic for each generated QR code. The response includes the list of generated QR code data (qr_codes) 
-# and the results of the existing code logic (results).
-
+from .serializers import DoWellUpdateQrCodeSerializer
 
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
@@ -81,12 +70,6 @@ class codeqr(APIView):
                 logo_url = upload_image_to_cloudinary(logo_file)
             else:
                 logo_url = None
-
-            # # Create the QR code image and center logo if passed
-            # img_qr = create_qrcode(link, qrcode_color, logo)
-
-            # #upload qrcode_image to cloudinary
-            # qr_code_url = upload_image_to_cloudinary(img_qr)
 
             field = {
                 "qrcode_id": create_uuid(),

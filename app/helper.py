@@ -231,6 +231,13 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         # return serializer
         
     else:
+        img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
+        qr_code_url = upload_image_to_cloudinary(img_qr)
+        data = {
+            "qrcode_image_url": qr_code_url,
+            "logo_url": logo_url,
+        }
+        field = {**field, **data}
         serializer = DoWellQrCodeSerializer(data=field)
     return serializer, field
 
