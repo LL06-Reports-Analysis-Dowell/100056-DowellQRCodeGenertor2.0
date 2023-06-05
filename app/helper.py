@@ -15,7 +15,8 @@ from app.serializers import DoWellQrCodeSerializer, LinkTypeSerializer, ProductT
 cloudinary.config(
     cloud_name="din7lejen",
     api_key=835315697185388,
-    api_secret="6uovHssSAvgpP-j82Z2qrra3bEE"
+    api_secret="6uovHssSAvgpP-j82Z2qrra3bEE",
+    api_proxy= 'http://proxy.server:3128'
 )
 
 
