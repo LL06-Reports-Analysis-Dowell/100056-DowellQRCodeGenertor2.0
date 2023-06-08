@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from .helper import (
+from app.helper import (
     create_uuid, is_valid_hex_color, create_qrcode,
     dowellconnection, qrcode_type_defination, update_cloudinary_image, 
     upload_image_to_cloudinary
@@ -67,7 +67,7 @@ class codeqr(APIView):
             logo_url = None
 
             if logo:
-                logo_url = upload_image_to_cloudinary(logo_file)
+                logo_url = upload_image_to_cloudinary(logo_file, logo.name)
             else:
                 logo_url = None
 

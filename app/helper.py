@@ -1,4 +1,5 @@
 import io
+import time
 import uuid
 import json
 import re
@@ -139,6 +140,10 @@ def create_qrcode(link, qrcode_color, logo):
     return img_qr
 
 
+def generate_file_name():
+    timestamp = int(time.time())
+    filename = f"qrcode_{timestamp}.jpg"
+    return filename
    
 def image_to_bytes(image):
     bytes_io = io.BytesIO()
@@ -146,10 +151,16 @@ def image_to_bytes(image):
     image_bytes = bytes_io.getvalue()
     return image_bytes
 
-def upload_image_to_cloudinary(img):
-    upload_result = cloudinary.uploader.upload(img)
-    image_url = upload_result.get('url')
-    return image_url
+def upload_image_to_cloudinary(img, img_name=None):
+    url = 'http://67.217.61.253/uploadfiles/upload-qrcode-to-drive/'
+    files = {'file': (img_name, img)}
+    response = requests.post(url, files=files)
+    print("respose==========================>", response.json().get("file_url"))
+    return response.json().get("file_url")
+
+    # upload_result = cloudinary.uploader.upload(img)
+    # image_url = upload_result.get('url')
+    # return image_url
 
 
 def update_cloudinary_image(image_url, your_updated_image_file):
@@ -197,7 +208,10 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         country = request.data.get("address.country")
 
         img_qr = create_qrcode(request.data, qrcode_color, logo)
-        qr_code_url = upload_image_to_cloudinary(img_qr)
+
+        
+        file_name = generate_file_name()
+        qr_code_url = upload_image_to_cloudinary(img_qr, file_name)
 
         vcard = {
             "first_name": first_name,
@@ -220,7 +234,9 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
     elif qrcode_type == "Link":
         link = request.data.get("link")
         img_qr = create_qrcode(link, qrcode_color, logo)
-        qr_code_url = upload_image_to_cloudinary(img_qr)
+
+        file_name = generate_file_name()
+        qr_code_url = upload_image_to_cloudinary(img_qr, file_name)
         link_ = {
             "link": link,
             "qrcode_image_url": qr_code_url,
@@ -233,7 +249,8 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         
     else:
         img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
-        qr_code_url = upload_image_to_cloudinary(img_qr)
+        file_name = generate_file_name()
+        qr_code_url = upload_image_to_cloudinary(img_qr, file_name)
         data = {
             "qrcode_image_url": qr_code_url,
             "logo_url": logo_url,

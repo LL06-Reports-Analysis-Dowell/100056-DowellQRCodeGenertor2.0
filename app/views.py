@@ -67,7 +67,7 @@ class codeqr(APIView):
             logo_url = None
 
             if logo:
-                logo_url = upload_image_to_cloudinary(logo_file)
+                logo_url = upload_image_to_cloudinary(logo_file, logo.name)
             else:
                 logo_url = None
 
@@ -104,7 +104,6 @@ class codeqr(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
-
      
     def mongodb_worker(self, field, update_field):
         dowellconnection(*qrcode_management,"insert", field, update_field)
@@ -129,7 +128,6 @@ class codeqr(APIView):
         # update_field = {"status": "nothing to update"}
         response = dowellconnection(*qrcode_management, "fetch", field, {})
         return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
-
 
 
 
