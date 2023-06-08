@@ -3,6 +3,7 @@ import time
 import uuid
 import json
 import re
+from django.conf import settings
 import qrcode
 import requests
 from PIL import Image, ImageDraw
@@ -152,15 +153,10 @@ def image_to_bytes(image):
     return image_bytes
 
 def upload_image_to_cloudinary(img, img_name=None):
-    url = 'http://67.217.61.253/uploadfiles/upload-qrcode-to-drive/'
+    url = settings.INTERSERVER_URL
     files = {'file': (img_name, img)}
     response = requests.post(url, files=files)
-    print("respose==========================>", response.json().get("file_url"))
     return response.json().get("file_url")
-
-    # upload_result = cloudinary.uploader.upload(img)
-    # image_url = upload_result.get('url')
-    # return image_url
 
 
 def update_cloudinary_image(image_url, your_updated_image_file):

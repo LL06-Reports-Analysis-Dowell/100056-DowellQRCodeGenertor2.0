@@ -130,7 +130,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
+INTERSERVER_URL = 'http://67.217.61.253/uploadfiles/upload-qrcode-to-drive/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
