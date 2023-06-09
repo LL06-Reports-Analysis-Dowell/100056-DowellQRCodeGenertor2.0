@@ -125,8 +125,8 @@ Response - 200
 {
     "response": {
         "qrcode_id": "2982427012418900461",
-        "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
-        "logo_url": null,
+        "qrcode_image_url": "http://67.217.61.253/media/QrCodes/qrcode_1686291776.jpg",
+        "logo_url": "http://67.217.61.253/media/QrCodes/logo.png",
         "logo_size": 20,
         "qrcode_color": "#000000",
         "link": null,
@@ -146,8 +146,8 @@ Request Body
 ```json
 {
     "company_id": "129492388099ew03239661",
-    "qrcode_image_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684225075/kefhu4k2rmkreh8bqeo7.png",
-    "logo_url": null,
+    "qrcode_image_url": "http://67.217.61.253/media/QrCodes/qrcode_1686291776.jpg",
+    "logo_url": "http://67.217.61.253/media/QrCodes/logo.png",
     "logo_size": 20,
     "qrcode_color": "#000000",
     "link": null,
@@ -162,8 +162,8 @@ Response - 200
 ```json
 {
     "response": {
-        "qrcode_image_url": "https://res.cloudinary.com/din7lejen/image/upload/v1684226246/kefhu4k2rmkreh8bqeo7.png",
-        "logo_url": "http://res.cloudinary.com/din7lejen/image/upload/v1684226247/rt54tqvcc7u085htebit.png",
+        "qrcode_image_url": "http://67.217.61.253/media/QrCodes/qrcode_1686291776.jpg",
+        "logo_url": "http://67.217.61.253/media/QrCodes/logo.png",
         "logo_size": 20,
         "qrcode_color": "#000000",
         "link": "https://stackoverflow.com/questions/22282760/filenotfounderror-errno-2-no-such-file-or-directory",
@@ -191,13 +191,13 @@ Response - 200
     {
         "_id": "645ce86ffab34b4c2eee7f6106",
         "qrcode_id": "1294923880we9903239661",
-        "qrcode_image_url": "https://res.cloudinary.com/din7lejen/image/upload/v1683810476/vtapr9x9bl6oj2m1wm7r.png",
+        "qrcode_image_url": "http://67.217.61.253/media/QrCodes/qrcode_1686291776.jpg",
         "company_id": "Dowell",
         "created_by": null,
         "is_active": true,
         "link": "https://stackoverflow.com/questions/22282760/filenotfounderror-errno-2-no-such-file-or-directory",
         "logo_size": 20,
-        "logo_url": "http://res.cloudinary.com/din7lejen/image/upload/v1683810476/dh6tnzs8tykwffzdoz1l.png",
+        "logo_url": "http://67.217.61.253/media/QrCodes/logo.png",
         "product_name": "internet",
         "qrcode_color": "#000000"
     }
@@ -209,6 +209,7 @@ Response - 200
 
 - [Python](https://nodejs.org/) is a programming language that lets you work more quickly and integrate your systems
   more effectively.
+- [Storage] ()
 - [Django](https://www.djangoproject.com/) is a high-level Python web framework that encourages rapid development and
   clean, pragmatic design.
 - [Django Rest Framework](https://www.django-rest-framework.org/) Django REST framework is a powerful and flexible
