@@ -161,7 +161,7 @@ def upload_image_to_cloudinary(img, img_name=None):
         file_url = json_data.get("file_url")
     except json.JSONDecodeError as e:
         # Handle the JSONDecodeError
-        raise("JSONDecodeError occurred:", e)
+        raise json.JSONDecodeError("JSONDecodeError occurred:", e)
     return file_url
 
 
