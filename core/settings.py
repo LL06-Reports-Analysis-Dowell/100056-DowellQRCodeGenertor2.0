@@ -136,11 +136,5 @@ STATICFILES_DIRS = [
 ]
 
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': "din7lejen",
-    'API_KEY': 835315697185388,
-    'API_SECRET': "6uovHssSAvgpP-j82Z2qrra3bEE"
-}
 
