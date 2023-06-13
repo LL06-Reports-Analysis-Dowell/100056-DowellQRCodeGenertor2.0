@@ -156,7 +156,13 @@ def upload_image_to_cloudinary(img, img_name=None):
     url = settings.INTERSERVER_URL
     files = {'file': (img_name, img)}
     response = requests.post(url, files=files)
-    return response.json().get("file_url")
+    try:
+        json_data = response.json()
+        file_url = json_data.get("file_url")
+    except json.JSONDecodeError as e:
+        # Handle the JSONDecodeError
+        raise("JSONDecodeError occurred:", e)
+    return file_url
 
 
 def update_cloudinary_image(image_url, your_updated_image_file):
@@ -177,7 +183,7 @@ def create_uuid():
 
 
 
-def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url):
+def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url=None):
     serializer = None    
     if qrcode_type == "Product":
         title = request.data.get("title")
