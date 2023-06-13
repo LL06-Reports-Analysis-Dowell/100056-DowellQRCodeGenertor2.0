@@ -166,7 +166,7 @@ def upload_image_to_cloudinary(img, img_name=None):
         return file_url
     except json.JSONDecodeError as e:
         # Handle JSON decoding error
-        print("Error decoding JSON response:", e)
+        print("Error decoding JSON responsezzzy:", e)
         # return None
     except KeyError as e:
         # Handle missing "file_url" key error
