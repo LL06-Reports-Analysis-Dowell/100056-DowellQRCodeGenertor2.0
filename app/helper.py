@@ -156,14 +156,33 @@ def upload_image_to_cloudinary(img, img_name=None):
     url = settings.INTERSERVER_URL
     files = {'file': (img_name, img)}
     response = requests.post(url, files=files)
+
     try:
         json_data = response.json()
         file_url = json_data.get("file_url")
     except json.JSONDecodeError as e:
-        # Handle the JSONDecodeError
-        raise json.JSONDecodeError("JSONDecodeError occurred:", e)
+        # Handle JSON decoding error
+        print("Error decoding JSON response:", e)
+        return None
+    except KeyError as e:
+        # Handle missing "file_url" key error
+        print("Error accessing 'file_url' key:", e)
+        return None
+
     return file_url
 
+
+# def upload_image_to_cloudinary(img, img_name=None):
+#     url = settings.INTERSERVER_URL
+#     files = {'file': (img_name, img)}
+#     response = requests.post(url, files=files)
+#     try:
+#         json_data = response.json()
+#         file_url = json_data.get("file_url")
+#     except json.JSONDecodeError as e:
+#         # Handle the JSONDecodeError
+#         raise json.JSONDecodeError("JSONDecodeError occurred:", response.text, e.pos)
+#     return file_url
 
 def update_cloudinary_image(image_url, your_updated_image_file):
     # Extract the public_id of the existing image from the image URL
