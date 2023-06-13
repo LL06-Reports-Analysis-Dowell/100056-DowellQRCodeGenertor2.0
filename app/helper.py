@@ -157,6 +157,9 @@ def upload_image_to_cloudinary(img, img_name=None):
     files = {'file': (img_name, img)}
     response = requests.post(url, files=files)
 
+    print("STATUS_CODE:", response.status_code)
+    print("[*]JSON DATA", response.json())
+    
     try:
         json_data = response.json()
         print("[*]RESPONSE", response.text)
