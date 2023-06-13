@@ -160,6 +160,7 @@ def upload_image_to_cloudinary(img, img_name=None):
     try:
         json_data = response.json()
         file_url = json_data.get("file_url")
+        return file_url
     except json.JSONDecodeError as e:
         # Handle JSON decoding error
         print("Error decoding JSON response:", e)
@@ -168,7 +169,7 @@ def upload_image_to_cloudinary(img, img_name=None):
         # Handle missing "file_url" key error
         print("Error accessing 'file_url' key:", e)
         # return None
-    return file_url
+    
 
 
 def update_cloudinary_image(image_url, your_updated_image_file):
