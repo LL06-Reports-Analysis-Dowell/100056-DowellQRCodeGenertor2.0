@@ -44,7 +44,7 @@ class codeqr(APIView):
         created_by = request.data.get("created_by")
         description = request.data.get("description")
         is_active = request.data.get("is_active", False)
-        quantity = int(request.data.get("quantity"))
+        quantity = request.data.get("quantity")
 
 
         try:
@@ -61,8 +61,15 @@ class codeqr(APIView):
             logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)     
         else:
             pass
+        
+        qrcodes_created = []
 
-        # if quantity:
+        # chek if quantity is passed if not set to 1
+        if quantity:
+            quantity = int(quantity)
+        else:
+            quantity = 1
+            
         for _ in range(quantity):
             logo_url = None
 
@@ -100,8 +107,13 @@ class codeqr(APIView):
                     # return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                return Response({"response": f"{quantity} QR codes created successfully."}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+                qrcodes_created.append(field)
+
+        if qrcodes_created:
+            return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         
 
      
