@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from app.helper import (
-    create_uuid, is_valid_hex_color, create_qrcode,
+    create_uuid, generate_file_name, is_valid_hex_color, create_qrcode,
     dowellconnection, qrcode_type_defination, update_cloudinary_image, 
     upload_image_to_interserver
 )
@@ -44,7 +44,7 @@ class codeqr(APIView):
         created_by = request.data.get("created_by")
         description = request.data.get("description")
         is_active = request.data.get("is_active", False)
-        quantity = int(request.data.get("quantity"))
+        quantity = request.data.get("quantity")
 
 
         try:
@@ -61,8 +61,15 @@ class codeqr(APIView):
             logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)     
         else:
             pass
+        
+        qrcodes_created = []
 
-        # if quantity:
+        # chek if quantity is passed if not set to 1
+        if quantity:
+            quantity = int(quantity)
+        else:
+            quantity = 1
+            
         for _ in range(quantity):
             logo_url = None
 
@@ -100,10 +107,14 @@ class codeqr(APIView):
                     # return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                return Response({"response": f"{quantity} QR codes created successfully."}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+                
+                qrcodes_created.append(field)
 
+        if qrcodes_created:
+            return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        
 
      
     def mongodb_worker(self, field, update_field):
@@ -129,7 +140,6 @@ class codeqr(APIView):
         # update_field = {"status": "nothing to update"}
         response = dowellconnection(*qrcode_management, "fetch", field, {})
         return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
-
 
 
 
@@ -193,9 +203,10 @@ class codeqrupdate(APIView):
             logo_url = None
         elif not logo_url and logo:
             logo_file = logo.read()
-            logo_url = upload_image_to_interserver(logo_file)
+            logo_url = upload_image_to_interserver(logo_file, logo.name)
         elif logo_url and logo:
-            logo_url = update_cloudinary_image(logo_url, logo)
+            # logo_url = update_cloudinary_image(logo_url, logo)
+            logo_url = upload_image_to_interserver(logo, logo.name)
         else:
             pass
 
@@ -203,7 +214,9 @@ class codeqrupdate(APIView):
         img_qr = create_qrcode(link, qrcode_color, logo)
 
         # update qrcode and logo image in cloudinary
-        qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
+        file_name = generate_file_name()
+        qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+        # qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
 
         logoSize = logo_size
 
