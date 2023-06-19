@@ -13,9 +13,9 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
-    create_uuid, is_valid_hex_color, create_qrcode,
+    create_uuid, generate_file_name, is_valid_hex_color, create_qrcode,
     dowellconnection, qrcode_type_defination, update_cloudinary_image, 
-    upload_image_to_cloudinary
+    upload_image_to_interserver
 )
 from .constant import *
 
@@ -67,7 +67,7 @@ class codeqr(APIView):
             logo_url = None
 
             if logo:
-                logo_url = upload_image_to_cloudinary(logo_file, logo.name)
+                logo_url = upload_image_to_interserver(logo_file, logo.name)
             else:
                 logo_url = None
 
@@ -191,9 +191,10 @@ class codeqrupdate(APIView):
             logo_url = None
         elif not logo_url and logo:
             logo_file = logo.read()
-            logo_url = upload_image_to_cloudinary(logo_file)
+            logo_url = upload_image_to_interserver(logo_file, logo.name)
         elif logo_url and logo:
-            logo_url = update_cloudinary_image(logo_url, logo)
+            # logo_url = update_cloudinary_image(logo_url, logo)
+            logo_url = upload_image_to_interserver(logo, logo.name)
         else:
             pass
 
@@ -201,7 +202,9 @@ class codeqrupdate(APIView):
         img_qr = create_qrcode(link, qrcode_color, logo)
 
         # update qrcode and logo image in cloudinary
-        qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
+        file_name = generate_file_name()
+        qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+        # qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
 
         logoSize = logo_size
 

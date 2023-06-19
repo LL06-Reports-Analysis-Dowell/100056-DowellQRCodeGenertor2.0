@@ -152,29 +152,21 @@ def image_to_bytes(image):
     image_bytes = bytes_io.getvalue()
     return image_bytes
 
-def upload_image_to_cloudinary(img, img_name=None):
+def upload_image_to_interserver(img, img_name=None):
     url = settings.INTERSERVER_URL
     files = {'file': (img_name, img)}
     response = requests.post(url, files=files)
-
-    print("STATUS_CODE:", response.status_code)
-    print("[*]JSON DATA", response.text)
     
     try:
         json_data = response.json()
-        print("[*]RESPONSE", response.text)
-        print("[*]JSON DATA", json_data)
         file_url = json_data.get("file_url")
-        print("[*]FILE_URL", file_url)
         return file_url
     except json.JSONDecodeError as e:
         # Handle JSON decoding error
-        print("Error decoding JSON responsezzzy:", e)
-        # return None
+        print("Error decoding JSON response:", e)
     except KeyError as e:
         # Handle missing "file_url" key error
         print("Error accessing 'file_url' key:", e)
-        # return None
     
 
 
@@ -226,7 +218,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
 
         
         file_name = generate_file_name()
-        qr_code_url = upload_image_to_cloudinary(img_qr, file_name)
+        qr_code_url = upload_image_to_interserver(img_qr, file_name)
 
         vcard = {
             "first_name": first_name,
@@ -251,7 +243,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         img_qr = create_qrcode(link, qrcode_color, logo)
 
         file_name = generate_file_name()
-        qr_code_url = upload_image_to_cloudinary(img_qr, file_name)
+        qr_code_url = upload_image_to_interserver(img_qr, file_name)
         link_ = {
             "link": link,
             "qrcode_image_url": qr_code_url,
@@ -265,7 +257,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
     else:
         img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
         file_name = generate_file_name()
-        qr_code_url = upload_image_to_cloudinary(img_qr, file_name)
+        qr_code_url = upload_image_to_interserver(img_qr, file_name)
         data = {
             "qrcode_image_url": qr_code_url,
             "logo_url": logo_url,

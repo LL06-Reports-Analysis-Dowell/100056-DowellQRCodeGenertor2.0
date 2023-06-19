@@ -15,7 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 from app.helper import (
     create_uuid, is_valid_hex_color, create_qrcode,
     dowellconnection, qrcode_type_defination, update_cloudinary_image, 
-    upload_image_to_cloudinary
+    upload_image_to_interserver
 )
 from .constant import *
 
@@ -67,7 +67,7 @@ class codeqr(APIView):
             logo_url = None
 
             if logo:
-                logo_url = upload_image_to_cloudinary(logo_file, logo.name)
+                logo_url = upload_image_to_interserver(logo_file, logo.name)
             else:
                 logo_url = None
 
@@ -193,7 +193,7 @@ class codeqrupdate(APIView):
             logo_url = None
         elif not logo_url and logo:
             logo_file = logo.read()
-            logo_url = upload_image_to_cloudinary(logo_file)
+            logo_url = upload_image_to_interserver(logo_file)
         elif logo_url and logo:
             logo_url = update_cloudinary_image(logo_url, logo)
         else:
