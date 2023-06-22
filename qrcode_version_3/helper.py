@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw
 import cloudinary.uploader
 import cloudinary
 
-from app.serializers import DoWellQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
+from .serializers import DoWellQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
 
 
 cloudinary.config(
@@ -239,21 +239,20 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         # return serializer
         
     elif qrcode_type == "Link":
-        link = request.data.get("link")
+        link = request.POST.getlist("link")
+        
         img_qr = create_qrcode(link, qrcode_color, logo)
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)
         link_ = {
-            "link": link,
+            "master_link": link,
             "qrcode_image_url": qr_code_url,
             "logo_url": logo_url,
         }
         field = {**field, **link_}
         serializer = LinkTypeSerializer(data=field)
 
-        # return serializer
-        
     else:
         img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
         file_name = generate_file_name()

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 class DoWellQrCodeSerializer(serializers.Serializer):
     TYPE_CHOICES = (
         ('Product', 'Product'),
@@ -30,14 +31,14 @@ class ProductTypeSerializer(DoWellQrCodeSerializer):
     website = serializers.CharField(max_length=255)
 
 class LinkTypeSerializer(DoWellQrCodeSerializer):
-    link = serializers.URLField()
+    link = serializers.ListField(child=serializers.URLField(), required=False, allow_null=True)
+    master_link = serializers.ListField(child=serializers.URLField(), required=False, allow_null=True)
 
 class VcardSerializer(DoWellQrCodeSerializer):
     first_name = serializers.CharField(max_length=255)
     last_name = serializers.CharField(max_length=255)
     phone_number = serializers.CharField(max_length=255)
     address = AddressSerializer()
-
 
 class DoWellUpdateQrCodeSerializer(serializers.Serializer):
     qrcode_id=serializers.CharField(required=False, allow_null=True, allow_blank=True)
@@ -53,3 +54,11 @@ class DoWellUpdateQrCodeSerializer(serializers.Serializer):
     created_by = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     description = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     is_active = serializers.BooleanField(default=True)
+
+class LinkSerializer(serializers.Serializer):
+    url = serializers.URLField()
+
+class MainLinkSerializer(serializers.Serializer):
+    links = serializers.ManyRelatedField(LinkSerializer)
+
+
