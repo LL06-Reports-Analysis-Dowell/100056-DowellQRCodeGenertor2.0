@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'app',
-    'Qrcode',
     'qrcode_version_3'
 ]
 

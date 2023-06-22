@@ -22,8 +22,7 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/',include('app.urls')),
-    path('api/v2/',include('Qrcode.urls')),
+    path('api/v2/',include('app.urls')),
     path('api/v3/',include('qrcode_version_3.urls'))
 ]
 

@@ -55,10 +55,5 @@ class DoWellUpdateQrCodeSerializer(serializers.Serializer):
     description = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     is_active = serializers.BooleanField(default=True)
 
-class LinkSerializer(serializers.Serializer):
-    url = serializers.URLField()
-
-class MainLinkSerializer(serializers.Serializer):
-    links = serializers.ManyRelatedField(LinkSerializer)
 
 

@@ -1,5 +1,5 @@
 from django.urls import path
-from app.views import *
+from .views import *
 
 urlpatterns = [
     path('server-status/', serverStatus.as_view()),
