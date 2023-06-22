@@ -240,7 +240,9 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         
     elif qrcode_type == "Link":
         link = request.POST.getlist("link")
+        
 
+        print("master_link:", link)
         img_qr = create_qrcode(link, qrcode_color, logo)
 
         file_name = generate_file_name()
@@ -253,8 +255,6 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         field = {**field, **link_}
         serializer = LinkTypeSerializer(data=field)
 
-        # return serializer
-        
     else:
         img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
         file_name = generate_file_name()
