@@ -4,6 +4,9 @@ import uuid
 import json
 import re
 from django.conf import settings
+from django.urls import reverse
+
+
 import qrcode
 import requests
 from PIL import Image, ImageDraw
@@ -11,7 +14,7 @@ from PIL import Image, ImageDraw
 import cloudinary.uploader
 import cloudinary
 
-from .serializers import DoWellQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
+from qrcode_version_3.serializers import DoWellQrCodeSerializer, LinkSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
 
 
 cloudinary.config(
@@ -21,6 +24,28 @@ cloudinary.config(
     api_proxy= 'http://proxy.server:3128'
 )
 
+
+def linkConnection(cluster,database,collection,document,team_member_ID,function_ID,command,field,update_field):
+    url = "http://uxlivinglab.pythonanywhere.com"
+    payload = json.dumps({
+        "cluster": cluster,
+        "database": database,
+        "collection": collection,
+        "document": document,
+        "team_member_ID": team_member_ID,
+        "function_ID": function_ID,
+        "command": command,
+        "field": field,
+        "update_field": update_field,
+        "platform": "bangalore"
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+    res= json.loads(response.text)
+    return res
 
 def dowellconnection(cluster,database,collection,document,team_member_ID,function_ID,command,field,update_field):
     url = "http://uxlivinglab.pythonanywhere.com"
@@ -35,14 +60,14 @@ def dowellconnection(cluster,database,collection,document,team_member_ID,functio
         "field": field,
         "update_field": update_field,
         "platform": "bangalore"
-        })
+    })
+    
     headers = {
         'Content-Type': 'application/json'
-        }
+    }
 
     response = requests.request("POST", url, headers=headers, data=payload)
     res= json.loads(response.text)
-
     return res
 
 
@@ -92,6 +117,7 @@ def is_valid_hex_color(color):
     if not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color):
         return False
     return True
+
 
 def create_qrcode(link, qrcode_color, logo):
     # create qr_code
@@ -235,23 +261,36 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
 
         field = {**field, **vcard}
         serializer = VcardSerializer(data=field)
-
-        # return serializer
         
     elif qrcode_type == "Link":
-        link = request.POST.getlist("link")
+        links = request.data["links"]
         
-        img_qr = create_qrcode(link, qrcode_color, logo)
+        # get master link
+        post_links_path = reverse('master_link')
+        post_links_url = request.build_absolute_uri(post_links_path)
 
-        file_name = generate_file_name()
-        qr_code_url = upload_image_to_interserver(img_qr, file_name)
-        link_ = {
-            "master_link": link,
-            "qrcode_image_url": qr_code_url,
-            "logo_url": logo_url,
-        }
-        field = {**field, **link_}
-        serializer = LinkTypeSerializer(data=field)
+        posted_links = []
+        for link in links:
+            # post links to db
+            res = requests.post(post_links_url, link)
+            serializer = LinkSerializer(data=res)
+            posted_links.append(res.json())
+
+        serializer = LinkTypeSerializer(data=request.data)
+
+        if serializer.is_valid(raise_exception=True):
+            img_qr = create_qrcode(links, qrcode_color, logo)
+
+            file_name = generate_file_name()
+            qr_code_url = upload_image_to_interserver(img_qr, file_name)
+            link_ = {
+                "links": posted_links,
+                "masterlink": post_links_url,
+                "qrcode_image_url": qr_code_url,
+                "logo_url": logo_url,
+            }
+            field = {**field, **link_}
+
 
     else:
         img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
@@ -264,4 +303,5 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         field = {**field, **data}
         serializer = DoWellQrCodeSerializer(data=field)
     return serializer, field
+
 

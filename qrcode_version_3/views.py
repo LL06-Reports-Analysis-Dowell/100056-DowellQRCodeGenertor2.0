@@ -18,13 +18,60 @@ from qrcode_version_3.helper import (
 )
 from app.constant import *
 
-from .serializers import DoWellUpdateQrCodeSerializer
+from .serializers import DoWellUpdateQrCodeSerializer, LinkSerializer
 
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
     def get(self, request):
         return Response({"info":"QrCode Backend servies running fine."}, status= status.HTTP_200_OK)
     
+class Links(APIView):
+    serializer_class = LinkSerializer
+
+    def post(self, request):
+        link = request.data.get("link")
+        is_opened = request.data.get("is_opened", False)
+        is_finalized = request.data.get('is_finalized', False) 
+
+        field = {
+            "link_id": create_uuid(),
+            "link": link,
+            "is_opened": is_opened,
+            "is_finalized": is_finalized
+        }
+        update_field = {
+            
+        }
+        serializer = self.serializer_class(data=field)
+
+        if serializer.is_valid(raise_exception=True):
+            try:
+                insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+                insertion_thread.start()
+                return Response({"response": field}, status=status.HTTP_201_CREATED)
+            except:
+                return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def get(self, request):
+        try:
+            link_id = request.GET.get('link_id')
+        except:
+            pass
+
+        if link_id:
+            field = {"link_id": link_id}
+        else:
+            # I if no params are passed get all qrcodes
+            response = dowellconnection(*qrcode_management, "fetch", {}, {})
+            return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        
+        # update_field = {"status": "nothing to update"}
+        response = dowellconnection(*qrcode_management, "fetch", field, {})
+        return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+
+
+    def mongodb_worker(self, field, update_field):
+        dowellconnection(*qrcode_management,"insert", field, update_field)  
 
 class codeqr(APIView):
     @method_decorator(csrf_exempt)
@@ -99,6 +146,7 @@ class codeqr(APIView):
             serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
 
             if serializer.is_valid():
+                # if link_serializer.is_valid():
                 try:
                     insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                     insertion_thread.start()
@@ -107,10 +155,14 @@ class codeqr(APIView):
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
                 qrcodes_created.append(field)
+                # else:
+                #     return Response(link_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         if qrcodes_created:
             return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
         
 
