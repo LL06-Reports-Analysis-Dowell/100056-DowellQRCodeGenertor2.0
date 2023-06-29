@@ -30,18 +30,24 @@ class Links(APIView):
 
     def post(self, request):
         link = request.data.get("link")
-        is_opened = request.data.get("is_opened", False)
-        is_finalized = request.data.get('is_finalized', False) 
+        api_key = request.data.get("api_key")
+        link_id = request.data.get("link_id")
+
+        if not api_key:
+            api_key = create_uuid()
 
         field = {
-            "link_id": create_uuid(),
+            "api_key": api_key,
+            "link_id": link_id,
             "link": link,
-            "is_opened": is_opened,
-            "is_finalized": is_finalized
+            "is_opened": False,
+            "is_finalized": False
         }
+
         update_field = {
-            
+
         }
+       
         serializer = self.serializer_class(data=field)
 
         if serializer.is_valid(raise_exception=True):
@@ -52,22 +58,33 @@ class Links(APIView):
             except:
                 return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+    
     def get(self, request):
         try:
+            api_key = request.GET.get('api_key')
             link_id = request.GET.get('link_id')
         except:
             pass
 
-        if link_id:
-            field = {"link_id": link_id}
-        else:
-            # I if no params are passed get all qrcodes
-            response = dowellconnection(*qrcode_management, "fetch", {}, {})
-            return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        update_field = {
+            "is_opened": True,
+        }
         
-        # update_field = {"status": "nothing to update"}
-        response = dowellconnection(*qrcode_management, "fetch", field, {})
-        return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        if api_key:
+            field = {"api_key": api_key, "is_opened": False}
+            res = dowellconnection(*qrcode_management, "fetch", field, {})
+        elif link_id:
+            field = {"link_id": link_id}
+            dowellconnection(*qrcode_management,"update",field, update_field)
+            res = dowellconnection(*qrcode_management, "fetch", field, {})
+            # return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Please pass api_key or link_id as query param"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+            
+
+
+        
 
 
     def mongodb_worker(self, field, update_field):

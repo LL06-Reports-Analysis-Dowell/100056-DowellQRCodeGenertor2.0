@@ -263,34 +263,39 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         serializer = VcardSerializer(data=field)
         
     elif qrcode_type == "Link":
-        links = request.data["links"]
-        
+        # links = request.data["links"]
+        links = request.data.get("links")
+
         # get master link
         post_links_path = reverse('master_link')
         post_links_url = request.build_absolute_uri(post_links_path)
 
         posted_links = []
+        api_key = create_uuid()
         for link in links:
             # post links to db
-            res = requests.post(post_links_url, link)
+            link_id = create_uuid()
+            link_data = {"link_id": link_id, "api_key": api_key, "link": link["link"]}
+            res = requests.post(post_links_url, link_data)
             serializer = LinkSerializer(data=res)
             posted_links.append(res.json())
 
+        print("response", posted_links)
         serializer = LinkTypeSerializer(data=request.data)
 
-        if serializer.is_valid(raise_exception=True):
-            img_qr = create_qrcode(links, qrcode_color, logo)
+        # if serializer.is_valid(raise_exception=True):
+        img_qr = create_qrcode(posted_links, qrcode_color, logo)
 
-            file_name = generate_file_name()
-            qr_code_url = upload_image_to_interserver(img_qr, file_name)
-            link_ = {
-                "links": posted_links,
-                "masterlink": post_links_url,
-                "qrcode_image_url": qr_code_url,
-                "logo_url": logo_url,
-            }
-            field = {**field, **link_}
-
+        file_name = generate_file_name()
+        qr_code_url = upload_image_to_interserver(img_qr, file_name)
+        link_ = {
+            "links": posted_links,
+            "masterlink": post_links_url,
+            "qrcode_image_url": qr_code_url,
+            "logo_url": logo_url,
+        }
+        
+        field = {**field, **link_}
 
     else:
         img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
