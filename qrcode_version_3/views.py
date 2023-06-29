@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 
 from qrcode_version_3.helper import (
     create_uuid, generate_file_name, is_valid_hex_color, create_qrcode,
@@ -63,29 +64,58 @@ class Links(APIView):
         try:
             api_key = request.GET.get('api_key')
             link_id = request.GET.get('link_id')
+            is_finalized = request.GET.get("is_finalized")
         except:
             pass
 
         update_field = {
             "is_opened": True,
+            # "is_finalized": is_finalized
         }
         
         if api_key:
             field = {"api_key": api_key, "is_opened": False}
             res = dowellconnection(*qrcode_management, "fetch", field, {})
-        elif link_id:
-            field = {"link_id": link_id}
-            dowellconnection(*qrcode_management,"update",field, update_field)
-            res = dowellconnection(*qrcode_management, "fetch", field, {})
-            # return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+            response = json.loads(res)
+
+            if len(response["data"]) < 1:
+                field2 = {"api_key": api_key ,"is_finalized": False}
+                res = dowellconnection(*qrcode_management, "fetch", field2, {})
+                response = json.loads(res)
+
+            # Check if there are any unopened links
+            unopened_links = [link for link in response["data"] if not link["is_opened"]]
+
+            if len(unopened_links) > 0:
+
+                # Select the first unopened link
+                open_link = unopened_links[0]
+
+                # Update the "is_opened" status to True
+                field = {"link_id": open_link["link_id"]}
+                dowellconnection(*qrcode_management,"update",field, update_field)
+
+                # Redirect to the open link
+                return redirect(open_link["link"])
+
+            else:
+                # Check if there are any unfinalized links
+                update_field = {
+                    "is_opened": False,
+                }
+                unfinalized_links = [link for link in response["data"] if not link["is_finalized"]]
+                if len(unfinalized_links) > 0:
+                    for link in unfinalized_links:
+
+                        # Set "is_opened" to False for each unfinalized link
+                        field = {"link_id": link["link_id"]}
+                        dowellconnection(*qrcode_management,"update",field, update_field)
+                else:
+                    return Response({"message": "All links are opened and finalized."}, status=status.HTTP_200_OK)
         else:
-            return Response({"error": "Please pass api_key or link_id as query param"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Please pass api_key as query param"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
             
-
-
-        
-
 
     def mongodb_worker(self, field, update_field):
         dowellconnection(*qrcode_management,"insert", field, update_field)  
