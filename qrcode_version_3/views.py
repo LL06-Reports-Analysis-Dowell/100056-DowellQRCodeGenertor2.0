@@ -64,13 +64,13 @@ class Links(APIView):
         try:
             api_key = request.GET.get('api_key')
             link_id = request.GET.get('link_id')
-            is_finalized = request.GET.get("is_finalized")
+            is_finalized = request.data.get("is_finalized")
         except:
             pass
 
         update_field = {
             "is_opened": True,
-            # "is_finalized": is_finalized
+            "is_finalized": is_finalized
         }
         
         if api_key:
