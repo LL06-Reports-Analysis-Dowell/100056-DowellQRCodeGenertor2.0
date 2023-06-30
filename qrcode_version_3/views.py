@@ -19,7 +19,7 @@ from qrcode_version_3.helper import (
 )
 from app.constant import *
 
-from .serializers import DoWellUpdateQrCodeSerializer, LinkSerializer
+from .serializers import DoWellUpdateQrCodeSerializer, LinkSerializer, LinkFinalizeSerializer
 
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
@@ -64,13 +64,11 @@ class Links(APIView):
         try:
             api_key = request.GET.get('api_key')
             link_id = request.GET.get('link_id')
-            is_finalized = request.data.get("is_finalized", False)
         except:
             pass
 
         update_field = {
             "is_opened": True,
-            "is_finalized": is_finalized
         }
         
         if api_key:
@@ -97,7 +95,7 @@ class Links(APIView):
 
                 # Redirect to the open link
                 return redirect(open_link["link"])
-
+            
             else:
                 # Check if there are any unfinalized links
                 update_field = {
@@ -112,13 +110,64 @@ class Links(APIView):
                         dowellconnection(*qrcode_management,"update",field, update_field)
                 else:
                     return Response({"message": "All links are opened and finalized."}, status=status.HTTP_200_OK)
+                
+        # get single link using link_id
+        elif link_id:
+            field = {"link_id": link_id}
+            res = dowellconnection(*qrcode_management, "fetch", field, {})
         else:
             return Response({"message": "Please pass api_key as query param"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        field2 = {"api_key": api_key , "is_opened": False,"is_finalized": False}
+        res = dowellconnection(*qrcode_management, "fetch", field2, {})
+        response = json.loads(res)
         return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
             
+    def put(self, request):
+        link_id = request.GET.get("link_id")
+        is_finalized = request.data.get("is_finalized", True)
 
+        field = {
+            "link_id": link_id
+        }
+       
+        update_field = {
+            "is_finalized": is_finalized,
+        }
+
+        serializer = LinkFinalizeSerializer(data=update_field)
+        if serializer.is_valid():
+            res = dowellconnection(*qrcode_management,"fetch",field, {})
+            response = json.loads(res)
+         
+            is_opened = response["data"][0]["is_opened"]
+            is_finalized = response["data"][0]["is_finalized"]
+            
+
+            if is_opened and is_finalized:
+                return Response({"message": "link already opened and is finalized", "response": json.loads(res)}, status=status.HTTP_302_FOUND)
+            elif is_opened and not is_finalized:
+                response = dowellconnection(*qrcode_management,"update",field, update_field)
+                response = json.loads(response)
+                res = dowellconnection(*qrcode_management,"fetch",field, {})
+
+                # Check if the update was successful
+                if response["isSuccess"]:
+                    return Response({"response": json.loads(res), 
+                                     "message": "link successfully finalized"},
+                                       status=status.HTTP_200_OK
+                                    )
+                else:
+                    return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+            
+            else:
+                return Response({"error": "link cannot be finalized and is not open"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
     def mongodb_worker(self, field, update_field):
         dowellconnection(*qrcode_management,"insert", field, update_field)  
+
 
 class codeqr(APIView):
     @method_decorator(csrf_exempt)

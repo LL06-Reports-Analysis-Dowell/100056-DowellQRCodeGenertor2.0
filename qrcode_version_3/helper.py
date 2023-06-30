@@ -205,14 +205,10 @@ def update_cloudinary_image(image_url, your_updated_image_file):
     new_image_url = response['secure_url']
     return new_image_url
 
-
-
 def create_uuid():
     unique_id = uuid.uuid1().int >> 64
     unique_id = str(unique_id)
     return unique_id
-
-
 
 def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url=None):
     serializer = None    
@@ -288,9 +284,11 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)
+
+        master_link = post_links_url + f"?api_key={api_key}"
         link_ = {
             "links": posted_links,
-            "masterlink": post_links_url,
+            "masterlink": master_link,
             "qrcode_image_url": qr_code_url,
             "logo_url": logo_url,
         }

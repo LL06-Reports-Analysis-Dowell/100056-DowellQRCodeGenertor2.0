@@ -64,3 +64,5 @@ class DoWellUpdateQrCodeSerializer(serializers.Serializer):
 
 
 
+class LinkFinalizeSerializer(serializers.Serializer):
+    is_finalized = serializers.BooleanField(default=False)
