@@ -276,18 +276,19 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
             serializer = LinkSerializer(data=res)
             posted_links.append(res.json())
 
-        print("response", posted_links)
+ 
         serializer = LinkTypeSerializer(data=request.data)
 
-        # if serializer.is_valid(raise_exception=True):
         # get all posted links
-        qrcode_links = [link["response"]["link"] for link in posted_links]
-        img_qr = create_qrcode(qrcode_links, qrcode_color, logo)
+        master_link = post_links_url + f"?api_key={api_key}"
+
+        # qrcode_links = [link["response"]["link"] for link in posted_links]
+        img_qr = create_qrcode(master_link, qrcode_color, logo)
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)
 
-        master_link = post_links_url + f"?api_key={api_key}"
+        
         link_ = {
             "links": posted_links,
             "masterlink": master_link,

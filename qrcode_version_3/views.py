@@ -86,8 +86,7 @@ class Links(APIView):
 
             # Check if there are any unopened links
             unopened_links = [link for link in response["data"] if not link["is_opened"]]
-            print(len(unopened_links))
-
+            
             if len(unopened_links) > 0:
 
                 # Select the first unopened link
