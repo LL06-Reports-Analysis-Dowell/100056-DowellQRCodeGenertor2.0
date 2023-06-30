@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
+from django.urls import reverse
+
 
 from qrcode_version_3.helper import (
     create_uuid, generate_file_name, is_valid_hex_color, create_qrcode,
@@ -83,6 +85,7 @@ class Links(APIView):
 
             # Check if there are any unopened links
             unopened_links = [link for link in response["data"] if not link["is_opened"]]
+            print(len(unopened_links))
 
             if len(unopened_links) > 0:
 
@@ -115,13 +118,18 @@ class Links(APIView):
         elif link_id:
             field = {"link_id": link_id}
             res = dowellconnection(*qrcode_management, "fetch", field, {})
+            return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Please pass api_key as query param"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        field2 = {"api_key": api_key , "is_opened": False,"is_finalized": False}
-        res = dowellconnection(*qrcode_management, "fetch", field2, {})
-        response = json.loads(res)
-        return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+
+        post_links_path = reverse('master_link')
+        post_links_url = request.build_absolute_uri(post_links_path)
+        master_link = post_links_url + f"?api_key={api_key}"
+        return redirect(master_link)
+        # field2 = {"api_key": api_key , "is_opened": False,"is_finalized": False}
+        # res = dowellconnection(*qrcode_management, "fetch", field2, {})
+        # response = json.loads(res)
+        # return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
             
     def put(self, request):
         link_id = request.GET.get("link_id")
