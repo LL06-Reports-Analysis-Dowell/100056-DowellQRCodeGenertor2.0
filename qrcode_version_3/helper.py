@@ -280,7 +280,9 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         serializer = LinkTypeSerializer(data=request.data)
 
         # if serializer.is_valid(raise_exception=True):
-        img_qr = create_qrcode(posted_links, qrcode_color, logo)
+        # get all posted links
+        qrcode_links = [link["response"]["link"] for link in posted_links]
+        img_qr = create_qrcode(qrcode_links, qrcode_color, logo)
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)

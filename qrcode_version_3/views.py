@@ -129,11 +129,6 @@ class Links(APIView):
         post_links_url = request.build_absolute_uri(post_links_path)
         master_link = post_links_url + f"?api_key={api_key}"
         return redirect(master_link)
-    
-        # field2 = {"api_key": api_key , "is_opened": False,"is_finalized": False}
-        # res = dowellconnection(*qrcode_management, "fetch", field2, {})
-        # response = json.loads(res)
-        # return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
             
     def put(self, request):
         link_id = request.GET.get("link_id")
