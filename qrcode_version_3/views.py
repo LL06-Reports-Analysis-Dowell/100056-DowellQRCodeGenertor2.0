@@ -64,7 +64,7 @@ class Links(APIView):
         try:
             api_key = request.GET.get('api_key')
             link_id = request.GET.get('link_id')
-            is_finalized = request.data.get("is_finalized")
+            is_finalized = request.data.get("is_finalized", False)
         except:
             pass
 
