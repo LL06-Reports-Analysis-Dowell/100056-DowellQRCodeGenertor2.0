@@ -4,13 +4,14 @@ from io import BytesIO
 import threading
 from PIL import Image
 import io
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
 
@@ -112,7 +113,9 @@ class Links(APIView):
                         field = {"link_id": link["link_id"]}
                         dowellconnection(*qrcode_management,"update",field, update_field)
                 else:
-                    return Response({"message": "All links are opened and finalized."}, status=status.HTTP_200_OK)
+                    return render(request, 'return.html')
+
+                    # return Response({"message": "All links are opened and finalized."}, status=status.HTTP_200_OK)
                 
         # get single link using link_id
         elif link_id:
@@ -126,6 +129,7 @@ class Links(APIView):
         post_links_url = request.build_absolute_uri(post_links_path)
         master_link = post_links_url + f"?api_key={api_key}"
         return redirect(master_link)
+    
         # field2 = {"api_key": api_key , "is_opened": False,"is_finalized": False}
         # res = dowellconnection(*qrcode_management, "fetch", field2, {})
         # response = json.loads(res)
