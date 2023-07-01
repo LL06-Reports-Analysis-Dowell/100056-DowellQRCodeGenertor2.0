@@ -179,14 +179,13 @@ class codeqrupdate(APIView):
         except: 
             pass
 
-        company_id = request.data.get("company_id")
-        link = request.data.get("link")
+        company_id = request.data.get("company_id", qrcode_["company_id"])
+        link = request.data.get("link", qrcode_["link"])
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
-        qrcode_color = request.data.get('qrcode_color', "#000000")
-        product_name = request.data.get("product_name")
-        created_by = request.data.get("created_by")
-        description = request.data.get("description")
+        qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
+        created_by = request.data.get("created_by", qrcode_["created_by"])
+        description = request.data.get("description", qrcode_["description"])
         is_active = request.data.get("is_active", True)
 
         # Validate logo size
@@ -216,7 +215,6 @@ class codeqrupdate(APIView):
         # update qrcode and logo image in cloudinary
         file_name = generate_file_name()
         qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-        # qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
 
         logoSize = logo_size
 
@@ -231,7 +229,6 @@ class codeqrupdate(APIView):
             "qrcode_color": qrcode_color,
             "link": link,
             "company_id": company_id,
-            "product_name": product_name,
             "created_by": created_by,
             "description": description,
             "is_active": is_active,

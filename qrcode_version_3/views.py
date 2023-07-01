@@ -248,27 +248,18 @@ class codeqr(APIView):
             # This function checks qrcode_type field and assign them appropriate properties
             serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
 
-            if serializer.is_valid():
-                # if link_serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 try:
                     # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                     # insertion_thread.start()
                     self.mongodb_worker(field,update_field)
-                    return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
                 qrcodes_created.append(field)
-                # else:
-                #     return Response(link_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         if qrcodes_created:
             return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
-
-
-        
 
      
     def mongodb_worker(self, field, update_field):
