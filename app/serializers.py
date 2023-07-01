@@ -49,7 +49,6 @@ class DoWellUpdateQrCodeSerializer(serializers.Serializer):
     company_id = serializers.CharField(max_length=255, allow_null=True)
     logo_size = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     qrcode_color = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
-    product_name = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     created_by = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     description = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     is_active = serializers.BooleanField(default=True)
