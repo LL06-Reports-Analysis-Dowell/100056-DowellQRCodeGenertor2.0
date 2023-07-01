@@ -56,8 +56,9 @@ class Links(APIView):
 
         if serializer.is_valid(raise_exception=True):
             try:
-                insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
-                insertion_thread.start()
+                # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+                # insertion_thread.start()
+                self.mongodb_worker(field,update_field)
                 return Response({"response": field}, status=status.HTTP_201_CREATED)
             except:
                 return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -250,9 +251,10 @@ class codeqr(APIView):
             if serializer.is_valid():
                 # if link_serializer.is_valid():
                 try:
-                    insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
-                    insertion_thread.start()
-                    # return Response({"response": field}, status=status.HTTP_201_CREATED)
+                    # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+                    # insertion_thread.start()
+                    self.mongodb_worker(field,update_field)
+                    return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
