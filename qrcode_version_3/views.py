@@ -13,7 +13,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from qrcode_gen import has_query_params
+
+from .helper import has_query_params
 
 
 from qrcode_version_3.helper import (
@@ -99,7 +100,7 @@ class Links(APIView):
                 dowellconnection(*qrcode_management,"update",field, update_field)
 
                 # Redirect to the open link and pass link_id to link
-                print(has_query_params(open_link["link"]))
+
                 if has_query_params(open_link["link"]):
                     return redirect(open_link["link"] + "&link_id=" + open_link["link_id"])
                 else:

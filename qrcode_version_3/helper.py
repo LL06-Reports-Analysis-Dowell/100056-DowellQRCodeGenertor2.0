@@ -1,5 +1,6 @@
 import io
 import time
+from urllib.parse import urlparse
 import uuid
 import json
 import re
@@ -13,7 +14,6 @@ from PIL import Image, ImageDraw
 
 import cloudinary.uploader
 import cloudinary
-from urllib.parse import urlparse
 
 from qrcode_version_3.serializers import DoWellQrCodeSerializer, LinkSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
 
@@ -25,7 +25,6 @@ cloudinary.config(
     api_proxy= 'http://proxy.server:3128'
 )
 
-
 # check if link has query params or not
 def has_query_params(url):
     parsed_url = urlparse(url)
@@ -35,8 +34,6 @@ def has_query_params(url):
         return True
     else:
         return False
-
-
 
 def linkConnection(cluster,database,collection,document,team_member_ID,function_ID,command,field,update_field):
     url = "http://uxlivinglab.pythonanywhere.com"
