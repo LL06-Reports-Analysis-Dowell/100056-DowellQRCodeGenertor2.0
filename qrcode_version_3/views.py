@@ -98,7 +98,7 @@ class Links(APIView):
                 dowellconnection(*qrcode_management,"update",field, update_field)
 
                 # Redirect to the open link and pass link_id to link
-                return redirect(open_link["link"] + "?link_id=" + open_link["link_id"])
+                return redirect(open_link["link"] + "&link_id=" + open_link["link_id"])
             
             else:
                 # Check if there are any unfinalized links
