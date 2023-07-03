@@ -38,6 +38,7 @@ class Links(APIView):
         link = request.data.get("link")
         api_key = request.data.get("api_key")
         link_id = request.data.get("link_id")
+        
 
         if not api_key:
             api_key = create_uuid()
@@ -70,14 +71,19 @@ class Links(APIView):
         try:
             api_key = request.GET.get('api_key')
             link_id = request.GET.get('link_id')
+            qrcode_api_key = request.GET.get("qrcode_api_key")
         except:
             pass
 
         update_field = {
             "is_opened": True,
         }
-        
-        if api_key:
+
+        if qrcode_api_key:
+            field = {"api_key": qrcode_api_key}
+            res = dowellconnection(*qrcode_management, "fetch", field, {})
+            return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+        elif api_key:
             field = {"api_key": api_key, "is_opened": False}
             res = dowellconnection(*qrcode_management, "fetch", field, {})
             response = json.loads(res)
