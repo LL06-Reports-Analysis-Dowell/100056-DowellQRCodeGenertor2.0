@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw
 
 import cloudinary.uploader
 import cloudinary
+from urllib.parse import urlparse
 
 from qrcode_version_3.serializers import DoWellQrCodeSerializer, LinkSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
 
@@ -23,6 +24,18 @@ cloudinary.config(
     api_secret="6uovHssSAvgpP-j82Z2qrra3bEE",
     api_proxy= 'http://proxy.server:3128'
 )
+
+
+# check if link has query params or not
+def has_query_params(url):
+    parsed_url = urlparse(url)
+    query_params = parsed_url.query
+
+    if query_params or parsed_url.fragment:
+        return True
+    else:
+        return False
+
 
 
 def linkConnection(cluster,database,collection,document,team_member_ID,function_ID,command,field,update_field):
