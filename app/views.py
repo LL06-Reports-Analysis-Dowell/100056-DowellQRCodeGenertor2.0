@@ -283,14 +283,3 @@ class codeqrupdate(APIView):
         else:
             return Response(response_text, status=404)
       
-
-
-
-
-
-
-
-
-
-
-
