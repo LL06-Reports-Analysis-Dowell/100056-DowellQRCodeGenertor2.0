@@ -266,3 +266,15 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         serializer = DoWellQrCodeSerializer(data=field)
     return serializer, field
 
+
+
+def processApikey(self, api_key, api_service_id= "DOWELL100014"):
+        url = 'https://100105.pythonanywhere.com/api/v1/process-api-key/'
+        payload = {
+            "api_key": api_key,
+            "api_service_id": api_service_id
+        }
+
+        response = requests.post(url, json=payload)
+        response_text = json.loads(response.text)
+        return response_text

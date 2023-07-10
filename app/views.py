@@ -5,6 +5,7 @@ from io import BytesIO
 import threading
 from PIL import Image
 import io
+import requests
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,7 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
     create_uuid, generate_file_name, is_valid_hex_color, create_qrcode,
-    dowellconnection, qrcode_type_defination, update_cloudinary_image, 
+    dowellconnection, processApikey, qrcode_type_defination, update_cloudinary_image, 
     upload_image_to_interserver
 )
 from .constant import *
@@ -32,8 +33,12 @@ class codeqr(APIView):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+    
 
     def post(self, request):
+        api_key = request.GET.get('api_key')
+        
+        
         company_id = request.data.get("company_id")
         qrcode_type = request.data.get("qrcode_type")
         # link = request.data.get("link")
@@ -46,73 +51,79 @@ class codeqr(APIView):
         is_active = request.data.get("is_active", False)
         quantity = request.data.get("quantity")
 
+        response_text = processApikey(api_key, 'DOWELL100014')
 
-        try:
-            if logo_size <= 0:
-                raise ValueError("Logo size must be a positive integer.")
-        except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not is_valid_hex_color(qrcode_color):
-            return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
-                
-        
-        if logo:
-            logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)     
-        else:
-            pass
-        
-        qrcodes_created = []
-
-        # chek if quantity is passed if not set to 1
-        if quantity:
-            quantity = int(quantity)
-        else:
-            quantity = 1
+        if response_text["success"]:
             
-        for _ in range(quantity):
-            logo_url = None
 
+            try:
+                if logo_size <= 0:
+                    raise ValueError("Logo size must be a positive integer.")
+            except ValueError as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not is_valid_hex_color(qrcode_color):
+                return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
+                    
+            
             if logo:
-                logo_url = upload_image_to_interserver(logo_file, logo.name)
+                logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)     
             else:
+                pass
+            
+            qrcodes_created = []
+
+            # chek if quantity is passed if not set to 1
+            if quantity:
+                quantity = int(quantity)
+            else:
+                quantity = 1
+                
+            for _ in range(quantity):
                 logo_url = None
 
-            field = {
-                "qrcode_id": create_uuid(),
-                # "qrcode_image_url": qr_code_url,
-                # "logo_url": logo_url,
-                "logo_size": logo_size,
-                "qrcode_color": qrcode_color,
-                # "link": link,
-                "company_id": company_id,
-                "created_by": created_by,
-                "description": description,
-                "is_active": is_active,
-                "qrcode_type": qrcode_type,
-                
-            }
+                if logo:
+                    logo_url = upload_image_to_interserver(logo_file, logo.name)
+                else:
+                    logo_url = None
 
-            update_field = {
-                "status":"nothing to update"
-            }
+                field = {
+                    "qrcode_id": create_uuid(),
+                    # "qrcode_image_url": qr_code_url,
+                    # "logo_url": logo_url,
+                    "logo_size": logo_size,
+                    "qrcode_color": qrcode_color,
+                    # "link": link,
+                    "company_id": company_id,
+                    "created_by": created_by,
+                    "description": description,
+                    "is_active": is_active,
+                    "qrcode_type": qrcode_type,
+                    
+                }
 
-            # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
+                update_field = {
+                    "status":"nothing to update"
+                }
 
-            if serializer.is_valid():
-                try:
-                    insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
-                    insertion_thread.start()
-                    # return Response({"response": field}, status=status.HTTP_201_CREATED)
-                except:
-                    return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
-                qrcodes_created.append(field)
+                # This function checks qrcode_type field and assign them appropriate properties
+                serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
 
-        if qrcodes_created:
-            return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                if serializer.is_valid():
+                    try:
+                        insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+                        insertion_thread.start()
+                        # return Response({"response": field}, status=status.HTTP_201_CREATED)
+                    except:
+                        return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    
+                    qrcodes_created.append(field)
+
+            if qrcodes_created:
+                return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(response_text, status=404)
 
         
 
@@ -122,25 +133,31 @@ class codeqr(APIView):
     
     
     def get(self, request):
-        try:
-            company_id = request.GET.get('company_id')
-            product_name = request.GET.get('product_name')
-        except:
-            pass
+        api_key = request.GET.get('api_key')
+        response_text = processApikey(api_key, 'DOWELL100014')
 
-        if company_id:
-            field = {"company_id": company_id}
-        elif product_name:
-            field = {"product_name": product_name}
-        else:
-            # I if no params are passed get all qrcodes
-            response = dowellconnection(*qrcode_management, "fetch", {}, {})
+        if response_text["success"]:
+
+            try:
+                company_id = request.GET.get('company_id')
+                product_name = request.GET.get('product_name')
+            except:
+                pass
+
+            if company_id:
+                field = {"company_id": company_id}
+            elif product_name:
+                field = {"product_name": product_name}
+            else:
+                # I if no params are passed get all qrcodes
+                response = dowellconnection(*qrcode_management, "fetch", {}, {})
+                return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+            
+            # update_field = {"status": "nothing to update"}
+            response = dowellconnection(*qrcode_management, "fetch", field, {})
             return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
-        
-        # update_field = {"status": "nothing to update"}
-        response = dowellconnection(*qrcode_management, "fetch", field, {})
-        return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
-
+        else:
+            return Response(response_text, status=404)
 
 
 
@@ -148,27 +165,38 @@ class codeqr(APIView):
 class codeqrupdate(APIView):
 
     def get_object(self, request, id):
+        api_key = request.GET.get('api_key')
         field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
-        if response["isSuccess"]:
-            return response["data"][0]
-        
+        response_text = processApikey(api_key, 'DOWELL100014')
+
+        if response_text["success"]:
+            if response["isSuccess"]:
+                return response["data"][0]
+        else:
+            return Response(response_text, status=404)
     
     def get(self, request, id):
+        api_key = request.GET.get('api_key')
         field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
 
+        response_text = processApikey(api_key, 'DOWELL100014')
+
+        if response_text["success"]:
+
         # Check if the fetch was successful
-        if response["isSuccess"]:
-            return Response({"response": response["data"]}, status=status.HTTP_200_OK)
+            if response["isSuccess"]:
+                return Response({"response": response["data"]}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
-   
+            return Response(response_text, status=404)
     
     def put(self, request, id):
-
+        api_key = request.GET.get('api_key')
         # get cloudinary qrcode image in order to update it
         logo_url = ""
         
@@ -178,7 +206,7 @@ class codeqrupdate(APIView):
             logo_url = qrcode_["logo_url"]
         except: 
             pass
-
+        
         company_id = request.data.get("company_id")
         link = request.data.get("link")
         logo = request.FILES.get('logo')
@@ -189,67 +217,71 @@ class codeqrupdate(APIView):
         description = request.data.get("description")
         is_active = request.data.get("is_active", True)
 
+        response_text = processApikey(api_key, 'DOWELL100014')
+
+        if response_text["success"]:
         # Validate logo size
-        try:
-            if logo_size <= 0:
-                raise ValueError("Logo size must be a positive integer.")
-        except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                if logo_size <= 0:
+                    raise ValueError("Logo size must be a positive integer.")
+            except ValueError as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not is_valid_hex_color(qrcode_color):
-            return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if not logo and not logo_url:
-            logo_url = None
-        elif not logo_url and logo:
-            logo_file = logo.read()
-            logo_url = upload_image_to_interserver(logo_file, logo.name)
-        elif logo_url and logo:
-            # logo_url = update_cloudinary_image(logo_url, logo)
-            logo_url = upload_image_to_interserver(logo, logo.name)
-        else:
-            pass
-
-        # Create the QR code image
-        img_qr = create_qrcode(link, qrcode_color, logo)
-
-        # update qrcode and logo image in cloudinary
-        file_name = generate_file_name()
-        qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-        # qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
-
-        logoSize = logo_size
-
-        field = {
-            "qrcode_id": id
-        }
-       
-        update_field = {
-            "qrcode_image_url": qrcode_image_url,
-            "logo_url": logo_url,
-            "logo_size": logoSize,
-            "qrcode_color": qrcode_color,
-            "link": link,
-            "company_id": company_id,
-            "product_name": product_name,
-            "created_by": created_by,
-            "description": description,
-            "is_active": is_active,
-        }
-
-        serializer = DoWellUpdateQrCodeSerializer(data=update_field)
-        if serializer.is_valid():
-            res = dowellconnection(*qrcode_management,"update",field, update_field)
-            response = json.loads(res)
-
-            # Check if the update was successful
-            if response["isSuccess"]:
-                return Response({"response": update_field}, status=status.HTTP_200_OK)
+            if not is_valid_hex_color(qrcode_color):
+                return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if not logo and not logo_url:
+                logo_url = None
+            elif not logo_url and logo:
+                logo_file = logo.read()
+                logo_url = upload_image_to_interserver(logo_file, logo.name)
+            elif logo_url and logo:
+                # logo_url = update_cloudinary_image(logo_url, logo)
+                logo_url = upload_image_to_interserver(logo, logo.name)
             else:
-                return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                pass
 
-    
+            # Create the QR code image
+            img_qr = create_qrcode(link, qrcode_color, logo)
+
+            # update qrcode and logo image in cloudinary
+            file_name = generate_file_name()
+            qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+            # qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
+
+            logoSize = logo_size
+
+            field = {
+                "qrcode_id": id
+            }
+        
+            update_field = {
+                "qrcode_image_url": qrcode_image_url,
+                "logo_url": logo_url,
+                "logo_size": logoSize,
+                "qrcode_color": qrcode_color,
+                "link": link,
+                "company_id": company_id,
+                "product_name": product_name,
+                "created_by": created_by,
+                "description": description,
+                "is_active": is_active,
+            }
+
+            serializer = DoWellUpdateQrCodeSerializer(data=update_field)
+            if serializer.is_valid():
+                res = dowellconnection(*qrcode_management,"update",field, update_field)
+                response = json.loads(res)
+
+                # Check if the update was successful
+                if response["isSuccess"]:
+                    return Response({"response": update_field}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response(response_text, status=404)
       
 
 
