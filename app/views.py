@@ -209,10 +209,9 @@ class codeqrupdate(APIView):
         link = request.data.get("link")
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
-        qrcode_color = request.data.get('qrcode_color', "#000000")
-        product_name = request.data.get("product_name")
-        created_by = request.data.get("created_by")
-        description = request.data.get("description")
+        qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
+        created_by = request.data.get("created_by", qrcode_["created_by"])
+        description = request.data.get("description", qrcode_["description"])
         is_active = request.data.get("is_active", True)
 
         response_text = processApikey(api_key)

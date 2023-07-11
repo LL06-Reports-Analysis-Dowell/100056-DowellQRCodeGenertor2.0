@@ -14,6 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+from .helper import has_query_params
+
 
 from qrcode_version_3.helper import (
     create_uuid, generate_file_name, is_valid_hex_color, create_qrcode,
@@ -36,6 +38,7 @@ class Links(APIView):
         link = request.data.get("link")
         api_key = request.data.get("api_key")
         link_id = request.data.get("link_id")
+        
 
         if not api_key:
             api_key = create_uuid()
@@ -68,14 +71,19 @@ class Links(APIView):
         try:
             api_key = request.GET.get('api_key')
             link_id = request.GET.get('link_id')
+            qrcode_api_key = request.GET.get("qrcode_api_key")
         except:
             pass
 
         update_field = {
             "is_opened": True,
         }
-        
-        if api_key:
+
+        if qrcode_api_key:
+            field = {"api_key": qrcode_api_key}
+            res = dowellconnection(*qrcode_management, "fetch", field, {})
+            return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+        elif api_key:
             field = {"api_key": api_key, "is_opened": False}
             res = dowellconnection(*qrcode_management, "fetch", field, {})
             response = json.loads(res)
@@ -98,7 +106,12 @@ class Links(APIView):
                 dowellconnection(*qrcode_management,"update",field, update_field)
 
                 # Redirect to the open link and pass link_id to link
-                return redirect(open_link["link"] + "?link_id=" + open_link["link_id"])
+
+                if has_query_params(open_link["link"]):
+                    return redirect(open_link["link"] + "&link_id=" + open_link["link_id"])
+                else:
+                    return redirect(open_link["link"] + "?link_id=" + open_link["link_id"])
+                    
             
             else:
                 # Check if there are any unfinalized links
@@ -248,27 +261,18 @@ class codeqr(APIView):
             # This function checks qrcode_type field and assign them appropriate properties
             serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
 
-            if serializer.is_valid():
-                # if link_serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 try:
                     # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                     # insertion_thread.start()
                     self.mongodb_worker(field,update_field)
-                    return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
                 qrcodes_created.append(field)
-                # else:
-                #     return Response(link_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         if qrcodes_created:
             return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
-
-
-        
 
      
     def mongodb_worker(self, field, update_field):

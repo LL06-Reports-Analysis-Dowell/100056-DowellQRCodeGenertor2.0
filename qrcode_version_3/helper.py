@@ -1,5 +1,6 @@
 import io
 import time
+from urllib.parse import urlparse
 import uuid
 import json
 import re
@@ -24,6 +25,15 @@ cloudinary.config(
     api_proxy= 'http://proxy.server:3128'
 )
 
+# check if link has query params or not
+def has_query_params(url):
+    parsed_url = urlparse(url)
+    query_params = parsed_url.query
+
+    if query_params or parsed_url.fragment:
+        return True
+    else:
+        return False
 
 def linkConnection(cluster,database,collection,document,team_member_ID,function_ID,command,field,update_field):
     url = "http://uxlivinglab.pythonanywhere.com"
