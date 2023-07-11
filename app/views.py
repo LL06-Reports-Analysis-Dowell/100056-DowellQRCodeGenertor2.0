@@ -51,8 +51,8 @@ class codeqr(APIView):
         is_active = request.data.get("is_active", False)
         quantity = request.data.get("quantity")
 
-        response_text = processApikey(api_key, 'DOWELL100014')
-
+        response_text = processApikey(api_key)
+        print(response_text)
         if response_text["success"]:
             
 
@@ -89,11 +89,9 @@ class codeqr(APIView):
 
                 field = {
                     "qrcode_id": create_uuid(),
-                    # "qrcode_image_url": qr_code_url,
-                    # "logo_url": logo_url,
                     "logo_size": logo_size,
                     "qrcode_color": qrcode_color,
-                    # "link": link,
+                    "api_key": api_key,
                     "company_id": company_id,
                     "created_by": created_by,
                     "description": description,
@@ -134,7 +132,7 @@ class codeqr(APIView):
     
     def get(self, request):
         api_key = request.GET.get('api_key')
-        response_text = processApikey(api_key, 'DOWELL100014')
+        response_text = processApikey(api_key)
 
         if response_text["success"]:
 
@@ -169,7 +167,7 @@ class codeqrupdate(APIView):
         field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
-        response_text = processApikey(api_key, 'DOWELL100014')
+        response_text = processApikey(api_key)
 
         if response_text["success"]:
             if response["isSuccess"]:
@@ -183,7 +181,7 @@ class codeqrupdate(APIView):
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
 
-        response_text = processApikey(api_key, 'DOWELL100014')
+        response_text = processApikey(api_key)
 
         if response_text["success"]:
 
@@ -217,7 +215,7 @@ class codeqrupdate(APIView):
         description = request.data.get("description")
         is_active = request.data.get("is_active", True)
 
-        response_text = processApikey(api_key, 'DOWELL100014')
+        response_text = processApikey(api_key)
 
         if response_text["success"]:
         # Validate logo size

@@ -268,11 +268,11 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
 
 
 
-def processApikey(self, api_key, api_service_id= "DOWELL100014"):
+def processApikey(api_key):
         url = 'https://100105.pythonanywhere.com/api/v1/process-api-key/'
         payload = {
             "api_key": api_key,
-            "api_service_id": api_service_id
+            "api_service_id": "DOWELL100014"
         }
 
         response = requests.post(url, json=payload)
