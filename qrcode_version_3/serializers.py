@@ -14,6 +14,7 @@ class DoWellQrCodeSerializer(serializers.Serializer):
     logo_size = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     qrcode_color = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     created_by = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+    document_name = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     description = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     is_active = serializers.BooleanField(required=False, allow_null=True, default=False)
 

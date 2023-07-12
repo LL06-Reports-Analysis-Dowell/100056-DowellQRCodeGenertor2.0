@@ -52,10 +52,12 @@ class codeqr(APIView):
         quantity = request.data.get("quantity")
 
         response_text = processApikey(api_key)
-        print(response_text)
-        if response_text["success"]:
-            
+      
 
+        if not api_key:
+            return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
+        
+        elif response_text["success"]:
             try:
                 if logo_size <= 0:
                     raise ValueError("Logo size must be a positive integer.")
@@ -121,7 +123,7 @@ class codeqr(APIView):
                 return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response(response_text, status=404)
+            return Response(response_text, status=status.HTTP_400_BAD_REQUEST)
 
         
 
@@ -131,31 +133,27 @@ class codeqr(APIView):
     
     
     def get(self, request):
-        api_key = request.GET.get('api_key')
-        response_text = processApikey(api_key)
 
-        if response_text["success"]:
+        try:
+            company_id = request.GET.get('company_id')
+            product_name = request.GET.get('product_name')
+        except:
+            pass
 
-            try:
-                company_id = request.GET.get('company_id')
-                product_name = request.GET.get('product_name')
-            except:
-                pass
-
-            if company_id:
-                field = {"company_id": company_id}
-            elif product_name:
-                field = {"product_name": product_name}
-            else:
-                # I if no params are passed get all qrcodes
-                response = dowellconnection(*qrcode_management, "fetch", {}, {})
-                return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
-            
-            # update_field = {"status": "nothing to update"}
-            response = dowellconnection(*qrcode_management, "fetch", field, {})
-            return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        if company_id:
+            field = {"company_id": company_id}
+        elif product_name:
+            field = {"product_name": product_name}
         else:
-            return Response(response_text, status=404)
+            # I if no params are passed get all qrcodes
+            response = dowellconnection(*qrcode_management, "fetch", {}, {})
+            return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        
+        # update_field = {"status": "nothing to update"}
+        response = dowellconnection(*qrcode_management, "fetch", field, {})
+        return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        # else:
+        #     return Response(response_text, status=404)
 
 
 
@@ -163,40 +161,34 @@ class codeqr(APIView):
 class codeqrupdate(APIView):
 
     def get_object(self, request, id):
-        api_key = request.GET.get('api_key')
+
+   
         field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
-        response_text = processApikey(api_key)
-
-        if response_text["success"]:
-            if response["isSuccess"]:
-                return response["data"][0]
-        else:
-            return Response(response_text, status=404)
+        if response["isSuccess"]:
+            return response["data"][0]
+       
     
     def get(self, request, id):
-        api_key = request.GET.get('api_key')
         field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
 
-        response_text = processApikey(api_key)
-
-        if response_text["success"]:
-
         # Check if the fetch was successful
-            if response["isSuccess"]:
-                return Response({"response": response["data"]}, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+        if response["isSuccess"]:
+            return Response({"response": response["data"]}, status=status.HTTP_200_OK)
         else:
-            return Response(response_text, status=404)
+            return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    
     
     def put(self, request, id):
         api_key = request.GET.get('api_key')
         # get cloudinary qrcode image in order to update it
         logo_url = ""
+        
+        if not api_key:
+            return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
         
         try:
             qrcode_ = self.get_object(request, id)
@@ -205,8 +197,8 @@ class codeqrupdate(APIView):
         except: 
             pass
         
-        company_id = request.data.get("company_id")
-        link = request.data.get("link")
+        company_id = request.data.get("company_id", qrcode_["company_id"])
+        link = request.data.get("link", qrcode_["link"])
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
@@ -259,7 +251,6 @@ class codeqrupdate(APIView):
                 "qrcode_color": qrcode_color,
                 "link": link,
                 "company_id": company_id,
-                "product_name": product_name,
                 "created_by": created_by,
                 "description": description,
                 "is_active": is_active,

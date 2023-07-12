@@ -38,6 +38,8 @@ class Links(APIView):
         link = request.data.get("link")
         api_key = request.data.get("api_key")
         link_id = request.data.get("link_id")
+        document_name = request.data.get("document_name")
+
         
 
         if not api_key:
@@ -46,6 +48,7 @@ class Links(APIView):
         field = {
             "api_key": api_key,
             "link_id": link_id,
+            "document_name": document_name,
             "link": link,
             "is_opened": False,
             "is_finalized": False

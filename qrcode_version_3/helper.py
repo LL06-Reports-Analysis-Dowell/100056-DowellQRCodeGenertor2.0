@@ -271,6 +271,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
     elif qrcode_type == "Link":
         # links = request.data["links"]
         links = request.data.get("links")
+        document_name = request.data.get("document_name")
 
         # get master link
         post_links_path = reverse('master_link')
@@ -281,7 +282,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         for link in links:
             # post links to db
             link_id = create_uuid()
-            link_data = {"link_id": link_id, "api_key": api_key, "link": link["link"]}
+            link_data = {"link_id": link_id, "api_key": api_key, "document_name": document_name, "link": link["link"]}
             res = requests.post(post_links_url, link_data)
             serializer = LinkSerializer(data=res)
             posted_links.append(res.json())
@@ -300,6 +301,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
 
         
         link_ = {
+            "document_name": document_name,
             "links": posted_links,
             "masterlink": master_link,
             "qrcode_image_url": qr_code_url,
