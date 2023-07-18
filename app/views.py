@@ -55,7 +55,7 @@ class codeqr(APIView):
       
 
         if not api_key:
-            return Response({"message": "api key is missing"}, status=401)
+            return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
         
         elif response_text["success"]:
             try:
@@ -133,27 +133,20 @@ class codeqr(APIView):
     
     
     def get(self, request):
-        # try:
-        #     company_id = request.GET.get('company_id')
-        #     product_name = request.GET.get('product_name')
-        # except:
-        #     pass
 
-        # if company_id:
-        #     field = {"company_id": company_id}
-        # elif product_name:
-        #     field = {"product_name": product_name}
-        # else:
-        #     # I if no params are passed get all qrcodes
-        #     response = dowellconnection(*qrcode_management, "fetch", {}, {})
-        #     return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        api_key = request.GET.get('api_key')
+        if not api_key:
+            return Response({"message": "api key is missing"}, status=401)
         
-        # # update_field = {"status": "nothing to update"}
-        # response = dowellconnection(*qrcode_management, "fetch", field, {})
-        # return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
-        # else:
-        doc = "https://documenter.getpostman.com/view/14306028/2s93mBwyrj"
-        return Response({"message": "api not available, check documentation", "documentation": doc}, status=400)
+        field = {"api_key": api_key}
+
+        response = dowellconnection(*qrcode_management, "fetch", field, {})
+        res = json.loads(response)
+
+        if len(res["data"]) < 1:
+            return Response({"message": "no qrcodes found with given api_key or invalid api_key"}, status=400)
+        return Response({"response": res}, status=status.HTTP_200_OK)
+ 
 
 
 
@@ -161,11 +154,10 @@ class codeqr(APIView):
 class codeqrupdate(APIView):
 
     def get_object(self, request, id):
-
-   
         field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
+        
         if response["isSuccess"]:
             return response["data"][0]
        
@@ -176,8 +168,10 @@ class codeqrupdate(APIView):
         response = json.loads(res)
 
         # Check if the fetch was successful
-        if response["isSuccess"]:
+        if response["isSuccess"] and len(response["data"]) > 0:
             return Response({"response": response["data"]}, status=status.HTTP_200_OK)
+        elif len(response["data"]) < 1:
+            return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -188,14 +182,14 @@ class codeqrupdate(APIView):
         logo_url = ""
         
         if not api_key:
-            return Response({"message": "api key is missing"}, status=401)
+            return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
         
         try:
             qrcode_ = self.get_object(request, id)
             qrcode_image_url = qrcode_["qrcode_image_url"]
             logo_url = qrcode_["logo_url"]
         except: 
-            pass
+            return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_401_NOT_FOUND)
         
         company_id = request.data.get("company_id", qrcode_["company_id"])
         link = request.data.get("link", qrcode_["link"])
