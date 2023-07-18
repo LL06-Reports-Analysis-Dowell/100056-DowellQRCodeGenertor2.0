@@ -55,7 +55,7 @@ class codeqr(APIView):
       
 
         if not api_key:
-            return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "api key is missing"}, status=401)
         
         elif response_text["success"]:
             try:
@@ -133,27 +133,27 @@ class codeqr(APIView):
     
     
     def get(self, request):
+        # try:
+        #     company_id = request.GET.get('company_id')
+        #     product_name = request.GET.get('product_name')
+        # except:
+        #     pass
 
-        try:
-            company_id = request.GET.get('company_id')
-            product_name = request.GET.get('product_name')
-        except:
-            pass
-
-        if company_id:
-            field = {"company_id": company_id}
-        elif product_name:
-            field = {"product_name": product_name}
-        else:
-            # I if no params are passed get all qrcodes
-            response = dowellconnection(*qrcode_management, "fetch", {}, {})
-            return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
-        
-        # update_field = {"status": "nothing to update"}
-        response = dowellconnection(*qrcode_management, "fetch", field, {})
-        return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        # if company_id:
+        #     field = {"company_id": company_id}
+        # elif product_name:
+        #     field = {"product_name": product_name}
         # else:
-        #     return Response(response_text, status=404)
+        #     # I if no params are passed get all qrcodes
+        #     response = dowellconnection(*qrcode_management, "fetch", {}, {})
+        #     return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        
+        # # update_field = {"status": "nothing to update"}
+        # response = dowellconnection(*qrcode_management, "fetch", field, {})
+        # return Response({"response": json.loads(response)}, status=status.HTTP_200_OK)
+        # else:
+        doc = "https://documenter.getpostman.com/view/14306028/2s93mBwyrj"
+        return Response({"message": "api not available, check documentation", "documentation": doc}, status=400)
 
 
 
@@ -188,7 +188,7 @@ class codeqrupdate(APIView):
         logo_url = ""
         
         if not api_key:
-            return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "api key is missing"}, status=401)
         
         try:
             qrcode_ = self.get_object(request, id)
