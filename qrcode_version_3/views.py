@@ -22,6 +22,9 @@ from app.constant import *
 
 from .serializers import DoWellUpdateQrCodeSerializer, LinkSerializer, LinkFinalizeSerializer
 
+
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
     def get(self, request):
@@ -81,22 +84,19 @@ class Links(APIView):
         if qrcode_api_key:
             field = {"api_key": qrcode_api_key}
             res = dowellconnection(*qrcode_management, "fetch", field, {})
-            
             return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+        
+        # get unopened linked
         elif api_key:
             field = {"api_key": api_key, "is_opened": False}
             res = dowellconnection(*qrcode_management, "fetch", field, {})
             response = json.loads(res)
             
-           
-
+            # this will get unfinalized links
             if len(response["data"]) < 1:
                 field2 = {"api_key": api_key ,"is_finalized": False}
                 res = dowellconnection(*qrcode_management, "fetch", field2, {})
                 response = json.loads(res)
-
-            #get document name
-            # print(response["data"][0]["document_name"])
             
             # Check if there are any unopened links
             unopened_links = [link for link in response["data"] if not link["is_opened"]]
@@ -130,7 +130,10 @@ class Links(APIView):
                         field = {"link_id": link["link_id"]}
                         dowellconnection(*qrcode_management,"update",field, update_field)
                 else:
-                    document_name = "Document Name"
+                    fields = {"api_key": api_key , "is_finalized": True}
+                    res = dowellconnection(*qrcode_management, "fetch", fields, {})
+                    response = json.loads(res)
+                    document_name = response["data"][0]["document_name"]
                     return render(request, 'return.html', {'document_name': document_name})
 
                     # return Response({"message": "All links are opened and finalized."}, status=status.HTTP_200_OK)

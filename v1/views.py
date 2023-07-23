@@ -1,6 +1,7 @@
 
 import json
 import threading
+from django.shortcuts import render
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -18,6 +19,11 @@ from .constant import *
 
 from .serializers import DoWellUpdateQrCodeSerializer
 
+
+
+def inactive(request):
+    return render(request, template_name='return.html')
+
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
     def get(self, request):
@@ -30,14 +36,14 @@ class codeqr(APIView):
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
     
-
     def post(self, request):
         api_key = request.GET.get('api_key')
         
-        
         company_id = request.data.get("company_id")
         qrcode_type = request.data.get("qrcode_type")
-        # link = request.data.get("link")
+
+        master_link = request.data.get("master_link")
+
         logo = request.FILES.get('logo')  
         logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', "#000000")
@@ -48,7 +54,8 @@ class codeqr(APIView):
         quantity = request.data.get("quantity")
 
         response_text = processApikey(api_key)
-      
+
+        print("Quantity", quantity)
 
         if not api_key:
             return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
@@ -72,7 +79,7 @@ class codeqr(APIView):
             qrcodes_created = []
 
             # chek if quantity is passed if not set to 1
-            if quantity:
+            if int(quantity) > 0:
                 quantity = int(quantity)
             else:
                 quantity = 1
@@ -86,6 +93,7 @@ class codeqr(APIView):
                     logo_url = None
 
                 field = {
+                    "master_link": master_link,
                     "qrcode_id": create_uuid(),
                     "logo_size": logo_size,
                     "qrcode_color": qrcode_color,
@@ -189,6 +197,7 @@ class codeqrupdate(APIView):
         
         company_id = request.data.get("company_id", qrcode_["company_id"])
         link = request.data.get("link", qrcode_["link"])
+        master_link = request.data.get("master_link", qrcode_["master_link"])
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
@@ -221,7 +230,7 @@ class codeqrupdate(APIView):
                 pass
 
             # Create the QR code image
-            img_qr = create_qrcode(link, qrcode_color, logo)
+            img_qr = create_qrcode(master_link, qrcode_color, logo)
 
             # update qrcode and logo image in cloudinary
             file_name = generate_file_name()
@@ -240,6 +249,7 @@ class codeqrupdate(APIView):
                 "logo_size": logoSize,
                 "qrcode_color": qrcode_color,
                 "link": link,
+                "master_link": master_link,
                 "company_id": company_id,
                 "created_by": created_by,
                 "description": description,

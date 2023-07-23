@@ -117,7 +117,7 @@ def create_qrcode(link, qrcode_color, logo):
         basewidth = 100
 
         # Open the image using PIL's Image.open() method
-        logo_image = Image.open(logo_file)
+        logo_image = Image.open(logo_file).convert("RGBA")
 
         # adjust image size
         wpercent = (basewidth/float(logo_image.size[0]))
@@ -239,7 +239,8 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         # return serializer
         
     elif qrcode_type == "Link":
-        link = request.data.get("link")
+        # link = request.data.get("link")
+        link = "https://100099.pythonanywhere.com/api/v1/inactive/"
         img_qr = create_qrcode(link, qrcode_color, logo)
 
         file_name = generate_file_name()
