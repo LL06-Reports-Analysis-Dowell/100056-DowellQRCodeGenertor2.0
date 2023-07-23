@@ -22,7 +22,7 @@ from .serializers import DoWellUpdateQrCodeSerializer
 
 
 def inactive(request):
-    return render(request, template_name='return.html')
+    return render(request, template_name='inactive_qrcode.html')
 
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
@@ -121,6 +121,8 @@ class codeqr(APIView):
                     except:
                         return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                     
+                    del field["master_link"]
+                    del field["link"]
                     qrcodes_created.append(field)
 
             if qrcodes_created:
@@ -248,8 +250,7 @@ class codeqrupdate(APIView):
                 "logo_url": logo_url,
                 "logo_size": logoSize,
                 "qrcode_color": qrcode_color,
-                "link": link,
-                "master_link": master_link,
+                # "master_link": master_link,
                 "company_id": company_id,
                 "created_by": created_by,
                 "description": description,

@@ -49,7 +49,7 @@ class DoWellUpdateQrCodeSerializer(serializers.Serializer):
     logo_url = serializers.CharField(allow_null=True)
     qrcode_image_url = serializers.CharField(allow_null=True)
     
-    master_link = serializers.CharField(max_length=255, allow_null=True, allow_blank = True)
+    master_link = serializers.CharField(max_length=255, allow_null=True, allow_blank = True, required=False)
     company_id = serializers.CharField(max_length=255, allow_null=True)
     logo_size = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     qrcode_color = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
