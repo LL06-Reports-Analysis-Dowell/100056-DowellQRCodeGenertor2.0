@@ -1,14 +1,10 @@
 import json
-import base64
-from io import BytesIO
-import threading
-from PIL import Image
-import io
-from django.http import HttpResponse
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect, render
@@ -85,17 +81,23 @@ class Links(APIView):
         if qrcode_api_key:
             field = {"api_key": qrcode_api_key}
             res = dowellconnection(*qrcode_management, "fetch", field, {})
+            
             return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
         elif api_key:
             field = {"api_key": api_key, "is_opened": False}
             res = dowellconnection(*qrcode_management, "fetch", field, {})
             response = json.loads(res)
+            
+           
 
             if len(response["data"]) < 1:
                 field2 = {"api_key": api_key ,"is_finalized": False}
                 res = dowellconnection(*qrcode_management, "fetch", field2, {})
                 response = json.loads(res)
 
+            #get document name
+            # print(response["data"][0]["document_name"])
+            
             # Check if there are any unopened links
             unopened_links = [link for link in response["data"] if not link["is_opened"]]
             
@@ -115,7 +117,6 @@ class Links(APIView):
                 else:
                     return redirect(open_link["link"] + "?link_id=" + open_link["link_id"])
                     
-            
             else:
                 # Check if there are any unfinalized links
                 update_field = {
@@ -129,7 +130,8 @@ class Links(APIView):
                         field = {"link_id": link["link_id"]}
                         dowellconnection(*qrcode_management,"update",field, update_field)
                 else:
-                    return render(request, 'return.html')
+                    document_name = "Document Name"
+                    return render(request, 'return.html', {'document_name': document_name})
 
                     # return Response({"message": "All links are opened and finalized."}, status=status.HTTP_200_OK)
                 
