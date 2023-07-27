@@ -63,7 +63,7 @@ class Links(APIView):
             try:
                 # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                 # insertion_thread.start()
-                self.mongodb_worker(field,update_field)
+                self.mongodb_worker(field, update_field)
                 return Response({"response": field}, status=status.HTTP_201_CREATED)
             except:
                 return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -83,14 +83,20 @@ class Links(APIView):
 
         if qrcode_api_key:
             field = {"api_key": qrcode_api_key}
-            res = dowellconnection(*qrcode_management, "fetch", field, {})
-            return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+            try:
+                res = dowellconnection(*qrcode_management, "fetch", field, {})
+                return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+            except:
+                return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         # get unopened linked
         elif api_key:
             field = {"api_key": api_key, "is_opened": False}
-            res = dowellconnection(*qrcode_management, "fetch", field, {})
-            response = json.loads(res)
+            try:
+                res = dowellconnection(*qrcode_management, "fetch", field, {})
+                response = json.loads(res)
+            except:
+                return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             # this will get unfinalized links
             if len(response["data"]) < 1:
@@ -128,7 +134,10 @@ class Links(APIView):
 
                         # Set "is_opened" to False for each unfinalized link
                         field = {"link_id": link["link_id"]}
-                        dowellconnection(*qrcode_management,"update",field, update_field)
+                        try:
+                            dowellconnection(*qrcode_management,"update",field, update_field)
+                        except:
+                            return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 else:
                     fields = {"api_key": api_key , "is_finalized": True}
                     res = dowellconnection(*qrcode_management, "fetch", fields, {})
@@ -141,8 +150,11 @@ class Links(APIView):
         # get single link using link_id
         elif link_id:
             field = {"link_id": link_id}
-            res = dowellconnection(*qrcode_management, "fetch", field, {})
-            return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+            try:
+                res = dowellconnection(*qrcode_management, "fetch", field, {})
+                return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+            except:
+                return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"message": "Please pass api_key as query param"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -165,11 +177,14 @@ class Links(APIView):
 
         serializer = LinkFinalizeSerializer(data=update_field)
         if serializer.is_valid():
-            res = dowellconnection(*qrcode_management,"fetch",field, {})
-            response = json.loads(res)
-         
-            is_opened = response["data"][0]["is_opened"]
-            is_finalized = response["data"][0]["is_finalized"]
+            try:
+                res = dowellconnection(*qrcode_management,"fetch",field, {})
+                response = json.loads(res)
+            
+                is_opened = response["data"][0]["is_opened"]
+                is_finalized = response["data"][0]["is_finalized"]
+            except:
+                return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
 
             if is_opened and is_finalized:
