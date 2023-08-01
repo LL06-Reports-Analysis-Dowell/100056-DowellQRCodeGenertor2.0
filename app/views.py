@@ -51,6 +51,7 @@ class codeqr(APIView):
         is_active = request.data.get("is_active", False)
         quantity = request.data.get("quantity")
 
+        
         response_text = processApikey(api_key)
       
 

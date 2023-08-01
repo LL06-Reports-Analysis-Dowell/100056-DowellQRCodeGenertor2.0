@@ -55,7 +55,6 @@ class codeqr(APIView):
 
         response_text = processApikey(api_key)
 
-        print("Quantity", quantity)
 
         if not api_key:
             return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
@@ -102,8 +101,7 @@ class codeqr(APIView):
                     "created_by": created_by,
                     "description": description,
                     "is_active": is_active,
-                    "qrcode_type": qrcode_type,
-                    
+                    "qrcode_type": qrcode_type, 
                 }
 
                 update_field = {
