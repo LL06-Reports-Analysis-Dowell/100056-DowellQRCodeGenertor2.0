@@ -56,10 +56,10 @@ class codeqr(APIView):
         response_text = processApikey(api_key)
 
 
-        if not api_key:
-            return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
+        # if not api_key:
+        #     return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
         
-        elif response_text["success"]:
+        if response_text["success"]:
             try:
                 if logo_size <= 0:
                     raise ValueError("Logo size must be a positive integer.")
@@ -139,8 +139,8 @@ class codeqr(APIView):
     def get(self, request):
 
         api_key = request.GET.get('api_key')
-        if not api_key:
-            return Response({"message": "api key is missing"}, status=401)
+        # if not api_key:
+        #     return Response({"message": "api key is missing"}, status=401)
         
         field = {"api_key": api_key}
 
@@ -185,8 +185,8 @@ class codeqrupdate(APIView):
         # get cloudinary qrcode image in order to update it
         logo_url = ""
         
-        if not api_key:
-            return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
+        # if not api_key:
+        #     return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
         
         try:
             qrcode_ = self.get_object(request, id)
