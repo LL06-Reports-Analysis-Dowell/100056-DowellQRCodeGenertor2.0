@@ -37,7 +37,7 @@ class codeqr(APIView):
         return super().dispatch(*args, **kwargs)
     
     def post(self, request):
-        api_key = request.GET.get('api_key')
+        # api_key = request.GET.get('api_key')
         
         company_id = request.data.get("company_id")
         qrcode_type = request.data.get("qrcode_type")
@@ -138,7 +138,7 @@ class codeqr(APIView):
     
     def get(self, request):
 
-        api_key = request.GET.get('api_key')
+        # api_key = request.GET.get('api_key')
         # if not api_key:
         #     return Response({"message": "api key is missing"}, status=401)
         
@@ -181,7 +181,7 @@ class codeqrupdate(APIView):
     
     
     def put(self, request, id):
-        api_key = request.GET.get('api_key')
+        # api_key = request.GET.get('api_key')
         # get cloudinary qrcode image in order to update it
         logo_url = ""
         
