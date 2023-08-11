@@ -136,18 +136,21 @@ class codeqr(APIView):
     
     
     def get(self, request):
+        created_by = request.GET.get('created_by')
 
-        # api_key = request.GET.get('api_key')
-        # if not api_key:
-        #     return Response({"message": "api key is missing"}, status=401)
-        
-        field = {"api_key": api_key}
+        update_field = {
+            "status":"nothing to update"
+        }
+        if created_by:
+            field = {"created_by": created_by}
+            response = dowellconnection(*qrcode_management, "fetch", field, update_field)
+        else:
+            response = dowellconnection(*qrcode_management, "fetch", {}, update_field)
 
-        response = dowellconnection(*qrcode_management, "fetch", field, {})
         res = json.loads(response)
 
         if len(res["data"]) < 1:
-            return Response({"message": "no qrcodes found with given api_key or invalid api_key"}, status=400)
+            return Response({"message": f"no qrcodes found created by {created_by}"}, status=400)
         return Response({"response": res}, status=status.HTTP_200_OK)
  
 
