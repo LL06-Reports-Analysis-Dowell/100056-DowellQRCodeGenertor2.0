@@ -17,7 +17,7 @@ from .helper import (
 )
 from .constant import *
 
-from .serializers import DoWellUpdateQrCodeSerializer
+from .serializers import DoWellActivateQrCodeSerializer, DoWellUpdateQrCodeSerializer
 
 
 
@@ -205,7 +205,7 @@ class codeqrupdate(APIView):
         qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
         created_by = request.data.get("created_by", qrcode_["created_by"])
         description = request.data.get("description", qrcode_["description"])
-        is_active = request.data.get("is_active", True)
+        is_active = request.data.get("is_active", qrcode_["is_active"])
 
         # response_text = processApikey(api_key)
 
@@ -272,3 +272,103 @@ class codeqrupdate(APIView):
         # else:
         #     return Response(response_text, status=404)
       
+
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class codeqractivate(APIView):
+
+    def get_object(self, request, id):
+        field = {"qrcode_id": id}  
+        res = dowellconnection(*qrcode_management, "fetch", field, {})
+        response = json.loads(res)
+        
+        if response["isSuccess"]:
+            return response["data"][0]
+
+    def put(self, request, id):
+    #     api_key = request.GET.get('api_key')
+        # get cloudinary qrcode image in order to update it
+        logo_url = ""
+        
+        # if not api_key:
+        #     return Response({"message": "api key is missing"}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            qrcode_ = self.get_object(request, id)
+            qrcode_image_url = qrcode_["qrcode_image_url"]
+            logo_url = qrcode_["logo_url"]
+        except: 
+            return Response({"error": "no qrcodes found with given id"}, status=401)
+        
+        company_id = request.data.get("company_id", qrcode_["company_id"])
+        link = request.data.get("link", qrcode_["link"])
+        master_link = request.data.get("master_link", qrcode_["master_link"])
+        logo = request.FILES.get('logo')
+        logo_size = int(request.data.get("logo_size", "20"))
+        qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
+        created_by = request.data.get("created_by", qrcode_["created_by"])
+        description = request.data.get("description", qrcode_["description"])
+        is_active = request.data.get("is_active", True)
+
+        # response_text = processApikey(api_key)
+
+        # if response_text["success"]:
+        # Validate logo size
+        try:
+            if logo_size <= 0:
+                raise ValueError("Logo size must be a positive integer.")
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not is_valid_hex_color(qrcode_color):
+            return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not logo and not logo_url:
+            logo_url = None
+        elif not logo_url and logo:
+            logo_file = logo.read()
+            logo_url = upload_image_to_interserver(logo_file, logo.name)
+        elif logo_url and logo:
+            # logo_url = update_cloudinary_image(logo_url, logo)
+            logo_url = upload_image_to_interserver(logo, logo.name)
+        else:
+            pass
+
+        # Create the QR code image
+        img_qr = create_qrcode(master_link, qrcode_color, logo)
+
+        # update qrcode and logo image in cloudinary
+        file_name = generate_file_name()
+        qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+        # qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
+
+        logoSize = logo_size
+
+        field = {
+            "qrcode_id": id
+        }
+    
+        update_field = {
+            "qrcode_image_url": qrcode_image_url,
+            "logo_url": logo_url,
+            "logo_size": logoSize,
+            "qrcode_color": qrcode_color,
+            # "master_link": master_link,
+            "company_id": company_id,
+            "created_by": created_by,
+            "description": description,
+            "is_active": is_active,
+        }
+
+        serializer = DoWellActivateQrCodeSerializer(data=update_field)
+        if serializer.is_valid():
+            res = dowellconnection(*qrcode_management,"update",field, update_field)
+            response = json.loads(res)
+
+            # Check if the update was successful
+            if response["isSuccess"]:
+                return Response({"response": update_field}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
