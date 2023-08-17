@@ -134,7 +134,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-INTERSERVER_URL = 'http://67.217.61.253/uploadfiles/upload-qrcode-to-drive/'
+INTERSERVER_URL = 'https://dowellfileuploader.uxlivinglab.online/uploadfiles/upload-qrcode-to-drive/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
