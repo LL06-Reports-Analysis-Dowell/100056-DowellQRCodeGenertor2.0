@@ -43,7 +43,7 @@ class codeqr(APIView):
         qrcode_type = request.data.get("qrcode_type")
 
         master_link = request.data.get("master_link")
-
+        product_name = request.data.get("product_name")
         logo = request.FILES.get('logo')  
         logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', "#000000")
@@ -93,6 +93,7 @@ class codeqr(APIView):
                 "company_id": company_id,
                 "created_by": created_by,
                 "description": description,
+                "product_name": product_name,
                 "is_active": is_active,
                 "qrcode_type": qrcode_type, 
             }
@@ -204,6 +205,7 @@ class codeqrupdate(APIView):
         master_link = request.data.get("master_link", qrcode_["master_link"])
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
+        product_name = request.data.get('product_name', qrcode_["product_name"])
         qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
         created_by = request.data.get("created_by", qrcode_["created_by"])
         description = request.data.get("description", qrcode_["description"])
@@ -253,6 +255,7 @@ class codeqrupdate(APIView):
         update_field = {
             "qrcode_id": id,
             "logo_size": logoSize,
+            "product_name": product_name,
             "qrcode_color": qrcode_color,
             "company_id": company_id,
             "created_by": created_by,
