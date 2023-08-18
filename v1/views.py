@@ -200,12 +200,27 @@ class codeqrupdate(APIView):
         except: 
             return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_401_NOT_FOUND)
         
+        
         company_id = request.data.get("company_id", qrcode_["company_id"])
         link = request.data.get("link", qrcode_["link"])
-        master_link = request.data.get("master_link", qrcode_["master_link"])
+
+        try:
+            master_link = request.data.get("master_link", qrcode_["master_link"])
+        except:
+            master_link = request.data.get("master_link")
+      
+        if not master_link:
+            return Response({"message": "Masterlink not found master_link in required"})
+            
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
-        product_name = request.data.get('product_name', qrcode_["product_name"])
+
+       
+        try:
+            product_name = request.data.get('product_name', qrcode_["product_name"])
+        except:
+            product_name = request.data.get('product_name')
+
         qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
         created_by = request.data.get("created_by", qrcode_["created_by"])
         description = request.data.get("description", qrcode_["description"])
@@ -257,6 +272,7 @@ class codeqrupdate(APIView):
             "logo_size": logoSize,
             "product_name": product_name,
             "qrcode_color": qrcode_color,
+            "master_link": master_link,
             "company_id": company_id,
             "created_by": created_by,
             "description": description,
@@ -273,6 +289,7 @@ class codeqrupdate(APIView):
 
             # Check if the update was successful
             if response["isSuccess"]:
+                del update_field["master_link"]
                 return Response({"response": update_field, "message": "Qrcode Updated Successfully"}, status=status.HTTP_200_OK)
             else:
                 return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
@@ -335,3 +352,15 @@ class codeqractivate(APIView):
         else:
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+
+
+# {'_id': '64b91a4008e37d23a962ae76', 
+#  'qrcode_id': '8158418661488464366', 'logo_size': 20,
+#    'qrcode_color': '#000000', 'api_key': 'a91dd5e5-0e93-4928-9a6c-e61ec6a1698c', 
+#    'company_id': 'discord', 'created_by': 'mohamed', 
+#    'description': 'testing the api .', 'is_active': False, 
+#    'qrcode_type': 'Link', 'link': 'https://discord.com', 
+#    'qrcode_image_url': 'http://67.217.61.253/qrCodes/qrcode_1689852462.jpg', 
+#    'logo_url': None}
