@@ -80,7 +80,6 @@ class Links(APIView):
             "is_opened": True,
         }
 
-        print("api_key===========>", api_key)
         # get unopened linked
         if api_key:
             field = {"api_key": api_key, "is_opened": False}
@@ -149,9 +148,9 @@ class Links(APIView):
         else:
             return Response({"message": "Not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        post_links_path = reverse('master_link')
+        post_links_path = reverse('master_link', args=[word, word2, word3, api_key])
         post_links_url = request.build_absolute_uri(post_links_path)
-        master_link = post_links_url + f"?api_key={api_key}"
+        master_link = post_links_url
         return redirect(master_link)
     
     def mongodb_worker(self, field, update_field):
@@ -159,10 +158,10 @@ class Links(APIView):
 
 @api_view(['GET'])
 def getLinksWithApiKey(request):
-    try:
-        qrcode_api_key = request.GET.get("qrcode_api_key")
-    except:
-        return Response({"message": "pass qrcode_api_key as param"}, status=status.HTTP_404_NOT_FOUND)
+
+    qrcode_api_key = request.GET.get("qrcode_api_key")
+    qrcode_id = request.GET.get("qrcode_id")
+
     if qrcode_api_key:
         field = {"api_key": qrcode_api_key}
         try:
@@ -170,6 +169,20 @@ def getLinksWithApiKey(request):
             return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
         except:
             return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    elif qrcode_id :
+        field = {"qrcode_id": qrcode_id}
+        try:
+            res = dowellconnection(*qrcode_management, "fetch", field, {})
+            return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+        except:
+            return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        update_field = {
+            "status":"nothing to update"
+        }
+        res = dowellconnection(*qrcode_management, "fetch", {}, update_field)
+        return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+        
 
 @api_view(['PUT'])
 def finalizeLink(request):
