@@ -9,7 +9,7 @@ urlpatterns = [
 
     path('finalize/', finalizeLink, name="finalize"),
     path('get-links/', getLinksWithApiKey, name="get_links"),
-    path('<str:word>/<str:word2>/<str:word3>/', Links.as_view(), name="master_link"),
+    path('<str:word>/<str:word2>/<str:word3>', Links.as_view(), name="master_link"),
 
    
 ]

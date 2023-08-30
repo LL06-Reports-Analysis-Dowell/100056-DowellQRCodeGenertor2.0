@@ -71,7 +71,8 @@ class Links(APIView):
     
     def get(self, request, word, word2, word3):
         try:
-            api_key = request.GET.get('x-api-key')
+            # get api key from headers
+            api_key = request.META.get('HTTP_X_API_KEY')
             link_id = request.GET.get('link_id')
         except:
             pass
@@ -146,9 +147,10 @@ class Links(APIView):
             except:
                 return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"message": "Not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
+            # return Response({"message": "Not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
+            return render(request, 'return.html', {'document_name': "None"})
 
-        post_links_path = reverse('master_link', args=[word, word2, word3, api_key])
+        post_links_path = reverse('master_link', args=[word, word2, word3])
         post_links_url = request.build_absolute_uri(post_links_path)
         master_link = post_links_url
         return redirect(master_link)
