@@ -310,7 +310,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
 
         # get master link
         api_key = create_uuid()
-        post_links_path = reverse('master_link', args=[word, word2, word3, api_key])
+        post_links_path = reverse('master_link', args=[word, word2, word3])
 
         post_links_url  = request.build_absolute_uri(post_links_path)
 
@@ -329,7 +329,11 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
                 "document_name": document_name, 
                 "link": link["link"]
             }
-            res = requests.post(post_links_url, link_data)
+
+            headers = {
+                'x-api-key': api_key
+            }
+            res = requests.post(post_links_url, link_data, headers=headers)
             serializer = LinkSerializer(data=res)
             posted_links.append(res.json())
 

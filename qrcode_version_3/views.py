@@ -35,9 +35,9 @@ class serverStatus(APIView):
 class Links(APIView):
     serializer_class = LinkSerializer
 
-    def post(self, request, word, word2, word3, api_key):
+    def post(self, request, word, word2, word3):
         link = request.data.get("link")
-        # api_key = request.data.get("api_key")
+        api_key = request.META.get('x-api-key')
         link_id = request.data.get("link_id")
         document_name = request.data.get("document_name")
 
@@ -69,9 +69,9 @@ class Links(APIView):
                 return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     
-    def get(self, request, word, word2, word3, api_key):
+    def get(self, request, word, word2, word3):
         try:
-            # api_key = request.GET.get('api_key')
+            api_key = request.GET.get('x-api-key')
             link_id = request.GET.get('link_id')
         except:
             pass
@@ -80,6 +80,7 @@ class Links(APIView):
             "is_opened": True,
         }
 
+        print("api_key===========>", api_key)
         # get unopened linked
         if api_key:
             field = {"api_key": api_key, "is_opened": False}
@@ -146,7 +147,7 @@ class Links(APIView):
             except:
                 return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response({"message": "Please pass api_key as query param"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
         post_links_path = reverse('master_link')
         post_links_url = request.build_absolute_uri(post_links_path)
