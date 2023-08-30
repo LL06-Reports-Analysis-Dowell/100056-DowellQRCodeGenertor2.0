@@ -6,6 +6,8 @@ from rest_framework.response import Response
 
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
+from rest_framework.decorators import api_view
+
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -33,13 +35,11 @@ class serverStatus(APIView):
 class Links(APIView):
     serializer_class = LinkSerializer
 
-    def post(self, request):
+    def post(self, request, word, word2, word3, api_key):
         link = request.data.get("link")
-        api_key = request.data.get("api_key")
+        # api_key = request.data.get("api_key")
         link_id = request.data.get("link_id")
         document_name = request.data.get("document_name")
-
-        
 
         if not api_key:
             api_key = create_uuid()
@@ -69,11 +69,10 @@ class Links(APIView):
                 return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     
-    def get(self, request):
+    def get(self, request, word, word2, word3, api_key):
         try:
-            api_key = request.GET.get('api_key')
+            # api_key = request.GET.get('api_key')
             link_id = request.GET.get('link_id')
-            qrcode_api_key = request.GET.get("qrcode_api_key")
         except:
             pass
 
@@ -81,16 +80,8 @@ class Links(APIView):
             "is_opened": True,
         }
 
-        if qrcode_api_key:
-            field = {"api_key": qrcode_api_key}
-            try:
-                res = dowellconnection(*qrcode_management, "fetch", field, {})
-                return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
-            except:
-                return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
         # get unopened linked
-        elif api_key:
+        if api_key:
             field = {"api_key": api_key, "is_opened": False}
             try:
                 res = dowellconnection(*qrcode_management, "fetch", field, {})
@@ -117,7 +108,6 @@ class Links(APIView):
                 dowellconnection(*qrcode_management,"update",field, update_field)
 
                 # Redirect to the open link and pass link_id to link
-
                 if has_query_params(open_link["link"]):
                     return redirect(open_link["link"] + "&link_id=" + open_link["link_id"])
                 else:
@@ -162,55 +152,68 @@ class Links(APIView):
         post_links_url = request.build_absolute_uri(post_links_path)
         master_link = post_links_url + f"?api_key={api_key}"
         return redirect(master_link)
-            
-    def put(self, request):
-        link_id = request.GET.get("link_id")
-        is_finalized = request.data.get("is_finalized", True)
-
-        field = {
-            "link_id": link_id
-        }
-       
-        update_field = {
-            "is_finalized": is_finalized,
-        }
-
-        serializer = LinkFinalizeSerializer(data=update_field)
-        if serializer.is_valid():
-            try:
-                res = dowellconnection(*qrcode_management,"fetch",field, {})
-                response = json.loads(res)
-            
-                is_opened = response["data"][0]["is_opened"]
-                is_finalized = response["data"][0]["is_finalized"]
-            except:
-                return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-
-            if is_opened and is_finalized:
-                return Response({"message": "link already opened and is finalized", "response": json.loads(res)}, status=status.HTTP_302_FOUND)
-            elif is_opened and not is_finalized:
-                response = dowellconnection(*qrcode_management,"update",field, update_field)
-                response = json.loads(response)
-                res = dowellconnection(*qrcode_management,"fetch",field, {})
-
-                # Check if the update was successful
-                if response["isSuccess"]:
-                    return Response({"response": json.loads(res), 
-                                     "message": "link successfully finalized"},
-                                       status=status.HTTP_200_OK
-                                    )
-                else:
-                    return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
-            
-            else:
-                return Response({"error": "link cannot be finalized and is not open"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     
     def mongodb_worker(self, field, update_field):
         dowellconnection(*qrcode_management,"insert", field, update_field)  
 
+@api_view(['GET'])
+def getLinksWithApiKey(request):
+    try:
+        qrcode_api_key = request.GET.get("qrcode_api_key")
+    except:
+        return Response({"message": "pass qrcode_api_key as param"}, status=status.HTTP_404_NOT_FOUND)
+    if qrcode_api_key:
+        field = {"api_key": qrcode_api_key}
+        try:
+            res = dowellconnection(*qrcode_management, "fetch", field, {})
+            return Response({"response": json.loads(res)}, status=status.HTTP_200_OK)
+        except:
+            return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['PUT'])
+def finalizeLink(request):
+    link_id = request.GET.get("link_id")
+    is_finalized = request.data.get("is_finalized", True)
+
+    field = {
+        "link_id": link_id
+    }
+    
+    update_field = {
+        "is_finalized": is_finalized,
+    }
+
+    serializer = LinkFinalizeSerializer(data=update_field)
+    if serializer.is_valid():
+        try:
+            res = dowellconnection(*qrcode_management,"fetch",field, {})
+            response = json.loads(res)
+        
+            is_opened = response["data"][0]["is_opened"]
+            is_finalized = response["data"][0]["is_finalized"]
+        except:
+            return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+        if is_opened and is_finalized:
+            return Response({"message": "link already opened and is finalized", "response": json.loads(res)}, status=status.HTTP_302_FOUND)
+        elif is_opened and not is_finalized:
+            response = dowellconnection(*qrcode_management,"update",field, update_field)
+            response = json.loads(response)
+            res = dowellconnection(*qrcode_management,"fetch",field, {})
+
+            # Check if the update was successful
+            if response["isSuccess"]:
+                return Response({"response": json.loads(res), 
+                                    "message": "link successfully finalized"},
+                                    status=status.HTTP_200_OK
+                                )
+            else:
+                return Response({"message": response["error"], "success": False}, status=status.HTTP_400_BAD_REQUEST)
+        
+        else:
+            return Response({"message": "link cannot be finalized and is not open", "success": False}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class codeqr(APIView):
     @method_decorator(csrf_exempt)

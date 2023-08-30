@@ -6,6 +6,7 @@ import json
 import re
 from django.conf import settings
 from django.urls import reverse
+from urllib.parse import urlparse
 
 
 import qrcode
@@ -116,6 +117,37 @@ def get_event_id():
     else: 
         return json.loads(r.text)['error']
 
+
+
+def urlParse(url: str):
+    parsed_url = urlparse(url)
+    path_parts = parsed_url.path.split("/")
+    last_path_part = path_parts[-1]
+    return last_path_part
+
+from cryptography.fernet import Fernet
+
+def encodeWord3ToApiKey(word, api_key):
+    # Generate a secret key
+    key = Fernet.generate_key()
+    cipher_suite = Fernet(key)
+
+    # Combine and encode the value and string
+    combined = f"{api_key}_{word}"
+    encoded_combined = combined.encode("utf-8")
+
+    # Encrypt the combined value
+    encrypted_value = cipher_suite.encrypt(encoded_combined)
+
+    # Decrypt the encrypted value to retrieve the original combined value
+    decrypted_value = cipher_suite.decrypt(encrypted_value)
+
+    # Split the decrypted value to retrieve the original value and string
+    decrypted_combined = decrypted_value.decode("utf-8")
+    original_value, original_string = decrypted_combined.split("_")
+
+    print("Original Value:", original_value)
+    print("Original String:", original_string)
 
 
 def is_valid_hex_color(color):
@@ -271,18 +303,32 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
     elif qrcode_type == "Link":
         # links = request.data["links"]
         links = request.data.get("links")
+        word  = request.data.get("word")
+        word2 = request.data.get("word2")
+        word3 = request.data.get("word3")
         document_name = request.data.get("document_name")
 
         # get master link
-        post_links_path = reverse('master_link')
-        post_links_url = request.build_absolute_uri(post_links_path)
+        api_key = create_uuid()
+        post_links_path = reverse('master_link', args=[word, word2, word3, api_key])
+
+        post_links_url  = request.build_absolute_uri(post_links_path)
+
+        last_word = urlParse(post_links_url)
+        
+        print("Last word================>", last_word)
 
         posted_links = []
-        api_key = create_uuid()
+        
         for link in links:
             # post links to db
             link_id = create_uuid()
-            link_data = {"link_id": link_id, "api_key": api_key, "document_name": document_name, "link": link["link"]}
+            link_data = {
+                "link_id": link_id, 
+                "api_key": api_key, 
+                "document_name": document_name, 
+                "link": link["link"]
+            }
             res = requests.post(post_links_url, link_data)
             serializer = LinkSerializer(data=res)
             posted_links.append(res.json())
@@ -291,9 +337,10 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         serializer = LinkTypeSerializer(data=request.data)
 
         # get all posted links
-        master_link = post_links_url + f"?api_key={api_key}"
+        master_link = post_links_url
 
-        # qrcode_links = [link["response"]["link"] for link in posted_links]
+        print("master_link===========>", master_link)
+
         img_qr = create_qrcode(master_link, qrcode_color, logo)
 
         file_name = generate_file_name()

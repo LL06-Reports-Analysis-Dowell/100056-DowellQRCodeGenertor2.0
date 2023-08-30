@@ -7,7 +7,9 @@ urlpatterns = [
     path('qr-code/', codeqr.as_view()),
     path('update-qr-code/<str:id>/', codeqrupdate.as_view()),
 
-    path('masterlink/', Links.as_view(), name="master_link"),
+    path('finalize/', finalizeLink, name="finalize"),
+    path('get-links/', getLinksWithApiKey, name="get_links"),
+    path('<str:word>/<str:word2>/<str:word3>/<str:api_key>', Links.as_view(), name="master_link"),
 
    
 ]
