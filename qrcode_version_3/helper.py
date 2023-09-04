@@ -334,7 +334,6 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
                 'x-api-key': api_key
             }
             res = requests.post(post_links_url, link_data, headers=headers)
-            print(res.json())
             if res.status_code == 201:
                 posted_links.append(res.json())
             else:
