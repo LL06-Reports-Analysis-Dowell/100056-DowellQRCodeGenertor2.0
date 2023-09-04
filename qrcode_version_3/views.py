@@ -25,7 +25,12 @@ from app.constant import *
 from .serializers import DoWellUpdateQrCodeSerializer, LinkSerializer, LinkFinalizeSerializer
 
 
-
+# def get_object(self, request, id):
+#     field = {"qrcode_id": id}  
+#     res = dowellconnection(*qrcode_management, "fetch", field, {})
+#     response = json.loads(res)
+#     if response["isSuccess"]:
+#         return response["data"][0]
 
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
@@ -35,7 +40,17 @@ class serverStatus(APIView):
 class Links(APIView):
     serializer_class = LinkSerializer
 
+    def get_object(self, request, word, word2, word3):
+        field = {"word": word, "word2": word2, "word3": word3}  
+        res = dowellconnection(*qrcode_management, "fetch", field, {})
+        response = json.loads(res)
+        return response["data"]
+        
     def post(self, request, word, word2, word3):
+        r = self.get_object(request, word, word2, word3)
+        if len(r) >= 1:
+            return Response({"message": "Duplicate words"}, status=status.HTTP_400_BAD_REQUEST)
+        
         link = request.data.get("link")
         api_key = request.META.get('x-api-key')
         link_id = request.data.get("link_id")
@@ -50,7 +65,10 @@ class Links(APIView):
             "document_name": document_name,
             "link": link,
             "is_opened": False,
-            "is_finalized": False
+            "is_finalized": False,
+            "word": word,
+            "word2": word2,
+            "word3": word3
         }
 
         update_field = {
@@ -72,7 +90,7 @@ class Links(APIView):
     def get(self, request, word, word2, word3):
         try:
             # get api key from headers
-            api_key = request.META.get('HTTP_X_API_KEY')
+            # api_key = request.META.get('HTTP_X_API_KEY')
             link_id = request.GET.get('link_id')
         except:
             pass
@@ -82,8 +100,9 @@ class Links(APIView):
         }
 
         # get unopened linked
-        if api_key:
-            field = {"api_key": api_key, "is_opened": False}
+        if word and word2 and word3:
+            # field = {"api_key": api_key,  "is_opened": False}
+            field = {"word": word, "word2": word2, "word3": word3,  "is_opened": False}
             try:
                 res = dowellconnection(*qrcode_management, "fetch", field, {})
                 response = json.loads(res)
@@ -92,7 +111,8 @@ class Links(APIView):
             
             # this will get unfinalized links
             if len(response["data"]) < 1:
-                field2 = {"api_key": api_key ,"is_finalized": False}
+                # field2 = {"api_key": api_key ,"is_finalized": False}
+                field2 = {"word": word, "word2": word2, "word3": word3,  "is_finalized": False}
                 res = dowellconnection(*qrcode_management, "fetch", field2, {})
                 response = json.loads(res)
             
@@ -130,7 +150,8 @@ class Links(APIView):
                         except:
                             return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 else:
-                    fields = {"api_key": api_key , "is_finalized": True}
+                    # fields = {"api_key": api_key , "is_finalized": True}
+                    fields = {"word": word, "word2": word2, "word3": word3,  "is_finalized": True}
                     res = dowellconnection(*qrcode_management, "fetch", fields, {})
                     response = json.loads(res)
                     document_name = response["data"][0]["document_name"]
@@ -301,8 +322,10 @@ class codeqr(APIView):
             }
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
+            serializer, field, duplicate_error = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
 
+            if duplicate_error:
+                return Response({"error": duplicate_error}, status=400)
             if serializer.is_valid(raise_exception=True):
                 try:
                     # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))

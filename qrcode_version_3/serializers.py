@@ -17,7 +17,6 @@ class DoWellQrCodeSerializer(serializers.Serializer):
     document_name = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     description = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     is_active = serializers.BooleanField(required=False, allow_null=True, default=False)
-    word = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     
 
 class AddressSerializer(serializers.Serializer):
@@ -38,6 +37,10 @@ class LinkSerializer(serializers.Serializer):
     is_opened = serializers.BooleanField(default=False, allow_null=True)
     is_finalized = serializers.BooleanField(default=False)
     word = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+    word2 = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+    word3 = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+
+
 
    
 

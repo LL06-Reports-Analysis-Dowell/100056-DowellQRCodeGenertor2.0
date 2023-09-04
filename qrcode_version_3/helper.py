@@ -314,11 +314,8 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
 
         post_links_url  = request.build_absolute_uri(post_links_path)
 
-        last_word = urlParse(post_links_url)
-        
-        print("Last word================>", last_word)
-
         posted_links = []
+        duplicate_error = None
         
         for link in links:
             # post links to db
@@ -327,23 +324,27 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
                 "link_id": link_id, 
                 "api_key": api_key, 
                 "document_name": document_name, 
-                "link": link["link"]
+                "link": link["link"],
+                "word": word,
+                "word2": word2,
+                "word3": word3
             }
 
             headers = {
                 'x-api-key': api_key
             }
             res = requests.post(post_links_url, link_data, headers=headers)
-            serializer = LinkSerializer(data=res)
-            posted_links.append(res.json())
+            print(res.json())
+            if res.status_code == 201:
+                posted_links.append(res.json())
+            else:
+                duplicate_error = "Url params not available. Please change."
 
  
         serializer = LinkTypeSerializer(data=request.data)
 
         # get all posted links
         master_link = post_links_url
-
-        print("master_link===========>", master_link)
 
         img_qr = create_qrcode(master_link, qrcode_color, logo)
 
@@ -371,6 +372,6 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         }
         field = {**field, **data}
         serializer = DoWellQrCodeSerializer(data=field)
-    return serializer, field
+    return serializer, field, duplicate_error
 
 
