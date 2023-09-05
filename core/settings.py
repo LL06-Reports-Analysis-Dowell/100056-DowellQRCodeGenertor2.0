@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'app',
-    'qrcode_version_3'
+    'qrcode_version_3',
+    'linkShortening'
 ]
 
 MIDDLEWARE = [

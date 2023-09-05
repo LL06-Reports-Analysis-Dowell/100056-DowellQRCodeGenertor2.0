@@ -24,7 +24,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/',include('v1.urls')),
     path('api/v2/',include('app.urls')),
-    path('api/v3/',include('qrcode_version_3.urls'))
+    path('api/v3/',include('qrcode_version_3.urls')),
+    path('',include('linkShortening.urls'))
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
