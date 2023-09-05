@@ -125,29 +125,6 @@ def urlParse(url: str):
     last_path_part = path_parts[-1]
     return last_path_part
 
-from cryptography.fernet import Fernet
-
-def encodeWord3ToApiKey(word, api_key):
-    # Generate a secret key
-    key = Fernet.generate_key()
-    cipher_suite = Fernet(key)
-
-    # Combine and encode the value and string
-    combined = f"{api_key}_{word}"
-    encoded_combined = combined.encode("utf-8")
-
-    # Encrypt the combined value
-    encrypted_value = cipher_suite.encrypt(encoded_combined)
-
-    # Decrypt the encrypted value to retrieve the original combined value
-    decrypted_value = cipher_suite.decrypt(encrypted_value)
-
-    # Split the decrypted value to retrieve the original value and string
-    decrypted_combined = decrypted_value.decode("utf-8")
-    original_value, original_string = decrypted_combined.split("_")
-
-    print("Original Value:", original_value)
-    print("Original String:", original_string)
 
 
 def is_valid_hex_color(color):
