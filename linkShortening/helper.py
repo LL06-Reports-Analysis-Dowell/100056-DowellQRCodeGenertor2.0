@@ -1,3 +1,4 @@
+import base64
 import io
 import time
 from urllib.parse import urlparse
@@ -125,7 +126,17 @@ def urlParse(url: str):
     last_path_part = path_parts[-1]
     return last_path_part
 
+def create_short_uuid():
+    uuid_value = uuid.uuid4().bytes
+    base64_encoded = base64.urlsafe_b64encode(uuid_value).rstrip(b'=')
 
+    # Get the current timestamp (in seconds) and convert it to base64
+    current_timestamp = int(time.time())
+    timestamp_bytes = str(current_timestamp).encode('utf-8')
+    # timestamp_base64 = base64.urlsafe_b64encode(timestamp_bytes).rstrip(b'=')
+    # Combine the short UUID and timestamp component
+    combined_uuid = base64_encoded[:4] + base64_encoded[-4:]
+    return combined_uuid.decode('utf-8')  # Convert bytes back to string
 
 def is_valid_hex_color(color):
     """
@@ -234,10 +245,11 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
 
     # links = request.data["links"]
     links = request.data.get("links")
-    word  = request.data.get("word")
-    word2 = request.data.get("word2")
-    word3 = request.data.get("word3")
-    document_name = request.data.get("document_name")
+    word  = create_short_uuid()
+    word2 = create_short_uuid()
+    word3 = create_short_uuid()
+
+    # document_name = request.data.get("document_name")
 
     # get master link
     api_key = create_uuid()
@@ -254,17 +266,14 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
         link_data = {
             "link_id": link_id, 
             "api_key": api_key, 
-            "document_name": document_name, 
+            # "document_name": document_name, 
             "link": link["link"],
             "word": word,
             "word2": word2,
             "word3": word3
         }
 
-        headers = {
-            'x-api-key': api_key
-        }
-        res = requests.post(post_links_url, link_data, headers=headers)
+        res = requests.post(post_links_url, link_data)
         if res.status_code == 201:
             posted_links.append(res.json())
         else:
@@ -283,25 +292,15 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
 
     
     link_ = {
-        "document_name": document_name,
+        # "document_name": document_name,
+        "api_key": api_key,
         "links": posted_links,
-        "masterlink": master_link,
+        "link": master_link,
         "qrcode_image_url": qr_code_url,
         "logo_url": logo_url,
     }
     
     field = {**field, **link_}
-
-    # else:
-    #     img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
-    #     file_name = generate_file_name()
-    #     qr_code_url = upload_image_to_interserver(img_qr, file_name)
-    #     data = {
-    #         "qrcode_image_url": qr_code_url,
-    #         "logo_url": logo_url,
-    #     }
-    #     field = {**field, **data}
-    #     serializer = DoWellQrCodeSerializer(data=field)
     return serializer, field, duplicate_error
 
 

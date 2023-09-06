@@ -25,13 +25,6 @@ from app.constant import *
 from .serializers import DoWellUpdateQrCodeSerializer, LinkSerializer, LinkFinalizeSerializer
 
 
-# def get_object(self, request, id):
-#     field = {"qrcode_id": id}  
-#     res = dowellconnection(*qrcode_management, "fetch", field, {})
-#     response = json.loads(res)
-#     if response["isSuccess"]:
-#         return response["data"][0]
-
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
     def get(self, request):
@@ -52,9 +45,9 @@ class Links(APIView):
             return Response({"message": "Duplicate words"}, status=status.HTTP_400_BAD_REQUEST)
         
         link = request.data.get("link")
-        api_key = request.META.get('x-api-key')
+        api_key = request.data.get("api_key")
         link_id = request.data.get("link_id")
-        document_name = request.data.get("document_name")
+        # document_name = request.data.get("document_name")
 
         if not api_key:
             api_key = create_uuid()
@@ -62,7 +55,7 @@ class Links(APIView):
         field = {
             "api_key": api_key,
             "link_id": link_id,
-            "document_name": document_name,
+            # "document_name": document_name,
             "link": link,
             "is_opened": False,
             "is_finalized": False,
@@ -157,8 +150,6 @@ class Links(APIView):
                     document_name = response["data"][0]["document_name"]
                     return render(request, 'return.html', {'document_name': document_name})
 
-                    # return Response({"message": "All links are opened and finalized."}, status=status.HTTP_200_OK)
-                
         # get single link using link_id
         elif link_id:
             field = {"link_id": link_id}
@@ -258,23 +249,17 @@ class codeqr(APIView):
         return super().dispatch(*args, **kwargs)
 
     def post(self, request):
-        company_id = request.data.get("company_id")
-        # link = request.data.get("link")
-        logo = request.FILES.get('logo')  
-        logo_size = int(request.data.get("logo_size", "20"))
+        logo = request.FILES.get('logo') 
         qrcode_color = request.data.get('qrcode_color', "#000000")
-
-        created_by = request.data.get("created_by")
-        description = request.data.get("description")
-        is_active = request.data.get("is_active", False)
-        quantity = request.data.get("quantity")
-
-
-        try:
-            if logo_size <= 0:
-                raise ValueError("Logo size must be a positive integer.")
-        except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        quantity = 1
+        # company_id = request.data.get("company_id")
+        # link = request.data.get("link")
+        # logo_size = int(request.data.get("logo_size", "20"))
+        # created_by = request.data.get("created_by")
+        # description = request.data.get("description")
+        # is_active = request.data.get("is_active", False)
+        # quantity = request.data.get("quantity")
+        
 
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
@@ -303,15 +288,15 @@ class codeqr(APIView):
 
             field = {
                 "qrcode_id": create_uuid(),
+                "qrcode_color": qrcode_color,
                 # "qrcode_image_url": qr_code_url,
                 # "logo_url": logo_url,
-                "logo_size": logo_size,
-                "qrcode_color": qrcode_color,
+                # "logo_size": logo_size,
                 # "link": link,
-                "company_id": company_id,
-                "created_by": created_by,
-                "description": description,
-                "is_active": is_active
+                # "company_id": company_id,
+                # "created_by": created_by,
+                # "description": description,
+                # "is_active": is_active
             }
 
             update_field = {
