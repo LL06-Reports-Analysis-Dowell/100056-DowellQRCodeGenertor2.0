@@ -20,7 +20,7 @@ from .helper import (
     dowellconnection, qrcode_type_defination, update_cloudinary_image, 
     upload_image_to_interserver
 )
-from app.constant import *
+from .constants import *
 
 from .serializers import DoWellUpdateQrCodeSerializer, LinkSerializer, LinkFinalizeSerializer
 
@@ -94,8 +94,8 @@ class Links(APIView):
 
         # get unopened linked
         if word and word2 and word3:
-            # field = {"api_key": api_key,  "is_opened": False}
-            field = {"word": word, "word2": word2, "word3": word3,  "is_opened": False}
+            # field = {"api_key": api_key, "is_opened": False}
+            field = {"word": word, "word2": word2, "word3": word3, "is_opened": False}
             try:
                 res = dowellconnection(*qrcode_management, "fetch", field, {})
                 response = json.loads(res)

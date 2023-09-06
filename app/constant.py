@@ -10,3 +10,4 @@ qrcode_management = [
 qrcode_ = [
     "qr","qrcodegenerator","qrcode_details","qrcode_details","2343322","ABCDE"
 ]
+
