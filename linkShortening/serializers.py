@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
 class DoWellQrCodeSerializer(serializers.Serializer):
-    TYPE_CHOICES = (
-        ('Product', 'Product'),
-        ('Vcard', 'Vcard'),
-        ('Link', 'Link')
-    )
-    qrcode_type = serializers.ChoiceField(choices=TYPE_CHOICES)
     quantity = serializers.CharField(allow_null=True, allow_blank=False, required=False)
     logo = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     # link = serializers.URLField(max_length=255, required=False, allow_null=True, allow_blank=True)
@@ -19,19 +13,6 @@ class DoWellQrCodeSerializer(serializers.Serializer):
     is_active = serializers.BooleanField(required=False, allow_null=True, default=False)
     
 
-class AddressSerializer(serializers.Serializer):
-    street_address = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
-    city = serializers.CharField(max_length=255)
-    state = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
-    zip_code = serializers.IntegerField(required=False, allow_null=True)
-    country = serializers.CharField(max_length=255)
-    
-class ProductTypeSerializer(DoWellQrCodeSerializer):
-    title = serializers.CharField(max_length=255)
-    product_name = serializers.CharField(max_length=255)
-    website = serializers.CharField(max_length=255)
-
-
 class LinkSerializer(serializers.Serializer):
     link = serializers.URLField(required=True, allow_null=False)
     is_opened = serializers.BooleanField(default=False, allow_null=True)
@@ -41,18 +22,9 @@ class LinkSerializer(serializers.Serializer):
     word3 = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
 
 
-
-   
-
 class LinkTypeSerializer(DoWellQrCodeSerializer):
     links = LinkSerializer(many=True, required=True, allow_null=False)
 
-
-class VcardSerializer(DoWellQrCodeSerializer):
-    first_name = serializers.CharField(max_length=255)
-    last_name = serializers.CharField(max_length=255)
-    phone_number = serializers.CharField(max_length=255)
-    address = AddressSerializer()
 
 class DoWellUpdateQrCodeSerializer(serializers.Serializer):
     qrcode_id=serializers.CharField(required=False, allow_null=True, allow_blank=True)

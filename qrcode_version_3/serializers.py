@@ -6,7 +6,6 @@ class DoWellQrCodeSerializer(serializers.Serializer):
         ('Vcard', 'Vcard'),
         ('Link', 'Link')
     )
-    qrcode_type = serializers.ChoiceField(choices=TYPE_CHOICES)
     quantity = serializers.CharField(allow_null=True, allow_blank=False, required=False)
     logo = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     # link = serializers.URLField(max_length=255, required=False, allow_null=True, allow_blank=True)

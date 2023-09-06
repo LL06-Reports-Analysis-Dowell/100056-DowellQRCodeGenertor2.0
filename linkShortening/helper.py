@@ -229,125 +229,79 @@ def create_uuid():
     unique_id = str(unique_id)
     return unique_id
 
-def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url=None):
+def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
     serializer = None    
-    if qrcode_type == "Product":
-        title = request.data.get("title")
-        product_name = request.data.get("product_name")
-        website = request.data.get("website")
-        product = {
-            "product_name": product_name,
-            "title": title,
-            "website": website
-        }
-        field = {**field, **product}
-        serializer = ProductTypeSerializer(data=field)
 
-        # return serializer
-        
-    elif qrcode_type == "Vcard":
-        first_name = request.data.get("first_name")
-        last_name = request.data.get("last_name")
-        phone_number = request.data.get("phone_number")
-        street_address = request.data.get("address.street_address")
-        city = request.data.get("address.city")
-        state = request.data.get("address.state")
-        zip_code = request.data.get("address.zip_code")
-        country = request.data.get("address.country")
+    # links = request.data["links"]
+    links = request.data.get("links")
+    word  = request.data.get("word")
+    word2 = request.data.get("word2")
+    word3 = request.data.get("word3")
+    document_name = request.data.get("document_name")
 
-        img_qr = create_qrcode(request.data, qrcode_color, logo)
+    # get master link
+    api_key = create_uuid()
+    post_links_path = reverse('master_link', args=[word, word2, word3])
 
-        
-        file_name = generate_file_name()
-        qr_code_url = upload_image_to_interserver(img_qr, file_name)
+    post_links_url  = request.build_absolute_uri(post_links_path)
 
-        vcard = {
-            "first_name": first_name,
-            "last_name": last_name,
-            "phone_number": phone_number,
-            "address": {
-                "street_address": street_address,
-                "city": city,
-                "state": state,
-                "zip_code": zip_code,
-                "country": country,
-            }
+    posted_links = []
+    duplicate_error = None
+    
+    for link in links:
+        # post links to db
+        link_id = create_uuid()
+        link_data = {
+            "link_id": link_id, 
+            "api_key": api_key, 
+            "document_name": document_name, 
+            "link": link["link"],
+            "word": word,
+            "word2": word2,
+            "word3": word3
         }
 
-        field = {**field, **vcard}
-        serializer = VcardSerializer(data=field)
-        
-    elif qrcode_type == "Link":
-        # links = request.data["links"]
-        links = request.data.get("links")
-        word  = request.data.get("word")
-        word2 = request.data.get("word2")
-        word3 = request.data.get("word3")
-        document_name = request.data.get("document_name")
-
-        # get master link
-        api_key = create_uuid()
-        post_links_path = reverse('master_link', args=[word, word2, word3])
-
-        post_links_url  = request.build_absolute_uri(post_links_path)
-
-        posted_links = []
-        duplicate_error = None
-        
-        for link in links:
-            # post links to db
-            link_id = create_uuid()
-            link_data = {
-                "link_id": link_id, 
-                "api_key": api_key, 
-                "document_name": document_name, 
-                "link": link["link"],
-                "word": word,
-                "word2": word2,
-                "word3": word3
-            }
-
-            headers = {
-                'x-api-key': api_key
-            }
-            res = requests.post(post_links_url, link_data, headers=headers)
-            if res.status_code == 201:
-                posted_links.append(res.json())
-            else:
-                duplicate_error = "Url params not available. Please change."
-
- 
-        serializer = LinkTypeSerializer(data=request.data)
-
-        # get all posted links
-        master_link = post_links_url
-
-        img_qr = create_qrcode(master_link, qrcode_color, logo)
-
-        file_name = generate_file_name()
-        qr_code_url = upload_image_to_interserver(img_qr, file_name)
-
-        
-        link_ = {
-            "document_name": document_name,
-            "links": posted_links,
-            "masterlink": master_link,
-            "qrcode_image_url": qr_code_url,
-            "logo_url": logo_url,
+        headers = {
+            'x-api-key': api_key
         }
-        
-        field = {**field, **link_}
+        res = requests.post(post_links_url, link_data, headers=headers)
+        if res.status_code == 201:
+            posted_links.append(res.json())
+        else:
+            duplicate_error = "Url params not available. Please change."
 
-    else:
-        img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
-        file_name = generate_file_name()
-        qr_code_url = upload_image_to_interserver(img_qr, file_name)
-        data = {
-            "qrcode_image_url": qr_code_url,
-            "logo_url": logo_url,
-        }
-        field = {**field, **data}
-        serializer = DoWellQrCodeSerializer(data=field)
+
+    serializer = LinkTypeSerializer(data=request.data)
+
+    # get all posted links
+    master_link = post_links_url
+
+    img_qr = create_qrcode(master_link, qrcode_color, logo)
+
+    file_name = generate_file_name()
+    qr_code_url = upload_image_to_interserver(img_qr, file_name)
+
+    
+    link_ = {
+        "document_name": document_name,
+        "links": posted_links,
+        "masterlink": master_link,
+        "qrcode_image_url": qr_code_url,
+        "logo_url": logo_url,
+    }
+    
+    field = {**field, **link_}
+
+    # else:
+    #     img_qr = create_qrcode(link=None, qrcode_color=qrcode_color, logo=logo)
+    #     file_name = generate_file_name()
+    #     qr_code_url = upload_image_to_interserver(img_qr, file_name)
+    #     data = {
+    #         "qrcode_image_url": qr_code_url,
+    #         "logo_url": logo_url,
+    #     }
+    #     field = {**field, **data}
+    #     serializer = DoWellQrCodeSerializer(data=field)
     return serializer, field, duplicate_error
 
 

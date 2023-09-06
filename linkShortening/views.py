@@ -259,7 +259,6 @@ class codeqr(APIView):
 
     def post(self, request):
         company_id = request.data.get("company_id")
-        qrcode_type = request.data.get("qrcode_type")
         # link = request.data.get("link")
         logo = request.FILES.get('logo')  
         logo_size = int(request.data.get("logo_size", "20"))
@@ -312,9 +311,7 @@ class codeqr(APIView):
                 "company_id": company_id,
                 "created_by": created_by,
                 "description": description,
-                "is_active": is_active,
-                "qrcode_type": qrcode_type,
-                
+                "is_active": is_active
             }
 
             update_field = {
@@ -322,7 +319,7 @@ class codeqr(APIView):
             }
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field, duplicate_error = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
+            serializer, field, duplicate_error = qrcode_type_defination(request, qrcode_color, logo, field, logo_url)
 
             if duplicate_error:
                 return Response({"error": duplicate_error}, status=400)
