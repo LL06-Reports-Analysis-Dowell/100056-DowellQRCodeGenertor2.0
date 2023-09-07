@@ -85,9 +85,10 @@ class codeqr(APIView):
             else:
                 logo_url = None
 
+            qrcode_id = create_uuid()
             field = {
                 "master_link": master_link,
-                "qrcode_id": create_uuid(),
+                "qrcode_id": qrcode_id,
                 "logo_size": logo_size,
                 "qrcode_color": qrcode_color,
                 "company_id": company_id,
@@ -103,7 +104,7 @@ class codeqr(APIView):
             }
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
+            serializer, field = qrcode_type_defination(qrcode_id, qrcode_type, request, qrcode_color, logo, field, logo_url)
 
             if serializer.is_valid():
                 try:

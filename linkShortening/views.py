@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .helper import has_query_params
+from .helper import has_query_params, retrieve_url_parameters, update_url_parameters
 
 
 from .helper import (
@@ -57,8 +57,7 @@ class Links(APIView):
             "link_id": link_id,
             # "document_name": document_name,
             "link": link,
-            "is_opened": False,
-            "is_finalized": False,
+            "is_active": True,
             "word": word,
             "word2": word2,
             "word3": word3
@@ -82,40 +81,38 @@ class Links(APIView):
     
     def get(self, request, word, word2, word3):
         try:
-            # get api key from headers
-            # api_key = request.META.get('HTTP_X_API_KEY')
             link_id = request.GET.get('link_id')
         except:
             pass
 
         update_field = {
-            "is_opened": True,
+            "is_active": True,
         }
 
-        # get unopened linked
+        # get active links
         if word and word2 and word3:
-            # field = {"api_key": api_key, "is_opened": False}
-            field = {"word": word, "word2": word2, "word3": word3, "is_opened": False}
+            field = {"word": word, "word2": word2, "word3": word3, "is_active": True}
             try:
                 res = dowellconnection(*qrcode_management, "fetch", field, {})
                 response = json.loads(res)
             except:
                 return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            # this will get unfinalized links
+            # this will get inactive links
             if len(response["data"]) < 1:
-                # field2 = {"api_key": api_key ,"is_finalized": False}
-                field2 = {"word": word, "word2": word2, "word3": word3,  "is_finalized": False}
+                field2 = {"word": word, "word2": word2, "word3": word3, "is_active": False}
                 res = dowellconnection(*qrcode_management, "fetch", field2, {})
                 response = json.loads(res)
             
-            # Check if there are any unopened links
-            unopened_links = [link for link in response["data"] if not link["is_opened"]]
+            # Check if there are any active links
+            active_links = [link for link in response["data"] if link["is_active"]]
+
+            print("Active Links", active_links)
             
-            if len(unopened_links) > 0:
+            if len(active_links) > 0:
 
                 # Select the first unopened link
-                open_link = unopened_links[0]
+                open_link = active_links[0]
 
                 # Update the "is_opened" status to True
                 field = {"link_id": open_link["link_id"]}
@@ -128,27 +125,10 @@ class Links(APIView):
                     return redirect(open_link["link"] + "?link_id=" + open_link["link_id"])
                     
             else:
-                # Check if there are any unfinalized links
-                update_field = {
-                    "is_opened": False,
-                }
-                unfinalized_links = [link for link in response["data"] if not link["is_finalized"]]
-                if len(unfinalized_links) > 0:
-                    for link in unfinalized_links:
-
-                        # Set "is_opened" to False for each unfinalized link
-                        field = {"link_id": link["link_id"]}
-                        try:
-                            dowellconnection(*qrcode_management,"update",field, update_field)
-                        except:
-                            return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                else:
-                    # fields = {"api_key": api_key , "is_finalized": True}
-                    fields = {"word": word, "word2": word2, "word3": word3,  "is_finalized": True}
-                    res = dowellconnection(*qrcode_management, "fetch", fields, {})
-                    response = json.loads(res)
-                    document_name = response["data"][0]["document_name"]
-                    return render(request, 'return.html', {'document_name': document_name})
+                # Check if there are any inactive links
+                inactive_links = [link for link in response["data"] if not link["is_active"]]
+                if len(inactive_links) > 0:
+                    return render(request, 'return.html')
 
         # get single link using link_id
         elif link_id:
@@ -251,6 +231,7 @@ class codeqr(APIView):
     def post(self, request):
         logo = request.FILES.get('logo') 
         qrcode_color = request.data.get('qrcode_color', "#000000")
+        is_active = request.data.get('is_active', True)
         quantity = 1
         # company_id = request.data.get("company_id")
         # link = request.data.get("link")
@@ -289,6 +270,7 @@ class codeqr(APIView):
             field = {
                 "qrcode_id": create_uuid(),
                 "qrcode_color": qrcode_color,
+                "is_active": is_active
                 # "qrcode_image_url": qr_code_url,
                 # "logo_url": logo_url,
                 # "logo_size": logo_size,
@@ -352,6 +334,12 @@ class codeqr(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqrupdate(APIView):
 
+    def get_link(self, request, word, word2, word3):
+        field = {"word": word, "word2": word2, "word3": word3}  
+        res = dowellconnection(*qrcode_management, "fetch", field, {})
+        response = json.loads(res)
+        return response["data"]
+    
     def get_object(self, request, id):
         field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
@@ -380,27 +368,36 @@ class codeqrupdate(APIView):
         try:
             qrcode_ = self.get_object(request, id)
             qrcode_image_url = qrcode_["qrcode_image_url"]
+            master_link = qrcode_["link"]
             logo_url = qrcode_["logo_url"]
         except: 
             pass
+        
+        word, word2, word3 = retrieve_url_parameters(qrcode_["link"])
+        param1 = request.data.get("word", word)
+        param2 = request.data.get("word2", word2)
+        param3 = request.data.get("word3", word3)
 
-        company_id = request.data.get("company_id")
+        company_id = qrcode_["company_id"]
         link = request.data.get("link")
         logo = request.FILES.get('logo')
-        logo_size = int(request.data.get("logo_size", "20"))
-        qrcode_color = request.data.get('qrcode_color', "#000000")
-        product_name = request.data.get("product_name")
-        created_by = request.data.get("created_by")
-        description = request.data.get("description")
-        is_active = request.data.get("is_active", True)
+        qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
+        user_id = qrcode_["user_id"]
+        is_active = request.data.get("is_active", qrcode_["is_active"])
+
+     
+        field = {"word": word, "word2": word2, "word3": word3}
+        
+        try:
+            update_field = {"word": param1, "word2": param2, "word3": param3, "link": link}
+            dowellconnection(*qrcode_management,"update",field, update_field)
+            if param1 or param2 or param3:
+                master_link = update_url_parameters(master_link, param1, param2, param3)
+        except:
+            return Response({"error": "Update Failed"}, status=status.HTTP_400_BAD_REQUEST)
+            
 
         # Validate logo size
-        try:
-            if logo_size <= 0:
-                raise ValueError("Logo size must be a positive integer.")
-        except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -423,23 +420,21 @@ class codeqrupdate(APIView):
         qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
         # qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
 
-        logoSize = logo_size
-
         field = {
             "qrcode_id": id
         }
        
         update_field = {
-            "qrcode_image_url": qrcode_image_url,
-            "logo_url": logo_url,
-            "logo_size": logoSize,
-            "qrcode_color": qrcode_color,
-            "link": link,
+            "user_id": user_id,
             "company_id": company_id,
-            "product_name": product_name,
-            "created_by": created_by,
-            "description": description,
             "is_active": is_active,
+            "qrcode_color": qrcode_color,
+            "link": master_link,
+            "logo_url": logo_url,           
+            "qrcode_image_url": qrcode_image_url,
+            
+        
+            
         }
 
         serializer = DoWellUpdateQrCodeSerializer(data=update_field)

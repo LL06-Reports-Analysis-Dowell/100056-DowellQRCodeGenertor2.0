@@ -6,6 +6,7 @@ import uuid
 import json
 import re
 from django.conf import settings
+from django.http import HttpResponse
 from django.urls import reverse
 from urllib.parse import urlparse
 
@@ -211,7 +212,11 @@ def image_to_bytes(image):
 def upload_image_to_interserver(img, img_name=None):
     url = settings.INTERSERVER_URL
     files = {'file': (img_name, img)}
-    response = requests.post(url, files=files)
+
+    try:
+        response = requests.post(url, files=files)
+    except requests.exceptions.ConnectionError:
+        raise ConnectionError("Looks Like you are offline")
     
     try:
         json_data = response.json()
@@ -240,11 +245,45 @@ def create_uuid():
     unique_id = str(unique_id)
     return unique_id
 
+def retrieve_url_parameters(url):
+    # Parse the URL to extract the query parameters
+    url_segments = url.strip('/').split('/')
+
+    # Assign the segments to variables 'word', 'word1', and 'word2'
+    if len(url_segments) >= 3:
+        word = url_segments[-3]
+        word2 = url_segments[-2]
+        word3 = url_segments[-1]
+        return word, word2, word3
+    else:
+        print("Invalid URL format")
+
+def update_url_parameters(url, word, word1, word2):
+    # Split the URL path into segments using '/'
+    url_segments = url.split('/')
+
+    # Ensure there are at least three segments in the URL
+    if len(url_segments) >= 3:
+        url_segments[-3] = word
+        url_segments[-2] = word1
+        url_segments[-1] = word2
+    else:
+        # Handle the case where the URL doesn't have enough segments
+        return "Invalid URL format"
+
+    # Reconstruct the URL with the updated path segments
+    updated_url = '/'.join(url_segments)
+
+    # Now you can use the updated_url in your view logic or return it
+    return updated_url
+
 def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
     serializer = None    
 
     # links = request.data["links"]
-    links = request.data.get("links")
+    user_id = request.data.get("user_id")
+    company_id = request.data.get("company_id")
+    link = request.data.get("link")
     word  = create_short_uuid()
     word2 = create_short_uuid()
     word3 = create_short_uuid()
@@ -260,27 +299,26 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
     posted_links = []
     duplicate_error = None
     
-    for link in links:
+    # for link in links:
         # post links to db
-        link_id = create_uuid()
-        link_data = {
-            "link_id": link_id, 
-            "api_key": api_key, 
-            # "document_name": document_name, 
-            "link": link["link"],
-            "word": word,
-            "word2": word2,
-            "word3": word3
-        }
+    link_id = create_uuid()
+    link_data = {
+        "link_id": link_id, 
+        "api_key": api_key,  
+        "link": link,
+        "word": word,
+        "word2": word2,
+        "word3": word3
+    }
 
-        res = requests.post(post_links_url, link_data)
-        if res.status_code == 201:
-            posted_links.append(res.json())
-        else:
-            duplicate_error = "Url params not available. Please change."
+    res = requests.post(post_links_url, link_data)
+    if res.status_code == 201:
+        posted_links.append(res.json())
+    else:
+        duplicate_error = "Url params not available. Please change."
 
 
-    serializer = LinkTypeSerializer(data=request.data)
+    serializer = LinkSerializer(data=request.data)
 
     # get all posted links
     master_link = post_links_url
@@ -293,8 +331,11 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
     
     link_ = {
         # "document_name": document_name,
-        "api_key": api_key,
-        "links": posted_links,
+        # "api_key": api_key,
+        # "links": posted_links,
+        # 
+        "company_id": company_id,
+        "user_id": user_id,
         "link": master_link,
         "qrcode_image_url": qr_code_url,
         "logo_url": logo_url,
