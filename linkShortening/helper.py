@@ -18,8 +18,7 @@ from PIL import Image, ImageDraw
 import cloudinary.uploader
 import cloudinary
 
-from qrcode_version_3.serializers import DoWellQrCodeSerializer, LinkSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
-
+from .serializers import DoWellQrCodeSerializer, LinkSerializer
 
 cloudinary.config(
     cloud_name="din7lejen",
@@ -298,9 +297,7 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
 
     posted_links = []
     duplicate_error = None
-    
-    # for link in links:
-        # post links to db
+
     link_id = create_uuid()
     link_data = {
         "link_id": link_id, 
@@ -311,14 +308,13 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
         "word3": word3
     }
 
-    res = requests.post(post_links_url, link_data)
-    if res.status_code == 201:
-        posted_links.append(res.json())
-    else:
-        duplicate_error = "Url params not available. Please change."
-
-
-    serializer = LinkSerializer(data=request.data)
+    link_serializer = LinkSerializer(data=link_data)
+    if link_serializer.is_valid(raise_exception=True):
+        res = requests.post(post_links_url, link_data)
+        if res.status_code == 201:
+            posted_links.append(res.json())
+        else:
+            duplicate_error = "Url params not available. Please change."
 
     # get all posted links
     master_link = post_links_url
@@ -330,16 +326,14 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
 
     
     link_ = {
-        # "document_name": document_name,
-        # "api_key": api_key,
-        # "links": posted_links,
-        # 
         "company_id": company_id,
         "user_id": user_id,
         "link": master_link,
         "qrcode_image_url": qr_code_url,
         "logo_url": logo_url,
     }
+
+    serializer = DoWellQrCodeSerializer(data=request.data)
     
     field = {**field, **link_}
     return serializer, field, duplicate_error
