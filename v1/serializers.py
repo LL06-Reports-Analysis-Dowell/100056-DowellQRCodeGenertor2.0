@@ -11,7 +11,7 @@ class DoWellQrCodeSerializer(serializers.Serializer):
     quantity = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     logo = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     # link = serializers.URLField(max_length=255, required=False, allow_null=True, allow_blank=True)
-    master_link = serializers.CharField(required=True, allow_null=False, allow_blank=False)
+    # master_link = serializers.CharField(required=True, allow_null=False, allow_blank=False)
     product_name = serializers.CharField(allow_null=True, allow_blank=True, required=False)
 
     company_id = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
@@ -35,7 +35,7 @@ class ProductTypeSerializer(DoWellQrCodeSerializer):
     website = serializers.CharField(max_length=255)
 
 class LinkTypeSerializer(DoWellQrCodeSerializer):
-    link = serializers.URLField()
+    link = serializers.URLField(max_length=255, required=False, allow_null=True, allow_blank=True)
 
 class VcardSerializer(DoWellQrCodeSerializer):
     first_name = serializers.CharField(max_length=255)

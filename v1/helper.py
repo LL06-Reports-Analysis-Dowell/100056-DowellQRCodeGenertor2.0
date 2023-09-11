@@ -188,7 +188,7 @@ def create_uuid():
 
 
 
-def qrcode_type_defination(qrcode_id, qrcode_type, request, qrcode_color, logo, field, logo_url=None):
+def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url=None):
     serializer = None    
     if qrcode_type == "Product":
         title = request.data.get("title")
@@ -239,9 +239,9 @@ def qrcode_type_defination(qrcode_id, qrcode_type, request, qrcode_color, logo, 
         # return serializer
         
     elif qrcode_type == "Link":
-        link = request.data.get("link")
-        # link = "https://100099.pythonanywhere.com/api/v1/inactive/"
-        img_qr = create_qrcode(qrcode_id, qrcode_color, logo)
+        # link = request.data.get("link")
+        link = "https://100099.pythonanywhere.com/api/v1/inactive/"
+        img_qr = create_qrcode(link, qrcode_color, logo)
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)
