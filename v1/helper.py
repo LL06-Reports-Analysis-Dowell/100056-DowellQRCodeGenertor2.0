@@ -239,7 +239,7 @@ def qrcode_type_defination(qrcode_id, qrcode_type, request, qrcode_color, logo, 
         # return serializer
         
     elif qrcode_type == "Link":
-        # link = request.data.get("link")
+        link = request.data.get("link")
         # link = "https://100099.pythonanywhere.com/api/v1/inactive/"
         img_qr = create_qrcode(qrcode_id, qrcode_color, logo)
 
