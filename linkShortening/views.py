@@ -111,7 +111,7 @@ class Links(APIView):
             
             if len(active_links) > 0:
 
-                # Select the first unopened link
+                # Select the first link
                 open_link = active_links[0]
 
                 # Update the "is_opened" status to True
@@ -211,14 +211,6 @@ class codeqr(APIView):
                 "qrcode_id": create_uuid(),
                 "qrcode_color": qrcode_color,
                 "is_active": is_active
-                # "qrcode_image_url": qr_code_url,
-                # "logo_url": logo_url,
-                # "logo_size": logo_size,
-                # "link": link,
-                # "company_id": company_id,
-                # "created_by": created_by,
-                # "description": description,
-                # "is_active": is_active
             }
 
             update_field = {
@@ -302,23 +294,26 @@ class codeqrupdate(APIView):
             qrcode_image_url = qrcode_["qrcode_image_url"]
             master_link = qrcode_["link"]
             logo_url = qrcode_["logo_url"]
+            company_id = qrcode_["company_id"]
+            user_id = qrcode_["user_id"]
         except: 
             pass
         
+        # retrieve three words from master_link
         word, word2, word3 = retrieve_url_parameters(qrcode_["link"])
-        param1 = request.data.get("word", word)
-        param2 = request.data.get("word2", word2)
-        param3 = request.data.get("word3", word3)
 
-        company_id = qrcode_["company_id"]
-        link = request.data.get("link")
-        logo = request.FILES.get('logo')
+        # get the three words and link from user
+        param1       = request.data.get("word", word)
+        param2       = request.data.get("word2", word2)
+        param3       = request.data.get("word3", word3)
+        link         = request.data.get("link", qrcode_["link"])
         qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
-        user_id = qrcode_["user_id"]
-        is_active = request.data.get("is_active", qrcode_["is_active"])
-
-     
+        is_active    = request.data.get("is_active", qrcode_["is_active"])   
+        logo         = request.FILES.get('logo')
+        
         field = {"word": word, "word2": word2, "word3": word3}
+        
+        # update the Link
         
         try:
             update_field = {"word": param1, "word2": param2, "word3": param3, "link": link}
@@ -327,8 +322,17 @@ class codeqrupdate(APIView):
                 master_link = update_url_parameters(master_link, param1, param2, param3)
         except:
             return Response({"error": "Update Failed"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # update the Qrcode
+        field = {"qrcode_id": id} 
+        try:
+            update_field = {"word": param1, "word2": param2, "word3": param3, "link_": link}
+            dowellconnection(*qrcode_management,"update",field, update_field)
+            if param1 or param2 or param3:
+                master_link = update_url_parameters(master_link, param1, param2, param3)
+        except:
+            return Response({"error": "Update Qrcode Failed"}, status=status.HTTP_400_BAD_REQUEST)
             
-
         # Validate logo size
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
@@ -350,7 +354,6 @@ class codeqrupdate(APIView):
         # update qrcode and logo image in cloudinary
         file_name = generate_file_name()
         qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-        # qrcode_image_url = update_cloudinary_image(qrcode_image_url, img_qr)
 
         field = {
             "qrcode_id": id
@@ -362,11 +365,12 @@ class codeqrupdate(APIView):
             "is_active": is_active,
             "qrcode_color": qrcode_color,
             "link": master_link,
+            "link_": link,
+            "word": param1,
+            "word2": param2,
+            "word3": param3,
             "logo_url": logo_url,           
             "qrcode_image_url": qrcode_image_url,
-            
-        
-            
         }
 
         serializer = DoWellUpdateQrCodeSerializer(data=update_field)

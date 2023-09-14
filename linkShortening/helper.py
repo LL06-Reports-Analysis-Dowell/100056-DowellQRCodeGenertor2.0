@@ -331,6 +331,10 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
         "link": master_link,
         "qrcode_image_url": qr_code_url,
         "logo_url": logo_url,
+        "link_": link,
+        "word": word,
+        "word2": word2,
+        "word3": word3
     }
 
     serializer = DoWellQrCodeSerializer(data=request.data)

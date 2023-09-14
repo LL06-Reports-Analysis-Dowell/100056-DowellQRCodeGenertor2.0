@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 class DoWellQrCodeSerializer(serializers.Serializer):
-    logo = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    logo = serializers.FileField(required=False, allow_null=True)
     qrcode_color = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     user_id = serializers.CharField(max_length=255, required=True, allow_null=False, allow_blank=False)
     company_id = serializers.CharField(max_length=255, required=True, allow_null=False, allow_blank=False)
