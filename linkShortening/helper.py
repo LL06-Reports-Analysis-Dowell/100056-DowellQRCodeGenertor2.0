@@ -314,7 +314,7 @@ def qrcode_type_defination(request, qrcode_color, logo, field, logo_url=None):
         if res.status_code == 201:
             posted_links.append(res.json())
         else:
-            duplicate_error = "Url params not available. Please change."
+            duplicate_error = "Oops! Seems like the words have already been used."
 
     # get all posted links
     master_link = post_links_url

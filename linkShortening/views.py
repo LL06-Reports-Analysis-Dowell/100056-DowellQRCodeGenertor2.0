@@ -42,7 +42,7 @@ class Links(APIView):
     def post(self, request, word, word2, word3):
         r = self.get_object(request, word, word2, word3)
         if len(r) >= 1:
-            return Response({"message": "Duplicate words"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Duplicate words"}, status=status.HTTP_400_BAD_REQUEST)
         
         link = request.data.get("link")
         api_key = request.data.get("api_key")
@@ -175,19 +175,10 @@ class codeqr(APIView):
         qrcode_color = request.data.get('qrcode_color', "#000000")
         is_active = request.data.get('is_active', True)
         quantity = 1
-        # company_id = request.data.get("company_id")
-        # link = request.data.get("link")
-        # logo_size = int(request.data.get("logo_size", "20"))
-        # created_by = request.data.get("created_by")
-        # description = request.data.get("description")
-        # is_active = request.data.get("is_active", False)
-        # quantity = request.data.get("quantity")
         
-
         if not is_valid_hex_color(qrcode_color):
             return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
-                
-        
+                 
         if logo:
             logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)     
         else:
@@ -264,6 +255,12 @@ class codeqr(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqrupdate(APIView):
     
+    def get_link(self, request, word, word2, word3):
+        field = {"word": word, "word2": word2, "word3": word3}  
+        res = dowellconnection(*qrcode_management, "fetch", field, {})
+        response = json.loads(res)
+        return response["data"]
+    
     def get_object(self, request, id):
         field = {"qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
@@ -306,6 +303,11 @@ class codeqrupdate(APIView):
         param1       = request.data.get("word", word)
         param2       = request.data.get("word2", word2)
         param3       = request.data.get("word3", word3)
+
+        r = self.get_link(request, param1, param2, param3)
+        if len(r) > 2:
+            return Response({"error": "Oops! Seems like the words have already been used."}, status=status.HTTP_400_BAD_REQUEST)
+        
         link         = request.data.get("link", qrcode_["link"])
         qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
         is_active    = request.data.get("is_active", qrcode_["is_active"])   
@@ -380,7 +382,7 @@ class codeqrupdate(APIView):
 
             # Check if the update was successful
             if response["isSuccess"]:
-                return Response({"response": update_field}, status=status.HTTP_200_OK)
+                return Response({"success": f"QR code Updated successfully.", "response": update_field}, status=status.HTTP_200_OK)
             else:
                 return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
