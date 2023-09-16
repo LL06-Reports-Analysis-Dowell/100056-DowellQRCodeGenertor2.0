@@ -305,7 +305,6 @@ class codeqrupdate(APIView):
         param3       = request.data.get("word3", word3)
 
         if param1 == word and param2 == word2 and param3 == word3:
-            
             link         = request.data.get("link", qrcode_["link"])
             qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
             is_active    = request.data.get("is_active", qrcode_["is_active"])   
@@ -384,15 +383,93 @@ class codeqrupdate(APIView):
                 else:
                     return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # pass
         else:
             # check if there are duplicate links
             r = self.get_link(request, param1, param2, param3, id)
             if len(r) >= 1:
-                return Response({"error": "Oops! Seems like the words have already been used."}, status=status.HTTP_400_BAD_REQUEST)
-        
-    
-      
+                return Response({"error": "Oops! Seems like the words have already been used."}, status=status.HTTP_400_BAD_REQUEST) 
+            else: 
+                link         = request.data.get("link", qrcode_["link"])
+                qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
+                is_active    = request.data.get("is_active", qrcode_["is_active"])   
+                logo         = request.FILES.get('logo')
+                
+                field = {"word": word, "word2": word2, "word3": word3}
+                
+                # update the Link
+                
+                try:
+                    update_field = {"word": param1, "word2": param2, "word3": param3, "link": link}
+                    dowellconnection(*qrcode_management,"update",field, update_field)
+                    if param1 or param2 or param3:
+                        master_link = update_url_parameters(master_link, param1, param2, param3)
+                except:
+                    return Response({"error": "Update Failed"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # update the Qrcode
+                field = {"qrcode_id": id} 
+                try:
+                    update_field = {"word": param1, "word2": param2, "word3": param3, "link_": link}
+                    dowellconnection(*qrcode_management,"update",field, update_field)
+                    if param1 or param2 or param3:
+                        master_link = update_url_parameters(master_link, param1, param2, param3)
+                except:
+                    return Response({"error": "Update Qrcode Failed"}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                # Validate logo size
+                if not is_valid_hex_color(qrcode_color):
+                    return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
+                
+                if not logo and not logo_url:
+                    logo_url = None
+                elif not logo_url and logo:
+                    logo_file = logo.read()
+                    logo_url = upload_image_to_interserver(logo_file, logo.name)
+                elif logo_url and logo:
+                    # logo_url = update_cloudinary_image(logo_url, logo)
+                    logo_url = upload_image_to_interserver(logo, logo.name)
+                else:
+                    pass
+
+                # Create the QR code image
+                img_qr = create_qrcode(link, qrcode_color, logo)
+
+                # update qrcode and logo image in cloudinary
+                file_name = generate_file_name()
+                qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+
+                field = {
+                    "qrcode_id": id
+                }
+            
+                update_field = {
+                    "user_id": user_id,
+                    "company_id": company_id,
+                    "is_active": is_active,
+                    "qrcode_color": qrcode_color,
+                    "link": master_link,
+                    "link_": link,
+                    "word": param1,
+                    "word2": param2,
+                    "word3": param3,
+                    "logo_url": logo_url,           
+                    "qrcode_image_url": qrcode_image_url,
+                }
+
+                serializer = DoWellUpdateQrCodeSerializer(data=update_field)
+                if serializer.is_valid():
+                    res = dowellconnection(*qrcode_management,"update",field, update_field)
+                    response = json.loads(res)
+
+                    # Check if the update was successful
+                    if response["isSuccess"]:
+                        return Response({"success": f"QR code Updated successfully.", "response": update_field}, status=status.HTTP_200_OK)
+                    else:
+                        return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            
+            
 
 
 
