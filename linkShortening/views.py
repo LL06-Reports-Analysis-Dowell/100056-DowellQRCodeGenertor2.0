@@ -304,10 +304,13 @@ class codeqrupdate(APIView):
         param2       = request.data.get("word2", word2)
         param3       = request.data.get("word3", word3)
 
-        # check if there are duplicate links
-        r = self.get_link(request, param1, param2, param3, id)
-        if len(r) >= 1:
-            return Response({"error": "Oops! Seems like the words have already been used."}, status=status.HTTP_400_BAD_REQUEST)
+        if param1 == word and param2 == word2 and param3 == word3:
+            pass
+        else:
+            # check if there are duplicate links
+            r = self.get_link(request, param1, param2, param3, id)
+            if len(r) >= 1:
+                return Response({"error": "Oops! Seems like the words have already been used."}, status=status.HTTP_400_BAD_REQUEST)
         
         link         = request.data.get("link", qrcode_["link"])
         qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
