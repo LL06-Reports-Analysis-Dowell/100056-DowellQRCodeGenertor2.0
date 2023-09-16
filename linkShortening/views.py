@@ -318,27 +318,27 @@ class codeqrupdate(APIView):
     #     is_active    = request.data.get("is_active", qrcode_["is_active"])   
     #     logo         = request.FILES.get('logo')
         
-    #     field = {"word": word, "word2": word2, "word3": word3}
+        # field = {"word": word, "word2": word2, "word3": word3}
         
-    #     # update the Link
+        # # update the Link
         
-    #     try:
-    #         update_field = {"word": param1, "word2": param2, "word3": param3, "link": link}
-    #         dowellconnection(*qrcode_management,"update",field, update_field)
-    #         if param1 or param2 or param3:
-    #             master_link = update_url_parameters(master_link, param1, param2, param3)
-    #     except:
-    #         return Response({"error": "Update Failed"}, status=status.HTTP_400_BAD_REQUEST)
+        # try:
+        #     update_field = {"word": param1, "word2": param2, "word3": param3, "link": link}
+        #     dowellconnection(*qrcode_management,"update",field, update_field)
+        #     if param1 or param2 or param3:
+        #         master_link = update_url_parameters(master_link, param1, param2, param3)
+        # except:
+        #     return Response({"error": "Update Failed"}, status=status.HTTP_400_BAD_REQUEST)
         
-    #     # update the Qrcode
-    #     field = {"qrcode_id": id} 
-    #     try:
-    #         update_field = {"word": param1, "word2": param2, "word3": param3, "link_": link}
-    #         dowellconnection(*qrcode_management,"update",field, update_field)
-    #         if param1 or param2 or param3:
-    #             master_link = update_url_parameters(master_link, param1, param2, param3)
-    #     except:
-    #         return Response({"error": "Update Qrcode Failed"}, status=status.HTTP_400_BAD_REQUEST)
+        # # update the Qrcode
+        # field = {"qrcode_id": id} 
+        # try:
+        #     update_field = {"word": param1, "word2": param2, "word3": param3, "link_": link}
+        #     dowellconnection(*qrcode_management,"update",field, update_field)
+        #     if param1 or param2 or param3:
+        #         master_link = update_url_parameters(master_link, param1, param2, param3)
+        # except:
+        #     return Response({"error": "Update Qrcode Failed"}, status=status.HTTP_400_BAD_REQUEST)
             
     #     # Validate logo size
     #     if not is_valid_hex_color(qrcode_color):
@@ -399,26 +399,52 @@ class codeqrupdate(APIView):
             param2 = request.data.get("word2", word2)
             param3 = request.data.get("word3", word3)
 
+            print(param1, param2, param3)
+            print(word, word2, word3)
+            
+            field = {"word": word, "word2": word2, "word3": word3}
+
             if param1 == word and param2 == word2 and param3 == word3:
-                return self.update_qr_code(request, id, qrcode_, param1, param2, param3)
+                return self.update_qr_code(request, id, qrcode_, param1, param2, param3, field)
             else:
                 r = self.get_link(request, param1, param2, param3)
-                if len(r) >= 1:
+                if len(r) >= 1 and param1 != word and param2 != word2 and param3 != word3:
                     return Response({"error": "Oops! Seems like the words have already been used."}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return self.update_qr_code(request, id, qrcode_, param1, param2, param3)
-
+                    return self.update_qr_code(request, id, qrcode_, param1, param2, param3, field)
+            
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def update_qr_code(self, request, id, qrcode_, param1, param2, param3):
+    def update_qr_code(self, request, id, qrcode_, param1, param2, param3, field):
         try:
+            link = request.data.get("link", qrcode_["link"])
+            master_link = qrcode_["link"]
+            
+            # update the Link
+            try:
+                update_field = {"word": param1, "word2": param2, "word3": param3, "link": link}
+                dowellconnection(*qrcode_management,"update",field, update_field)
+            except:
+                return Response({"error": "Update Link Failed"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # update the Qrcode
+            field_qrcode = {"qrcode_id": id} 
+            try:
+                update_field = {"word": param1, "word2": param2, "word3": param3, "link_": link}
+                dowellconnection(*qrcode_management,"update", field_qrcode, update_field)
+                if param1 or param2 or param3:
+                    master_link = update_url_parameters(master_link, param1, param2, param3)
+            except:
+                return Response({"error": f"Update Qrcode Failed {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            
+
+
             qrcode_color = request.data.get('qrcode_color', qrcode_["qrcode_color"])
             logo = request.FILES.get('logo')
             logo_url = self.validate_logo(logo, qrcode_["logo_url"])
 
             # Create the QR code image
-            link = request.data.get("link", qrcode_["link"])
             img_qr = create_qrcode(link, qrcode_color, logo)
 
             # Update qrcode and logo image in cloudinary
@@ -431,7 +457,7 @@ class codeqrupdate(APIView):
                 "company_id": qrcode_["company_id"],
                 "is_active": request.data.get("is_active", qrcode_["is_active"]),
                 "qrcode_color": qrcode_color,
-                "link": qrcode_["link"],
+                "link": master_link,
                 "link_": link,
                 "word": param1,
                 "word2": param2,
@@ -446,10 +472,13 @@ class codeqrupdate(APIView):
                 response = json.loads(res)
 
                 if response["isSuccess"]:
-                    return Response({"success": f"QR code Updated successfully.", "response": update_field},
-                                    status=status.HTTP_200_OK)
+                    success = {"success": f"QR code Updated successfully.", "response": update_field}
+                    # return success
+                    return Response(success, status=status.HTTP_200_OK)
                 else:
-                    return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+                    error = {"error": response["error"]}
+                    # return = error
+                    return Response(error, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
