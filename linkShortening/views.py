@@ -305,7 +305,7 @@ class codeqrupdate(APIView):
         param3       = request.data.get("word3", word3)
 
         r = self.get_link(request, param1, param2, param3)
-        if len(r) > 2:
+        if len(r) >= 1:
             return Response({"error": "Oops! Seems like the words have already been used."}, status=status.HTTP_400_BAD_REQUEST)
         
         link         = request.data.get("link", qrcode_["link"])
