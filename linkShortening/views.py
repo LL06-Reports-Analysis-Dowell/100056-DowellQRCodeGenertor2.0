@@ -255,8 +255,8 @@ class codeqr(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqrupdate(APIView):
     
-    def get_link(self, request, word, word2, word3):
-        field = {"word": word, "word2": word2, "word3": word3}  
+    def get_link(self, request, word, word2, word3, id):
+        field = {"word": word, "word2": word2, "word3": word3, "qrcode_id": id}  
         res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
         return response["data"]
@@ -304,8 +304,9 @@ class codeqrupdate(APIView):
         param2       = request.data.get("word2", word2)
         param3       = request.data.get("word3", word3)
 
-        r = self.get_link(request, param1, param2, param3)
-        if len(r) >= 2:
+        # check if there are duplicate links
+        r = self.get_link(request, param1, param2, param3, id)
+        if len(r) >= 1:
             return Response({"error": "Oops! Seems like the words have already been used."}, status=status.HTTP_400_BAD_REQUEST)
         
         link         = request.data.get("link", qrcode_["link"])
