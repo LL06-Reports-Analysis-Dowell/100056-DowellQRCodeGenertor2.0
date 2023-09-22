@@ -1,62 +1,51 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import DisplayQRCodes from "./DisplayQRCodes";
-import { useToast } from "@/components/ui/use-toast";
-
+import { toast } from "react-toastify";
+import { Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input";
 import { Loader } from "./Loader";
-const QRCodeForm = () => {
-  const { toast } = useToast();
 
-  const custID = sessionStorage.getItem("custId");
-  const userID = sessionStorage.getItem("userId");
-
+const QRCodeForm = ({userInfo}) => {
   // get api 
   const [qrcodes, setQRCodes] = useState();
+  const [loading, setLoading] = useState(false)
+  const searchParams = useSearchParams();
+  const [showNavbar, setShowNavbar] = useState(false);
+   
 
-  const userId = sessionStorage.getItem("userId");
-  const getUserInfo = async () => {
-    console.log("fetching");
-
-    const apiUrl = `https://uxlivinglab100106.pythonanywhere.com/api/qrcode/v1/qr-code/?user_id=${userId}`;
+  const fetchQrCodes = async () => {
+    const apiUrl = `https://uxlivinglab100106.pythonanywhere.com/api/qrcode/v1/qr-code/?user_id=${userInfo?.userID}`;
 
     try {
+      setLoading(true)
       const response = await fetch(apiUrl);
 
-      if (!response.ok) {
-        // alert("timed out");
-        toast({
-          title: "error timed out",
-          description: "Friday, February 10, 2023 at 5:57 PM",
-        });
-      }
       const responseData = await response.json();
       console.log("status", responseData.ok);
-      await setQRCodes(responseData.response.data);
-      console.log("API response GET:", responseData);
-      if (responseData.response.length == 0) {
-        alert("Qr code does not exist with this id");
-         toast({
-          title: "QR Codes does not exist for this user, Create new one!",
-          description: "Friday, February 10, 2023 at 5:57 PM",
-        });
-      } 
+      setQRCodes(responseData?.response?.data);
+      setLoading(false)
     } catch (error) {
+      setLoading(false)
       console.error(error.message);
     }
   };
+
+
   useEffect(() => {
-    getUserInfo();
-  }, [userId]);
+    fetchQrCodes();
+  }, []);
 
   // post api 
   let [displayData, setDisplayData] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   let [formData, setFormData] = useState({
-    company_id: custID,
-    user_id: userID,
+    company_id: userInfo?.client_admin_id,
+    user_id: userInfo?.userID,
     link: "",
+    name: "",
   });
 
   const handleChange = (e) => {
@@ -68,19 +57,18 @@ const QRCodeForm = () => {
   };
 
   const handleSubmit = async () => {
-          setSubmitting(true);
-
+    
     if (formData.link != "") {
-
-
       const apiUrl =
-      `https://www.qrcodereviews.uxlivinglab.online/api/v4/qr-code/`
+      `https://uxlivinglab100106.pythonanywhere.com/api/qrcode/v1/qr-code/`
       const requestData = {
         company_id: formData.company_id,
         user_id: formData.user_id,
         link: formData.link,
+        name: formData.name,
       };
       try {
+        setSubmitting(true);
         const response = await fetch(apiUrl, {
           method: "POST",
           headers: {
@@ -94,76 +82,96 @@ const QRCodeForm = () => {
         console.log("API response:", responseData);
         if(responseData.success){
           setSubmitting(false);
-          toast({
-            title: `Link Submitted successfully`,
-            className: "text-white btnStyle border-none]",
-          });
+          toast.success(`Link Shortened Successfully`);
           formData.link=""
-          getUserInfo()
+          fetchQrCodes()
         }
         if (responseData.link) {
-          toast({
-            title: `Invalid URL`,
-            className: "text-white btnStyle border-none]",
-          });
+          toast.info(`Enter a valid URL`);
+          setSubmitting(False)
+        } else if (responseData.name) {
+          toast.info(`Name is required`);
           setSubmitting(False)
         } else {
+          setSubmitting(False)
           await setDisplayData(responseData.qrcode);
           console.log("Put API response", await displayData);
         }
       } catch (error) {
+        setSubmitting(false);
         console.error(error.message);
       }
 
     } else {
-      console.log("Link cannot be empty");
-      toast({
-        title: "Links cannot be empty",
-        className: "text-white btnStyle border-none]",
-      });
       setSubmitting(false)
     }
   };
 
+
   
   return (
-      <div className="m-5 pb-4 grid place-items-center min-h-screen grid grid-cols-1 sm:grid-cols-1 md:grid-cols-[10px,auto,10px] ">
-        <div className="px-2"></div>
-        <div className=" px-2 h-auto p-5 m-5">
-          <div className="mainCard mt-5 h-auto">
-            <h1 className="text-2xl mt-5 text-center p-5 text-white font-bold">
-              Dowell URL Shortener
-            </h1>
-            <p className="subText text-center">
-              Create short and memorable links in seconds
-            </p>
-            <div className="container mx-auto p-4 my-5">
-              <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-2">
-                <Input
-                  type="text"
-                  name="link"
-                  value={formData.link || ""}
-                  onChange={handleChange}
-                  placeholder="Enter the link here"
-                  className="w-full md:w-1/2 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
-                />
-                <button
-                disabled={submitting}
-                  type="button"
-                  onClick={handleSubmit}
-                  className="w-full md:w-auto px-4 py-2 btnStyle text-white rounded-xl focus:outline-none focus:ring"
-                >
- {submitting ? 'Processing' : 'Submit'}
-                 </button>{" "}
+
+        <>
+        {/* {showNavbar && (
+          <nav className="navBar p-4">
+            <div className="container mx-auto flex justify-between items-center">
+              <div className="text-white text-xl font-semibold">
+                Dowell URL Shortener
+              </div>
+
+              <div className="text-white">
+                Welcome, <span className="font-semibold">{userInfo?.first_name}</span>
               </div>
             </div>
-          {qrcodes?<DisplayQRCodes qrcodes={qrcodes} getUserInfo={getUserInfo}/> :<Loader/>}
-            
-
+          </nav>
+        )} */}
+       
+          <div>
+            <div className="mainCard pb-8 h-screen w-screen rounded-lg overflow-auto">
+              <h1 className="text-2xl mt-5 text-center p-5 text-white font-bold">
+                Welcome to Dowell URL Shortener, <span className="name">{userInfo?.first_name}</span>
+              </h1>
+              <p className="subText text-center">
+                Create short and memorable links in seconds
+              </p>
+              <div className="container mx-auto p-4 my-5">
+                <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-2">
+                  <div className="flex flex-col md:flex-row w-full md:w-1/2 space-y-2 md:space-y-0 md:space-x-2">
+                    <Input
+                      type="text"
+                      name="link"
+                      value={formData.link || ""}
+                      onChange={handleChange}
+                      placeholder="Enter the link here"
+                      className="w-full md:w-3/4 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500 justify-center items-center space-y-2"
+                    />
+                    <Input
+                      type="text"
+                      name="name"
+                      value={formData.name || ""}
+                      onChange={handleChange}
+                      placeholder="Name"
+                      className="w-full md:w-1/4 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
+                    />
+                  </div>
+                  
+                  <button
+                    disabled={submitting || formData.link === "" || formData.name === ""}
+                    type="button"
+                    onClick={handleSubmit}
+                    className="w-full md:w-auto px-4 py-2 btnStyle text-white rounded-xl focus:outline-none focus:ring flex items-center justify-center"
+                  >
+                    {submitting ? <Loader2 className="text-4xl animate-spin" /> : 'Submit'}
+                  </button>{" "}
+                </div>
+              </div>
+              
+              <div>
+                {loading ? <Loader /> : qrcodes?.length > 0 ? <DisplayQRCodes qrcodes={qrcodes} getUserInfo={fetchQrCodes}/> : "No Links Found"}
+              </div>
+            </div>
           </div>
-        </div>
-        <div></div>
-      </div>
+        </>
   );
 };
 

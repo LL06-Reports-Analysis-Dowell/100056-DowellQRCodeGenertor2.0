@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-
+.navBar {
+    background-color: #1c201d;
+}
 .mainCard{
     background-color: #1c201d;
 }
@@ -12,15 +14,28 @@
 .btnStyle{
     background-color: #169441;
 }
+
+.btnStyle:disabled {
+    background-color: gray;
+}
 .urlText{
     color:#585b58
 }
 .shortenUrl{
-    overflow: hidden;
+    overflow-wrap: break-word;
+
+    /* white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; */
+}
+.shortenUrl:hover, .name {
+    color: #2eda68;
 }
 .cardbg{
     background-color: #2e312f;
 }
+
+
 .modalBg{
     background-color: #2e312f;
 }
@@ -33,3 +48,8 @@
 .edit{
     color: #abadac;
 }
+
+.icon:hover {
+    color: #2eda68;
+}
+

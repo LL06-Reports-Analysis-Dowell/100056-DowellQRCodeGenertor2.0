@@ -1,10 +1,12 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useEffect, useState } from "react";
 import { QrCode, Pencil, Copy } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import EditCompoenet from './EditCompoenet'
+import EditComponent from './EditComponent'
+import { toast } from "react-toastify";
+
 
 import {
   Dialog,
@@ -14,60 +16,61 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader } from "./Loader";
+
 
 const DisplayQRCodes = (props) => {
- 
-  const { toast } = useToast();
-
   const copylink = (e) => {
     const link = e.currentTarget.getAttribute("link");
 
     navigator.clipboard.writeText(link);
-    toast({
-      title: `Link Coppied`,
-      description: `${link}`,
-      className: "text-white btnStyle border-none]",
-    });
+    toast.info("Link Copied")
   };
 
   return (
-    <div>
+    <div className="md:mr-10 md:ml-10">
       {props.qrcodes.map((qrcode, key) => {
         return (
           <div
             key={key}
-            className="pb-4 rounded-xl p-3 cardbg gap-y-6 gap-x-4 m-4 grid grid-cols-3 text-white"
+            className="pb-4 rounded-xl p-3 cardbg  m-4  sm:flex sm:flex-col md:grid md:grid-cols-4 text-white"
           >
-            <div>
+            <div className="mr-3 mb-3 md:mb-0 md:mr-0">
+              <p className="urlText text-xs">Name</p>
+              <p className="shortenUrl">{qrcode?.name}</p>
+            </div>
+
+            <div className="mr-3 mb-3 md:mb-0 md:mr-0">
               <p className="urlText text-xs">Original URL</p>
-              <p className="shortenUrl">{qrcode.link_}</p>
+              <a href={qrcode?.link_} className="shortenUrl">{qrcode?.link_}</a>
             </div>
-            <div>
+            
+            <div className="mr-3 mb-3 mr:mr-0">
               <p className="urlText text-xs">Shorten URL</p>
-              <p className="shortenUrl">{qrcode.link}</p>
+              <a href={qrcode?.link} className="shortenUrl">{qrcode?.link}</a>
             </div>
-            <div className="flex justify-between items-center">
+            
+            <div className="flex md:justify-end sm:justify-start items-center">
               {/* qr  modal button  */}
               <Dialog>
                 <DialogTrigger>
-                  <QrCode />
+                  <QrCode className="icon"/>
                 </DialogTrigger>
                 <DialogContent className="text-white modalBg ">
                   <DialogHeader>
                     <DialogTitle>
-                      <img
-                        src={qrcode.qrcode_image_url}
-                        width="200px"
-                        height="300px"
-                        alt="qr image to scan"
-                        className="mx-auto"
-                      />
+                      Scan Qrcode
                     </DialogTitle>
                     <DialogDescription>
-                      <p className="text-green-400 text-md truncate">
+                        <img
+                          src={qrcode.qrcode_image_url}
+                          width="auto"
+                          height="auto"
+                          alt="qr image to scan"
+                          className="mx-auto"
+                        />
+                      {/* <a href={qrcode.qrcode_image_url} className="shortenUrl text-white-400 text-md">
                         {qrcode.qrcode_image_url}
-                      </p>
+                      </a> */}
                       <div className="flex justify-center gap-x-5 text-center my-5">
                         <DialogPrimitive.Close>
                           <Button className="greyBtn text-white font-bold rounded-md p-5">
@@ -76,10 +79,10 @@ const DisplayQRCodes = (props) => {
                         </DialogPrimitive.Close>
                         <Button
                           link={qrcode.qrcode_image_url}
-                          className=" greenBtn text-white font-bold rounded-md p-5"
+                          className="greenBtn text-white font-bold rounded-md p-5"
                           onClick={copylink}
                         >
-                          Copy Link
+                          Copy Qrcode Image Link
                         </Button>
                       </div>
                     </DialogDescription>
@@ -87,12 +90,11 @@ const DisplayQRCodes = (props) => {
                 </DialogContent>
               </Dialog>
 
-              {/* edit qrcode  */}
 
-             <EditCompoenet qrcode={qrcode} infoFucntion={props.getUserInfo}/>
-
-              {/* copy link  */}
-              <button link={qrcode.link} variant="outline" onClick={copylink}>
+              <div className="icon ml-3">
+                <EditComponent qrcode={qrcode} infoFucntion={props.getUserInfo}/>
+              </div>
+              <button className="icon ml-3" link={qrcode.link} variant="outline" onClick={copylink}>
                 <Copy />
               </button>
             </div>

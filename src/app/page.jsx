@@ -1,79 +1,70 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {Loader} from './layout/Loader'
-import { useToast } from "@/components/ui/use-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import axios from 'axios'
+import QRCodeForm from "./layout/page";
 
 
 const HomePage = () => {
-  const { toast } = useToast();
-  const router = useRouter()
   const searchParams = useSearchParams();
-  let dataObject = {
-    customerID:"232A",
-    userID:"578fhg"
-  }
+  const session_id = searchParams.get("session_id");
+  const [userInfo, setUserInfo] = useState()
+
+  const getUserInfo = async () => {
+    // setLoadingFetchUserInfo(true);
+    const session_id = searchParams.get("session_id");
+    axios
+      .post("https://100014.pythonanywhere.com/api/userinfo/", {
+        session_id: session_id
+      })
+
+      .then((response) => {
+        setUserInfo(response?.data?.userinfo);
+        // setLoadingFetchUserInfo(false);
+      })
+      .catch((error) => {
+        // setLoadingFetchUserInfo(false);
+        console.error("Error:", error);
+      });
+  };
+
+
+
   useEffect(() => {
-    const url = `${searchParams}`;
-    console.log(url);
-    if (!url) {
-      console.log("not runn");
-      const redirectUrl =
+    if (!session_id) {
+
+      window.location.href =
         "https://100014.pythonanywhere.com/en/?redirect_url=" +
-        encodeURIComponent(window.location.href);
-      if (typeof window !== "undefined") {
-        window.location.href = redirectUrl;
-      }
-    } else {
-      const apiUrl = "https://100014.pythonanywhere.com/api/userinfo/";
-      async function fetchUserInfo(apiUrl, url) {
-        let ret = url.replace("session_id=", "");
-        try {
-          const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ session_id: ret }),
-          });
-
-          if (!response.ok) {
-            toast({
-              title: `Network Failed Try again!`,
-              className: "text-white btnStyle border-none]",
-            });
-            throw new Error("Network response was not ok");
-          }
-
-          const data = await response.json();
-          console.log("User:", data);
-          if(data.message === "You are logged out, Please login and try again!!"){
-            
-            router.push( "https://100014.pythonanywhere.com/en/?redirect_url=" +
-            encodeURIComponent(window.location.href))
-          }
-          else{
-          dataObject.customerID= data.userinfo.client_admin_id;
-          dataObject.userID= data.userinfo.userID
-          console.log("dataObject",dataObject)
-          sessionStorage.setItem("User data",data)
-          sessionStorage.setItem("custId", dataObject.customerID);
-          sessionStorage.setItem("userId", dataObject.userID);
-          router.push('/layout')
-        }
-             } 
-        catch (error) {
-          console.error("Error fetching user info:", error);
-        }
-      }
-
-      fetchUserInfo(apiUrl, url);
+        `${window.location.href}`;
+      return;
     }
+    getUserInfo()
+    // setLoggedIn(true);
   }, []);
 
-  // return <QRCodeForm custID={dataObject.customerID} userId={dataObject.userID}/>;
-  return <Loader/>
+
+  return (
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      {userInfo ? <QRCodeForm userInfo={userInfo}/> : <Loader />}
+    </>
+  
+  )
 };
 
 export default HomePage;
