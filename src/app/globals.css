@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.mainCard{
+    background-color: #1c201d;
+}
+.subText{
+    color: #a4a6a5;
+}
+.btnStyle{
+    background-color: #169441;
+}
+.urlText{
+    color:#585b58
+}
+.shortenUrl{
+    overflow: hidden;
+}
+.cardbg{
+    background-color: #2e312f;
+}
+.modalBg{
+    background-color: #2e312f;
+}
+.greyBtn{
+    background-color: #585a59;
+}
+.greenBtn{
+    background-color: #169441;
+}
+.edit{
+    color: #abadac;
+}
