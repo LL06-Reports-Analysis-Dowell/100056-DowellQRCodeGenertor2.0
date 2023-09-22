@@ -23,10 +23,10 @@ const EditCompoenet = (props) => {
 
   const { toast } = useToast();
   let [formData, setFormData] = useState({
-    link: "",
-    word_1: "",
-    word_2: "",
-    word_3: "",
+    link: props.qrcode.link_,
+    word_1: props.qrcode.word,
+    word_2: props.qrcode.word2,
+    word_3: props.qrcode.wor3,
   });
 
   const handleChange = (e) => {
@@ -98,7 +98,7 @@ const EditCompoenet = (props) => {
                           name="link"
                           type="text"
                           id="link"
-                          value={props.qrcode.link_ || ""}
+                          value={formData.link || ""}
                           onChange={handleChange}
                           placeholder="Enter the link here"
                           className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
@@ -122,7 +122,7 @@ const EditCompoenet = (props) => {
 
                           <input
                             name="word_1"
-                            value={props.qrcode.word || ""}
+                            value={formData.word_1 || ""}
                             onChange={handleChange}
                             type="text"
                             placeholder="word1"
@@ -131,7 +131,7 @@ const EditCompoenet = (props) => {
 
                           <input
                             name="word_2"
-                            value={props.qrcode.word2 || ""}
+                            value={formData.word_2 || ""}
                             onChange={handleChange}
                             type="text"
                             placeholder="word2"
@@ -140,7 +140,7 @@ const EditCompoenet = (props) => {
 
                           <input
                             name="word_3"
-                            value={props.qrcode.word3 || ""}
+                            value={formData.word_3 || ""}
                             onChange={handleChange}
                             type="text"
                             placeholder="word3"
