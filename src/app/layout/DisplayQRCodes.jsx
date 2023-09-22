@@ -16,44 +16,9 @@ import {
 } from "@/components/ui/dialog";
 import { Loader } from "./Loader";
 
-const DisplayQRCodes = () => {
-  const [qrcodes, setQRCodes] = useState();
+const DisplayQRCodes = (props) => {
+ 
   const { toast } = useToast();
-
-  const userId = sessionStorage.getItem("userId");
-  const getUserInfo = async () => {
-    console.log("fetching");
-
-    const apiUrl = `https://www.qrcodereviews.uxlivinglab.online/api/v4/qr-code/?user_id=${userId}`;
-
-    try {
-      const response = await fetch(apiUrl);
-
-      if (response.status !== 200) {
-        alert("timed out");
-        toast({
-          title: "error timed out",
-          description: "Friday, February 10, 2023 at 5:57 PM",
-        });
-      }
-      const responseData = await response.json();
-      console.log("status", responseData.status);
-      await setQRCodes(responseData.response.data);
-      console.log("API response GET:", responseData);
-      if (responseData.response.length == 0) {
-        alert("Qr code does not exist with this id");
-      } else {
-        console.log("DD", responseData);
-      }
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
-  console.log("qrcode", qrcodes);
-
-  useEffect(() => {
-    getUserInfo();
-  }, [userId]);
 
   const copylink = (e) => {
     const link = e.currentTarget.getAttribute("link");
@@ -68,7 +33,7 @@ const DisplayQRCodes = () => {
 
   return (
     <div>
-      {qrcodes? qrcodes.map((qrcode, key) => {
+      {props.qrcodes.map((qrcode, key) => {
         return (
           <div
             key={key}
@@ -82,9 +47,9 @@ const DisplayQRCodes = () => {
               <p className="urlText text-xs">Shorten URL</p>
               <p className="shortenUrl">{qrcode.link}</p>
             </div>
-            <div className="flex justify-between items-center gap-x-5">
+            <div className="flex justify-between items-center">
               {/* qr  modal button  */}
-              <Dialog className="text-white">
+              <Dialog>
                 <DialogTrigger>
                   <QrCode />
                 </DialogTrigger>
@@ -100,7 +65,7 @@ const DisplayQRCodes = () => {
                       />
                     </DialogTitle>
                     <DialogDescription>
-                      <p className="text-green-400 text-md font-bold text-center whitespace-normal overflow-ellipsis">
+                      <p className="text-green-400 text-md truncate">
                         {qrcode.qrcode_image_url}
                       </p>
                       <div className="flex justify-center gap-x-5 text-center my-5">
@@ -124,7 +89,7 @@ const DisplayQRCodes = () => {
 
               {/* edit qrcode  */}
 
-             <EditCompoenet qrcode={qrcode} infoFucntion={getUserInfo}/>
+             <EditCompoenet qrcode={qrcode} infoFucntion={props.getUserInfo}/>
 
               {/* copy link  */}
               <button link={qrcode.link} variant="outline" onClick={copylink}>
@@ -133,7 +98,7 @@ const DisplayQRCodes = () => {
             </div>
           </div>
         );
-      }):<Loader/>}
+      })}
     </div>
   );
 };

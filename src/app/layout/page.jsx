@@ -1,14 +1,55 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DisplayQRCodes from "./DisplayQRCodes";
 import { useToast } from "@/components/ui/use-toast";
 
 import { Input } from "@/components/ui/input";
+import { Loader } from "./Loader";
 const QRCodeForm = () => {
   const { toast } = useToast();
 
   const custID = sessionStorage.getItem("custId");
   const userID = sessionStorage.getItem("userId");
+
+  // get api 
+  const [qrcodes, setQRCodes] = useState();
+
+  const userId = sessionStorage.getItem("userId");
+  const getUserInfo = async () => {
+    console.log("fetching");
+
+    const apiUrl = `https://uxlivinglab100106.pythonanywhere.com/api/qrcode/v1/qr-code/?user_id=${userId}`;
+
+    try {
+      const response = await fetch(apiUrl);
+
+      if (!response.ok) {
+        // alert("timed out");
+        toast({
+          title: "error timed out",
+          description: "Friday, February 10, 2023 at 5:57 PM",
+        });
+      }
+      const responseData = await response.json();
+      console.log("status", responseData.ok);
+      await setQRCodes(responseData.response.data);
+      console.log("API response GET:", responseData);
+      if (responseData.response.length == 0) {
+        alert("Qr code does not exist with this id");
+         toast({
+          title: "QR Codes does not exist for this user, Create new one!",
+          description: "Friday, February 10, 2023 at 5:57 PM",
+        });
+      } 
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+  useEffect(() => {
+    getUserInfo();
+  }, [userId]);
+
+  // post api 
   let [displayData, setDisplayData] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,9 +58,6 @@ const QRCodeForm = () => {
     user_id: userID,
     link: "",
   });
-  console.log(formData.link);
-  console.log("customer", sessionStorage.getItem("custId"));
-  console.log("User", sessionStorage.getItem("userId"));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,14 +74,12 @@ const QRCodeForm = () => {
 
 
       const apiUrl =
-        "https://www.qrcodereviews.uxlivinglab.online/api/v4/qr-code/";
+      `https://www.qrcodereviews.uxlivinglab.online/api/v4/qr-code/`
       const requestData = {
         company_id: formData.company_id,
         user_id: formData.user_id,
         link: formData.link,
       };
-      console.log("data", requestData);
-
       try {
         const response = await fetch(apiUrl, {
           method: "POST",
@@ -63,12 +99,14 @@ const QRCodeForm = () => {
             className: "text-white btnStyle border-none]",
           });
           formData.link=""
+          getUserInfo()
         }
         if (responseData.link) {
           toast({
             title: `Invalid URL`,
             className: "text-white btnStyle border-none]",
           });
+          setSubmitting(False)
         } else {
           await setDisplayData(responseData.qrcode);
           console.log("Put API response", await displayData);
@@ -78,9 +116,16 @@ const QRCodeForm = () => {
       }
 
     } else {
-      alert("Link cannot be empty");
+      console.log("Link cannot be empty");
+      toast({
+        title: "Links cannot be empty",
+        className: "text-white btnStyle border-none]",
+      });
+      setSubmitting(false)
     }
   };
+
+  
   return (
       <div className="m-5 pb-4 grid place-items-center min-h-screen grid grid-cols-1 sm:grid-cols-1 md:grid-cols-[10px,auto,10px] ">
         <div className="px-2"></div>
@@ -112,8 +157,8 @@ const QRCodeForm = () => {
                  </button>{" "}
               </div>
             </div>
-          
-            <DisplayQRCodes/>
+          {qrcodes?<DisplayQRCodes qrcodes={qrcodes} getUserInfo={getUserInfo}/> :<Loader/>}
+            
 
           </div>
         </div>

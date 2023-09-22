@@ -26,7 +26,7 @@ const EditCompoenet = (props) => {
     link: props.qrcode.link_,
     word_1: props.qrcode.word,
     word_2: props.qrcode.word2,
-    word_3: props.qrcode.wor3,
+    word_3: props.qrcode.word3,
   });
 
   const handleChange = (e) => {
@@ -70,6 +70,14 @@ const EditCompoenet = (props) => {
         });
         props.infoFucntion();
       }   
+      if(responseData.error === "Oops! Seems like the words have already been used."){
+        setEditing(false);
+        toast({
+          title: `Oops! Seems like the words have already been used.`,
+          className: "text-white btnStyle border-none]",
+        });
+        props.infoFucntion();
+      }
     } catch (error) {
       console.error(error.message);
     }

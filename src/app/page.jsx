@@ -3,9 +3,11 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import {Loader} from './layout/Loader'
- 
+import { useToast } from "@/components/ui/use-toast";
+
 
 const HomePage = () => {
+  const { toast } = useToast();
   const router = useRouter()
   const searchParams = useSearchParams();
   let dataObject = {
@@ -37,6 +39,10 @@ const HomePage = () => {
           });
 
           if (!response.ok) {
+            toast({
+              title: `Network Failed Try again!`,
+              className: "text-white btnStyle border-none]",
+            });
             throw new Error("Network response was not ok");
           }
 
@@ -50,7 +56,7 @@ const HomePage = () => {
           else{
           dataObject.customerID= data.userinfo.client_admin_id;
           dataObject.userID= data.userinfo.userID
-          console.log(dataObject)
+          console.log("dataObject",dataObject)
           sessionStorage.setItem("User data",data)
           sessionStorage.setItem("custId", dataObject.customerID);
           sessionStorage.setItem("userId", dataObject.userID);
