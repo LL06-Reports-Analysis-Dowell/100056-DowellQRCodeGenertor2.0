@@ -11,8 +11,6 @@ const QRCodeForm = ({userInfo}) => {
   // get api 
   const [qrcodes, setQRCodes] = useState();
   const [loading, setLoading] = useState(false)
-  const searchParams = useSearchParams();
-  const [showNavbar, setShowNavbar] = useState(false);
    
 
   const fetchQrCodes = async () => {
@@ -107,29 +105,16 @@ const QRCodeForm = ({userInfo}) => {
     }
   };
 
-
+  
   
   return (
 
         <>
-        {/* {showNavbar && (
-          <nav className="navBar p-4">
-            <div className="container mx-auto flex justify-between items-center">
-              <div className="text-white text-xl font-semibold">
-                Dowell URL Shortener
-              </div>
-
-              <div className="text-white">
-                Welcome, <span className="font-semibold">{userInfo?.first_name}</span>
-              </div>
-            </div>
-          </nav>
-        )} */}
-       
+          
           <div>
             <div className="mainCard pb-8 h-screen w-screen rounded-lg overflow-auto">
               <h1 className="text-2xl mt-5 text-center p-5 text-white font-bold">
-                Welcome to Dowell URL Shortener, <span className="name">{userInfo?.first_name}</span>
+                Welcome to Dowell URL Shortener <span className="name">{userInfo?.first_name}</span>
               </h1>
               <p className="subText text-center">
                 Create short and memorable links in seconds

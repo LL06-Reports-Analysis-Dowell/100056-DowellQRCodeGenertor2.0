@@ -23,10 +23,11 @@ const EditComponent = (props) => {
   const [editing, setEditing] = useState(false);
 
   let [formData, setFormData] = useState({
-    link: props.qrcode.link_,
-    word_1: props.qrcode.word,
-    word_2: props.qrcode.word2,
-    word_3: props.qrcode.word3,
+    link: props.qrcode?.link_,
+    name:  props.qrcode?.name,
+    word_1: props.qrcode?.word,
+    word_2: props.qrcode?.word2,
+    word_3: props.qrcode?.word3,
   });
 
   const handleChange = (e) => {
@@ -137,10 +138,11 @@ const EditComponent = (props) => {
                           <input
                             type="text"
                             placeholder="Readonly Input"
-                            className="text-black h-10 px-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-500"
+                            className="w-full bg-transparent text-white h-10 px-0 border border-transparent rounded-md focus:outline-none focus:none focus:none"
                             readonly
-                            value={props.qrcode.link}
+                            value="https://www.qrcodereviews.uxlivinglab.online/"
                           />
+                          {/* {props.qrcode.link} */}
 
                           <input
                             name="word_1"

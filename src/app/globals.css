@@ -53,3 +53,7 @@
     color: #2eda68;
 }
 
+.masterLink {
+    display: grid;
+    width: 100%;
+}

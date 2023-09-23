@@ -62,7 +62,7 @@ const DisplayQRCodes = (props) => {
                     </DialogTitle>
                     <DialogDescription>
                         <img
-                          src={qrcode.qrcode_image_url}
+                          src={qrcode?.qrcode_image_url}
                           width="auto"
                           height="auto"
                           alt="qr image to scan"
