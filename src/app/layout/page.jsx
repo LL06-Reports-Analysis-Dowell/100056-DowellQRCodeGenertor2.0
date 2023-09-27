@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
@@ -6,6 +7,7 @@ import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input";
 import { Loader } from "./Loader";
+import Logo from "../../../public/message.svg"
 
 const QRCodeForm = ({userInfo}) => {
   // get api 
@@ -58,7 +60,7 @@ const QRCodeForm = ({userInfo}) => {
     
     if (formData.link != "") {
       const apiUrl =
-      `https://uxlivinglab100106.pythonanywhere.com/api/qrcode/v1/qr-code/`
+      `https://uxlive.me/api/qrcode/v1/qr-code/`
       const requestData = {
         company_id: formData.company_id,
         user_id: formData.user_id,
@@ -113,6 +115,7 @@ const QRCodeForm = ({userInfo}) => {
           
           <div>
             <div className="mainCard pb-8 h-screen w-screen rounded-lg overflow-auto">
+              <img src={Logo} alt="logo" />
               <h1 className="text-2xl mt-5 text-center p-5 text-white font-bold">
                 Welcome to Dowell URL Shortener <span className="name">{userInfo?.first_name}</span>
               </h1>
@@ -124,20 +127,22 @@ const QRCodeForm = ({userInfo}) => {
                   <div className="flex flex-col md:flex-row w-full md:w-1/2 space-y-2 md:space-y-0 md:space-x-2">
                     <Input
                       type="text"
-                      name="link"
-                      value={formData.link || ""}
-                      onChange={handleChange}
-                      placeholder="Enter the link here"
-                      className="w-full md:w-3/4 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500 justify-center items-center space-y-2"
-                    />
-                    <Input
-                      type="text"
                       name="name"
                       value={formData.name || ""}
                       onChange={handleChange}
                       placeholder="Name"
-                      className="w-full md:w-1/4 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
+                      className="w-full md:w-1/3 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
                     />
+                    
+                    <Input
+                      type="text"
+                      name="link"
+                      value={formData.link || ""}
+                      onChange={handleChange}
+                      placeholder="Enter the link here"
+                      className="w-full md:w-2/3 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500 justify-center items-center space-y-2"
+                    />
+                    
                   </div>
                   
                   <button

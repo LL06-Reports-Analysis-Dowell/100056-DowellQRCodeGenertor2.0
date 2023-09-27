@@ -41,7 +41,7 @@ const EditComponent = (props) => {
   const handleSubmit = async (e) => {
     const id = e.currentTarget.getAttribute("qrcode_ID");
 
-    const apiUrl = `https://uxlivinglab100106.pythonanywhere.com/api/qrcode/v1/update-qr-code/${id}`;
+    const apiUrl = `https://uxlive.me/api/qrcode/v1/update-qr-code/${id}`;
     const requestData = {
       link: formData.link,
       name: formData?.name,
