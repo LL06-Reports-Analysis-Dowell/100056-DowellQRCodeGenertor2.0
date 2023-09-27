@@ -2,12 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-.navBar {
+body {
+    background-color: #1c201d;
+}
+
+.disabledColor {
+    color: #929090;
+}
+/* .navBar {
     background-color: #1c201d;
 }
 .mainCard{
     background-color: #1c201d;
-}
+} */
+
+/* .title {
+    background-color: #1c201d;
+} */
 .subText{
     color: #a4a6a5;
 }

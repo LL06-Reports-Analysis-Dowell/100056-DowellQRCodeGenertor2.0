@@ -7,7 +7,8 @@ import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input";
 import { Loader } from "./Loader";
-import Logo from "../../../public/message.svg"
+import NotFound from "../../components/notFound"
+import Link from "next/link";
 
 const QRCodeForm = ({userInfo}) => {
   // get api 
@@ -114,14 +115,28 @@ const QRCodeForm = ({userInfo}) => {
         <>
           
           <div>
-            <div className="mainCard pb-8 h-screen w-screen rounded-lg overflow-auto">
-              <img src={Logo} alt="logo" />
-              <h1 className="text-2xl mt-5 text-center p-5 text-white font-bold">
+            <div class="navBar fixed top-0 left-0 right-0 p-4 flex justify-between items-center">
+              <div class="flex items-center">
+                {/* <span class="text-white font-semibold">Your Name</span> */}
+              </div>
+              <Link 
+                href="https://100014.pythonanywhere.com/en-gb/sign-out"
+                class="bg-red-900 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">
+                Logout
+              </Link>
+            </div>
+
+            <div className="flex flex-col justify-center items-center  rounded-lg overflow-auto">
+              <img src="message.svg" alt="Your Name" class="text-center mt-10" />
+              <h1 className="text-2xl text-center text-white font-bold">
                 Welcome to Dowell URL Shortener <span className="name">{userInfo?.first_name}</span>
               </h1>
               <p className="subText text-center">
                 Create short and memorable links in seconds
               </p>
+            </div>
+
+            <div className="pb-8 w-screen rounded-lg overflow-auto">
               <div className="container mx-auto p-4 my-5">
                 <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-2">
                   <div className="flex flex-col md:flex-row w-full md:w-1/2 space-y-2 md:space-y-0 md:space-x-2">
@@ -155,11 +170,12 @@ const QRCodeForm = ({userInfo}) => {
                   </button>{" "}
                 </div>
               </div>
-              
-              <div>
-                {loading ? <Loader /> : qrcodes?.length > 0 ? <DisplayQRCodes qrcodes={qrcodes} getUserInfo={fetchQrCodes}/> : "No Links Found"}
-              </div>
             </div>
+
+            <div className="pb-8 w-screen rounded-lg overflow-auto">
+              {loading ? <Loader /> : qrcodes?.length > 0 ? <DisplayQRCodes qrcodes={qrcodes} getUserInfo={fetchQrCodes}/> : <NotFound />}
+            </div>
+            
           </div>
         </>
   );
