@@ -17,7 +17,7 @@ const QRCodeForm = ({userInfo}) => {
    
 
   const fetchQrCodes = async () => {
-    const apiUrl = `https://uxlivinglab100106.pythonanywhere.com/api/qrcode/v1/qr-code/?user_id=${userInfo?.userID}`;
+    const apiUrl = `https://www.uxlive.me/api/qrcode/v1/qr-code/?user_id=${userInfo?.userID}`;
 
     try {
       setLoading(true)
@@ -61,7 +61,7 @@ const QRCodeForm = ({userInfo}) => {
     
     if (formData.link != "") {
       const apiUrl =
-      `https://uxlive.me/api/qrcode/v1/qr-code/`
+      `https://www.uxlive.me/api/qrcode/v1/qr-code/`
       const requestData = {
         company_id: formData.company_id,
         user_id: formData.user_id,
@@ -136,7 +136,7 @@ const QRCodeForm = ({userInfo}) => {
               </p>
             </div>
 
-            <div className="pb-8 w-screen rounded-lg overflow-auto">
+            <div className="w-screen rounded-lg overflow-auto">
               <div className="container mx-auto p-4 my-5">
                 <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-2">
                   <div className="flex flex-col md:flex-row w-full md:w-1/2 space-y-2 md:space-y-0 md:space-x-2">
