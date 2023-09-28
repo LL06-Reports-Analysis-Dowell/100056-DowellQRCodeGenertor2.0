@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useState, useEffect } from "react";
@@ -10,14 +11,14 @@ import { Loader } from "./Loader";
 import NotFound from "../../components/notFound"
 import Link from "next/link";
 
-const QRCodeForm = ({userInfo}) => {
+const QRCodeForm = (props) => {
   // get api 
   const [qrcodes, setQRCodes] = useState();
   const [loading, setLoading] = useState(false)
    
 
   const fetchQrCodes = async () => {
-    const apiUrl = `https://www.uxlive.me/api/qrcode/v1/qr-code/?user_id=${userInfo?.userID}`;
+    const apiUrl = `https://www.uxlive.me/api/qrcode/v1/qr-code/?user_id=${props.userInfo?.userID}`;
 
     try {
       setLoading(true)
@@ -43,8 +44,8 @@ const QRCodeForm = ({userInfo}) => {
   const [submitting, setSubmitting] = useState(false);
 
   let [formData, setFormData] = useState({
-    company_id: userInfo?.client_admin_id,
-    user_id: userInfo?.userID,
+    company_id: props.userInfo?.client_admin_id,
+    user_id: props.userInfo?.userID,
     link: "",
     name: "",
   });
@@ -129,7 +130,7 @@ const QRCodeForm = ({userInfo}) => {
             <div className="flex flex-col justify-center items-center  rounded-lg overflow-auto">
               <img src="message.svg" alt="Your Name" class="text-center mt-10" />
               <h1 className="text-2xl text-center text-white font-bold">
-                Welcome to Dowell URL Shortener <span className="name">{userInfo?.first_name}</span>
+                Welcome to Dowell URL Shortener <span className="name">{props.userInfo?.first_name}</span>
               </h1>
               <p className="subText text-center">
                 Create short and memorable links in seconds
