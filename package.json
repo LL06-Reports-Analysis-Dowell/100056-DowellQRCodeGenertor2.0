@@ -4,9 +4,6 @@
   "private": true,
   "proxy": "https://www.qrcodereviews.uxlivinglab.online/api/v4/qr-code/",
   "scripts": {
-    "homepage": "https://LL06-Reports-Analysis-Dowell.github.io/100056-DowellQRCodeGenertor2.0/",
-    "predeploy": "yarn build",
-    "deploy": "gh-pages -d build",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
