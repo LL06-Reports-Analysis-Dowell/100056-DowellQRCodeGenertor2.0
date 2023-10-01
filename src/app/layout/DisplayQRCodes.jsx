@@ -5,6 +5,7 @@ import { QrCode, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import EditComponent from './EditComponent'
+import SendEmailComponent from './SendEmail'
 import { toast } from "react-toastify";
 
 
@@ -59,7 +60,7 @@ const DisplayQRCodes = (props) => {
                 <DialogTrigger>
                   <QrCode className="icon"/>
                 </DialogTrigger>
-                <DialogContent className="text-white modalBg ">
+                <DialogContent className="edit modalBg">
                   <DialogHeader>
                     <DialogTitle>
                       Scan Qrcode
@@ -94,7 +95,9 @@ const DisplayQRCodes = (props) => {
                 </DialogContent>
               </Dialog>
 
-
+              <div className="icon ml-3">
+                <SendEmailComponent qrcode={qrcode} infoFucntion={props.getUserInfo} userInfo={props.userInfo}/>
+              </div>
               <div className="icon ml-3">
                 <EditComponent qrcode={qrcode} infoFucntion={props.getUserInfo}/>
               </div>

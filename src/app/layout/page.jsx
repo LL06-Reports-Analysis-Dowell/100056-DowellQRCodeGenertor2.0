@@ -157,7 +157,7 @@ const QRCodeForm = (props) => {
                           placeholder="Search by Name"
                           value={searchQuery}
                           onChange={handleSearch}
-                          className={`w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-green-500`}
+                          className={`w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500`}
                         />
                         {searchQuery && (
                           <button
@@ -192,7 +192,7 @@ const QRCodeForm = (props) => {
                       value={formData.name || ""}
                       onChange={handleChange}
                       placeholder="Name"
-                      className="w-full md:w-1/3 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
+                      className="w-full md:w-1/3 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                     />
                     
                     <Input
@@ -201,7 +201,7 @@ const QRCodeForm = (props) => {
                       value={formData.link || ""}
                       onChange={handleChange}
                       placeholder="Enter the link here"
-                      className="w-full md:w-2/3 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500 justify-center items-center space-y-2"
+                      className="w-full md:w-2/3 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500 justify-center items-center space-y-2"
                     />
                     
                   </div>
@@ -210,7 +210,7 @@ const QRCodeForm = (props) => {
                     disabled={submitting || formData.link === "" || formData.name === ""}
                     type="button"
                     onClick={handleSubmit}
-                    className="w-full md:w-auto px-4 py-2 btnStyle text-white rounded-xl focus:outline-none focus:ring flex items-center justify-center"
+                    className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded"
                   >
                     {submitting ? <Loader2 className="text-4xl animate-spin" /> : 'Submit'}
                   </button>{" "}
@@ -219,7 +219,7 @@ const QRCodeForm = (props) => {
             </div>
 
             <div className="pb-8 w-screen rounded-lg overflow-auto">
-              {loading ? <Loader /> : qrcodes?.length > 0 ? <DisplayQRCodes qrcodes={qrcodes} getUserInfo={fetchQrCodes} searchQuery={searchQuery} /> : <NotFound />}
+              {loading ? <Loader /> : qrcodes?.length > 0 ? <DisplayQRCodes qrcodes={qrcodes} getUserInfo={fetchQrCodes} searchQuery={searchQuery} userInfo={props?.userInfo} /> : <NotFound />}
             </div>
             
           </div>

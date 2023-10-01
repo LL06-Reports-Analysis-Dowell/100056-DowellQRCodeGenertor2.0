@@ -59,16 +59,25 @@ body {
 
 
 .modalBg{
-    background-color: #2e312f;
+    background-color: #ffffff;
 }
 .greyBtn{
     background-color: #585a59;
 }
+.greyBtn:hover {
+    color: #585a59;
+}
+
+
 .greenBtn{
     background-color: #169441;
 }
+.greenBtn:hover {
+    color: #0e622a;
+}
+
 .edit{
-    color: #abadac;
+    color: #1c201d;
 }
 
 .icon:hover {

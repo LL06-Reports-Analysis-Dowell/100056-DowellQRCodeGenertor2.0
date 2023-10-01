@@ -71,7 +71,6 @@ const EditComponent = (props) => {
       if(responseData.error){
         setEditing(false);
         toast.error(responseData?.error);
-        props.infoFucntion();
       }
     } catch (error) {
       setEditing(false);
@@ -82,116 +81,116 @@ const EditComponent = (props) => {
   return (
     <div>
        <Dialog>
-                <DialogTrigger>
-                  <Pencil />
-                </DialogTrigger>
-                <DialogContent className="text-white modalBg">
-                  <DialogHeader>
-                    <DialogTitle className="edit text-md font-bold">
-                      Edit URL
-                    </DialogTitle>
-                    <DialogDescription>
-                      <div className="container mx-auto p-4">
-                        <label
-                          for="link"
-                          class="block text-white text-sm font-bold mb-2"
-                        >
-                          Link
-                        </label>
-                        <input
-                          name="link"
-                          type="text"
-                          id="link"
-                          value={formData.link || ""}
-                          onChange={handleChange}
-                          placeholder="Enter the link here"
-                          className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
-                        />
-                      </div>
+        <DialogTrigger>
+          <Pencil />
+        </DialogTrigger>
+        <DialogContent className="text-white modalBg">
+          <DialogHeader>
+            <DialogTitle className="edit text-md font-bold">
+              Edit URL
+            </DialogTitle>
+            <DialogDescription>
+              <div className="mb-2">
+                <label
+                  for="link"
+                  class="block edit text-sm mb-1"
+                >
+                  Link
+                </label>
+                <input
+                  name="link"
+                  type="text"
+                  id="link"
+                  value={formData.link || ""}
+                  onChange={handleChange}
+                  placeholder="Enter the link here"
+                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
+                />
+              </div>
 
-                      <div className="container mx-auto p-4">
-                        <label
-                          for="name"
-                          class="block text-white text-sm font-bold mb-2"
-                        >
-                          Name
-                        </label>
-                        <input
-                          name="name"
-                          type="text"
-                          id="name"
-                          value={formData.name || ""}
-                          onChange={handleChange}
-                          placeholder="Enter the name here"
-                          className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
-                        />
-                      </div>
+              <div className="mb-2">
+                <label
+                  for="name"
+                  class="block edit text-sm mb-1"
+                >
+                  Name
+                </label>
+                <input
+                  name="name"
+                  type="text"
+                  id="name"
+                  value={formData.name || ""}
+                  onChange={handleChange}
+                  placeholder="Enter the name here"
+                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
+                />
+              </div>
 
-                      <div className="container mx-auto p-4">
-                        <label
-                          for="link"
-                          class="block text-white text-sm font-bold mb-2"
-                        >
-                          Master Link
-                        </label>
-                        <div className="grid grid-cols-4 gap-x-2">
-                          <input
-                            type="text"
-                            placeholder="Readonly Input"
-                            className="w-full bg-transparent text-white h-10 px-0 border border-transparent rounded-md focus:outline-none focus:none focus:none"
-                            readonly
-                            value="https://www.qrcodereviews.uxlivinglab.online/"
-                          />
-                          {/* {props.qrcode.link} */}
+              <div className="mb-2">
+                <label
+                  for="link"
+                  class="block edit text-sm mb-1"
+                >
+                  Master Link
+                </label>
+                <div className="grid grid-cols-4 gap-x-2">
+                  <input
+                    type="text"
+                    placeholder="Readonly Input"
+                    className="w-full bg-transparent edit h-10 px-0 border border-transparent rounded-md focus:outline-none focus:none focus:none"
+                    readonly
+                    value="https://www.qrcodereviews.uxlivinglab.online/"
+                  />
+                  {/* {props.qrcode.link} */}
 
-                          <input
-                            name="word_1"
-                            value={formData.word_1 || ""}
-                            onChange={handleChange}
-                            type="text"
-                            placeholder="word1"
-                            className=" text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
-                          />
+                  <input
+                    name="word_1"
+                    value={formData.word_1 || ""}
+                    onChange={handleChange}
+                    type="text"
+                    placeholder="word1"
+                    className=" text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
+                  />
 
-                          <input
-                            name="word_2"
-                            value={formData.word_2 || ""}
-                            onChange={handleChange}
-                            type="text"
-                            placeholder="word2"
-                            className="text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
-                          />
+                  <input
+                    name="word_2"
+                    value={formData.word_2 || ""}
+                    onChange={handleChange}
+                    type="text"
+                    placeholder="word2"
+                    className="text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
+                  />
 
-                          <input
-                            name="word_3"
-                            value={formData.word_3 || ""}
-                            onChange={handleChange}
-                            type="text"
-                            placeholder="word3"
-                            className="text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-blue-500"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-center gap-x-5 text-center my-5">
-                        <DialogPrimitive.Close>
-                          <Button className="greyBtn text-white font-bold rounded-md p-5">
-                            Cancel
-                          </Button>
-                        </DialogPrimitive.Close>
-                        <Button
-                          qrcode_ID={props.qrcode.qrcode_id}
-                          className="greenBtn text-white font-bold rounded-md p-5"
-                          type="button"
-                          onClick={handleSubmit}
-                          disabled={editing}
-                        >
-                          {editing ? <Loader2 className="mr-2 h-4 w-4 text-4xl animate-spin" /> : 'Update URL'}
-                        </Button>
-                      </div>
-                    </DialogDescription>
-                  </DialogHeader>
-                </DialogContent>
-              </Dialog>
+                  <input
+                    name="word_3"
+                    value={formData.word_3 || ""}
+                    onChange={handleChange}
+                    type="text"
+                    placeholder="word3"
+                    className="text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-center gap-x-5 text-center my-5">
+                <DialogPrimitive.Close>
+                  <Button className="w-full md:w-auto px-4 py-2 text-black focus:outline-none  flex items-center justify-center">
+                    Cancel
+                  </Button>
+                </DialogPrimitive.Close>
+                <button
+                  qrcode_ID={props.qrcode.qrcode_id}
+                  className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded"
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={editing}
+                >
+                  {editing ? <Loader2 className="mr-2 h-4 w-4 text-4xl animate-spin" /> : 'Update URL'}
+                </button>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
