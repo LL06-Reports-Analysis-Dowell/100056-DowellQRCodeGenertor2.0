@@ -26,9 +26,13 @@ const DisplayQRCodes = (props) => {
     toast.info("Link Copied")
   };
 
+  const filteredQRCodes = props.qrcodes.filter((q) =>
+    q?.name?.toLowerCase().includes(props.searchQuery.toLowerCase())
+  );
+
   return (
     <div className="md:mr-10 md:ml-10">
-      {props.qrcodes.map((qrcode, key) => {
+      {filteredQRCodes.map((qrcode, key) => {
         return (
           <div
             key={key}
@@ -36,7 +40,7 @@ const DisplayQRCodes = (props) => {
           >
             <div className="mr-3 mb-3 md:mb-0 md:mr-0">
               <p className="urlText text-xs">Name</p>
-              <p className="shortenUrl">{qrcode?.name}</p>
+              <p>{qrcode?.name}</p>
             </div>
 
             <div className="mr-3 mb-3 md:mb-0 md:mr-0">
@@ -45,7 +49,7 @@ const DisplayQRCodes = (props) => {
             </div>
             
             <div className="mr-3 mb-3 mr:mr-0">
-              <p className="urlText text-xs">Shorten URL</p>
+              <p className="urlText text-xs">Shortened URL</p>
               <a href={qrcode?.link} className="shortenUrl">{qrcode?.link}</a>
             </div>
             

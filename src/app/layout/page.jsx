@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import DisplayQRCodes from "./DisplayQRCodes";
 import { toast } from "react-toastify";
-import { Loader2 } from "lucide-react"
+import { Loader2, Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input";
 import { Loader } from "./Loader";
 import NotFound from "../../components/notFound"
@@ -34,10 +34,25 @@ const QRCodeForm = (props) => {
     }
   };
 
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const [isSearchFieldVisible, setIsSearchFieldVisible] = useState(false);
+  const toggleSearchField = (isVisible) => {
+    setIsSearchFieldVisible(isVisible);
+  };
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
+
 
   useEffect(() => {
     fetchQrCodes();
-  }, []);
+  }, [searchQuery]);
 
   // post api 
   let [displayData, setDisplayData] = useState({});
@@ -116,20 +131,50 @@ const QRCodeForm = (props) => {
         <>
           
           <div>
-            <div class="navBar fixed top-0 left-0 right-0 p-4 flex justify-between items-center">
-              <div class="flex items-center">
-                {/* <span class="text-white font-semibold">Your Name</span> */}
-              </div>
+            <div class="navBar fixed top-0 left-0 right-0 p-4 mb-6 bg-white flex justify-end items-center">
+              {/* Search Icon */}
+              <Search
+                className="mr-3 flex items-center"
+                onClick={() => toggleSearchField(!isSearchFieldVisible)}
+                style={{ cursor: 'pointer' }}
+              />
+  
               <Link 
                 href="https://100014.pythonanywhere.com/en-gb/sign-out"
                 class="bg-red-900 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">
                 Logout
               </Link>
             </div>
+            
+            {
+                  isSearchFieldVisible && (
+                    <div className={`container w-full md:w-1/4 mx-auto p-4 fixed right-0 ${
+                      isSearchFieldVisible ? 'input-fade-in' : 'opacity-0'
+                    }`}>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Search by Name"
+                          value={searchQuery}
+                          onChange={handleSearch}
+                          className={`w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring focus:border-green-500`}
+                        />
+                        {searchQuery && (
+                          <button
+                            className="absolute right-3 top-2 text-gray-500 cursor-pointer"
+                            onClick={clearSearch}
+                          >
+                            <X />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                )
+              }
 
-            <div className="flex flex-col justify-center items-center  rounded-lg overflow-auto">
-              <img src="message.svg" alt="Your Name" class="text-center mt-10" />
-              <h1 className="text-2xl text-center text-white font-bold">
+            <div className="flex flex-col justify-center items-center mt-14 rounded-lg overflow-auto">
+              <img src="message.svg" alt="Your Name" class="text-center" />
+              <h1 className="header text-2xl text-center text-white font-bold">
                 Welcome to Dowell URL Shortener <span className="name">{props.userInfo?.first_name}</span>
               </h1>
               <p className="subText text-center">
@@ -174,7 +219,7 @@ const QRCodeForm = (props) => {
             </div>
 
             <div className="pb-8 w-screen rounded-lg overflow-auto">
-              {loading ? <Loader /> : qrcodes?.length > 0 ? <DisplayQRCodes qrcodes={qrcodes} getUserInfo={fetchQrCodes}/> : <NotFound />}
+              {loading ? <Loader /> : qrcodes?.length > 0 ? <DisplayQRCodes qrcodes={qrcodes} getUserInfo={fetchQrCodes} searchQuery={searchQuery} /> : <NotFound />}
             </div>
             
           </div>

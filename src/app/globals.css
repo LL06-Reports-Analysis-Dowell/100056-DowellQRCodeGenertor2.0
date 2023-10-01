@@ -3,8 +3,17 @@
 @tailwind utilities;
 
 body {
-    background-color: #1c201d;
+    background-color: #ffffff;
 }
+
+.header {
+    color: #1c201d;
+}
+
+.input-fade-in {
+    opacity: 1;
+    transition: opacity 500ms ease-in-out; /* Adjust the duration and timing function as needed */
+  }
 
 .disabledColor {
     color: #929090;
@@ -43,7 +52,9 @@ body {
     color: #2eda68;
 }
 .cardbg{
-    background-color: #2e312f;
+    background-color: #ffffff;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+    color: #1c201d;
 }
 
 
