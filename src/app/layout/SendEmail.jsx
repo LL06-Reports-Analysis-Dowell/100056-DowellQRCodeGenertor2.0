@@ -112,7 +112,7 @@ const SendEmailComponent = (props) => {
         <DialogContent className="text-white modalBg">
           <DialogHeader>
             <DialogTitle className="edit text-md mb-3 font-bold">
-              Send To
+              Share Link
             </DialogTitle>
 
             <DialogDescription>
@@ -147,9 +147,10 @@ const SendEmailComponent = (props) => {
                   type="text"
                   id="fromName"
                   value={formData.fromName || ""}
-                  onChange={handleChange}
+                  // onChange={handleChange}
+                  readonly
                   placeholder="Enter Your Name"
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none"
+                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none cursor-not-allowed pointer-events-none"
                 />
               </div>
 
@@ -161,7 +162,7 @@ const SendEmailComponent = (props) => {
                   placeholder="Enter Your Email"
                   readonly
                   value={formData.fromEmail || ""}
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
+                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none cursor-not-allowed pointer-events-none"
                 />
               </div>
 

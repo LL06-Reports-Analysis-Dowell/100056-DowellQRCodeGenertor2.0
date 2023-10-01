@@ -7,7 +7,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import EditComponent from './EditComponent'
 import SendEmailComponent from './SendEmail'
 import { toast } from "react-toastify";
-
+import NotFound from "../../components/notFound"
 
 import {
   Dialog,
@@ -32,8 +32,11 @@ const DisplayQRCodes = (props) => {
   );
 
   return (
+
     <div className="md:mr-10 md:ml-10">
-      {filteredQRCodes.map((qrcode, key) => {
+      {
+        filteredQRCodes.length > 0 ?
+        filteredQRCodes.map((qrcode, key) => {
         return (
           <div
             key={key}
@@ -107,7 +110,7 @@ const DisplayQRCodes = (props) => {
             </div>
           </div>
         );
-      })}
+      }) : <NotFound message={`No Links found with name "${props?.searchQuery}"`} />}
     </div>
   );
 };

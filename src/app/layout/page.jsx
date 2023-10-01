@@ -52,7 +52,7 @@ const QRCodeForm = (props) => {
 
   useEffect(() => {
     fetchQrCodes();
-  }, [searchQuery]);
+  }, []);
 
   // post api 
   let [displayData, setDisplayData] = useState({});
@@ -219,7 +219,17 @@ const QRCodeForm = (props) => {
             </div>
 
             <div className="pb-8 w-screen rounded-lg overflow-auto">
-              {loading ? <Loader /> : qrcodes?.length > 0 ? <DisplayQRCodes qrcodes={qrcodes} getUserInfo={fetchQrCodes} searchQuery={searchQuery} userInfo={props?.userInfo} /> : <NotFound />}
+              {
+                loading ? <Loader /> : 
+                qrcodes?.length > 0 ? 
+                <DisplayQRCodes 
+                  qrcodes={qrcodes} 
+                  getUserInfo={fetchQrCodes} 
+                  searchQuery={searchQuery} 
+                  userInfo={props?.userInfo} 
+                /> : 
+                <NotFound message="No Links Found" />
+              }
             </div>
             
           </div>
