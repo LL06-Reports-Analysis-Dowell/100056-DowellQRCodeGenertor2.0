@@ -35,7 +35,6 @@ const HomePage = () => {
   };
 
 
-
   useEffect(() => {
     if (!session_id) {
 
@@ -47,7 +46,6 @@ const HomePage = () => {
     getUserInfo()
     // setLoggedIn(true);
   }, []);
-
 
   return (
     <>

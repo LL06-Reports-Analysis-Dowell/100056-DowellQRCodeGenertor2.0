@@ -8,6 +8,7 @@ import EditComponent from './EditComponent'
 import SendEmailComponent from './SendEmail'
 import { toast } from "react-toastify";
 import NotFound from "../../components/notFound"
+import { format, parseISO } from 'date-fns';
 
 import {
   Dialog,
@@ -45,6 +46,16 @@ const DisplayQRCodes = (props) => {
             <div className="mr-3 mb-3 md:mb-0 md:mr-0">
               <p className="urlText text-xs">Name</p>
               <p>{qrcode?.name}</p>
+
+              <p className="urlText text-xs">
+
+                {
+                  !qrcode?.updated_on ? `created on: ${qrcode?.created_on ? 
+                  format(parseISO(qrcode?.created_on), 'MMMM dd yyyy, h:mm a' ) : "-"}` : 
+                  `last updated: ${format(parseISO(qrcode?.updated_on), 'MMMM dd yyyy, h:mm a')}`
+                }
+              </p>
+
             </div>
 
             <div className="mr-3 mb-3 md:mb-0 md:mr-0">
