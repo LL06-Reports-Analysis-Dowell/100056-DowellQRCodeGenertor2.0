@@ -81,17 +81,17 @@ const DisplayQRCodes = (props) => {
                       </a> */}
                       <div className="flex justify-center gap-x-5 text-center my-5">
                         <DialogPrimitive.Close>
-                          <Button className="greyBtn text-white font-bold rounded-md p-5">
+                          <Button className="w-full md:w-auto px-4 py-2 text-black focus:outline-none flex items-center justify-center">
                             Cancel
                           </Button>
                         </DialogPrimitive.Close>
-                        <Button
+                        <button
                           link={qrcode.qrcode_image_url}
-                          className="greenBtn text-white font-bold rounded-md p-5"
+                          className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded"
                           onClick={copylink}
                         >
                           Copy Qrcode Image Link
-                        </Button>
+                        </button>
                       </div>
                     </DialogDescription>
                   </DialogHeader>

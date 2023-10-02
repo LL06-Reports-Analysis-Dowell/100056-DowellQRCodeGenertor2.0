@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from 'react';
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react"
-
+import { TextInput } from "@/components/ui/textInput"
 
 import {
     Dialog,
@@ -109,7 +109,7 @@ const SendEmailComponent = (props) => {
           <Send />
         </DialogTrigger>
 
-        <DialogContent className="text-white modalBg">
+        <DialogContent className="modalBg">
           <DialogHeader>
             <DialogTitle className="edit text-md mb-3 font-bold">
               Share Link
@@ -123,14 +123,12 @@ const SendEmailComponent = (props) => {
                 >
                   Api Key
                 </label>
-                <input
+                <TextInput
                   name="api_key"
                   type="text"
-                  id="api_key"
-                  value={formData.api_key || ""}
+                  value={formData.api_key}
                   onChange={handleChange}
                   placeholder="Enter Your Api Key"
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none"
                 />
               </div>
 
@@ -142,27 +140,22 @@ const SendEmailComponent = (props) => {
                 >
                   From
                 </label>
-                <input
+                <TextInput
                   name="fromName"
                   type="text"
-                  id="fromName"
-                  value={formData.fromName || ""}
-                  // onChange={handleChange}
+                  value={formData.fromName}
                   readonly
                   placeholder="Enter Your Name"
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none cursor-not-allowed pointer-events-none"
                 />
               </div>
 
               <div className="mb-2">
-                <input
+                <TextInput
                   name="fromEmail"
                   type="fromEmail"
-                  id="fromEmail"
                   placeholder="Enter Your Email"
                   readonly
-                  value={formData.fromEmail || ""}
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none cursor-not-allowed pointer-events-none"
+                  value={formData.fromEmail}
                 />
               </div>
 
@@ -173,39 +166,33 @@ const SendEmailComponent = (props) => {
                 >
                   To
                 </label>
-                <input
+                <TextInput
                   name="name"
                   placeholder='Enter Recepient Name'
                   type="text"
-                  id="name"
                   value={formData.name || ""}
                   onChange={handleChange}
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                 />
               </div>
 
               <div className="mb-2">
-                <input
+                <TextInput
                   name="email"
                   type="email"
-                  id="email"
                   placeholder='Enter Recepient Email'
-                  value={formData.email || ""}
+                  value={formData.email}
                   onChange={handleChange}
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                 />
               </div>
 
               <div className="mb-2">
                 <p className="text-xs text-gray-500 mt-1 ml-1">Email Subject</p>
-                <input
+                <TextInput
                   name="subject"
                   type="subject"
-                  id="subject"
                   placeholder='Email Subject'
-                  value={formData.subject || ""}
+                  value={formData.subject}
                   onChange={handleChange}
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                 />
               </div>
 

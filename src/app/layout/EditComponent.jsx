@@ -16,6 +16,7 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "@/components/ui/dialog";
+import { TextInput } from '@/components/ui/textInput';
   
 const EditComponent = (props) => {
     
@@ -84,9 +85,9 @@ const EditComponent = (props) => {
         <DialogTrigger>
           <Pencil />
         </DialogTrigger>
-        <DialogContent className="text-white modalBg">
+        <DialogContent className="modalBg">
           <DialogHeader>
-            <DialogTitle className="edit text-md font-bold">
+            <DialogTitle className="edit text-md mb-3 font-bold">
               Edit URL
             </DialogTitle>
             <DialogDescription>
@@ -97,14 +98,12 @@ const EditComponent = (props) => {
                 >
                   Link
                 </label>
-                <input
+                <TextInput
                   name="link"
                   type="text"
-                  id="link"
-                  value={formData.link || ""}
+                  value={formData.link}
                   onChange={handleChange}
                   placeholder="Enter the link here"
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                 />
               </div>
 
@@ -115,14 +114,12 @@ const EditComponent = (props) => {
                 >
                   Name
                 </label>
-                <input
+                <TextInput
                   name="name"
                   type="text"
-                  id="name"
-                  value={formData.name || ""}
+                  value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter the name here"
-                  className="text-black w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                 />
               </div>
 
@@ -143,31 +140,28 @@ const EditComponent = (props) => {
                   />
                   {/* {props.qrcode.link} */}
 
-                  <input
+                  <TextInput
                     name="word_1"
-                    value={formData.word_1 || ""}
+                    value={formData.word_1}
                     onChange={handleChange}
                     type="text"
                     placeholder="word1"
-                    className=" text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                   />
 
-                  <input
+                  <TextInput
                     name="word_2"
-                    value={formData.word_2 || ""}
+                    value={formData.word_2}
                     onChange={handleChange}
                     type="text"
                     placeholder="word2"
-                    className="text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                   />
 
-                  <input
+                  <TextInput
                     name="word_3"
-                    value={formData.word_3 || ""}
+                    value={formData.word_3}
                     onChange={handleChange}
                     type="text"
                     placeholder="word3"
-                    className="text-black h-10 px-2 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
                   />
                 </div>
               </div>
@@ -178,7 +172,6 @@ const EditComponent = (props) => {
                   </Button>
                 </DialogPrimitive.Close>
                 <button
-                  qrcode_ID={props.qrcode.qrcode_id}
                   className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded"
                   type="button"
                   onClick={handleSubmit}

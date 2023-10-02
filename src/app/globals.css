@@ -35,6 +35,10 @@ body {
     background-color: #169441;
 }
 
+.btnStyle:hover {
+    background-color: #0e622a;
+}
+
 .btnStyle:disabled {
     background-color: gray;
 }
