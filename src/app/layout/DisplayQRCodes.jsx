@@ -47,7 +47,7 @@ const DisplayQRCodes = (props) => {
               <p className="urlText text-xs">Name</p>
               <p>{qrcode?.name}</p>
 
-              <p className="urlText text-xs">
+              <p className="timeText text-xs">
 
                 {
                   !qrcode?.updated_on ? `created on: ${qrcode?.created_on ? 

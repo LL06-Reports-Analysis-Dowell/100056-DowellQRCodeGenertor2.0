@@ -210,7 +210,7 @@ const QRCodeForm = (props) => {
                     disabled={submitting || formData.link === "" || formData.name === ""}
                     type="button"
                     onClick={handleSubmit}
-                    className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded"
+                    className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded flex items-center justify-center"
                   >
                     {submitting ? <Loader2 className="text-4xl animate-spin" /> : 'Submit'}
                   </button>{" "}

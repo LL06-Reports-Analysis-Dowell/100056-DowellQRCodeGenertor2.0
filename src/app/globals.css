@@ -45,6 +45,11 @@ body {
 .urlText{
     color:#585b58
 }
+
+.timeText{
+    color:#b9b9b9
+}
+
 .shortenUrl{
     overflow-wrap: break-word;
 
@@ -92,3 +97,4 @@ body {
     display: grid;
     width: 100%;
 }
+
