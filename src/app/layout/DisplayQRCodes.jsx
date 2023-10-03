@@ -48,11 +48,11 @@ const DisplayQRCodes = (props) => {
               <p>{qrcode?.name}</p>
 
               <p className="timeText text-xs">
-
                 {
-                  !qrcode?.updated_on ? `created on: ${qrcode?.created_on ? 
-                  format(parseISO(qrcode?.created_on), 'MMMM dd yyyy, h:mm a' ) : "-"}` : 
-                  `last updated: ${format(parseISO(qrcode?.updated_on), 'MMMM dd yyyy, h:mm a')}`
+                  !qrcode?.updated_on ? 
+                  qrcode?.created_on ? `Created on 
+                  ${format(parseISO(qrcode?.created_on), 'MMMM dd yyyy, h:mm a' )}` : "" : 
+                  `Last updated on ${format(parseISO(qrcode?.updated_on), 'MMMM dd yyyy, h:mm a')}`
                 }
               </p>
 
