@@ -172,6 +172,7 @@ const EditComponent = (props) => {
                   </Button>
                 </DialogPrimitive.Close>
                 <button
+                  qrcode_ID={props.qrcode.qrcode_id}
                   className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded"
                   type="button"
                   onClick={handleSubmit}
