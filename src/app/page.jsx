@@ -39,7 +39,7 @@ const HomePage = () => {
     if (!session_id) {
 
       window.location.href =
-        "https://100014.pythonanywhere.com/en/?redirect_url=" +
+        "https://100014.pythonanywhere.com/?redirect_url=" +
         `${window.location.href}`;
       return;
     }

@@ -140,7 +140,7 @@ const QRCodeForm = (props) => {
               />
   
               <Link 
-                href="https://100014.pythonanywhere.com/en-gb/sign-out"
+                href="https://100014.pythonanywhere.com/sign-out"
                 class="bg-red-900 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">
                 Logout
               </Link>
