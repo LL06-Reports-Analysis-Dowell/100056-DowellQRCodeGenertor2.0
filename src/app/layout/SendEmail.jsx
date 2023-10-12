@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 import {Pencil, Send} from 'lucide-react'
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
@@ -21,15 +21,16 @@ const SendEmailComponent = (props) => {
     
   // put api function
   const [sending, setSending] = useState(false);
+  
 
   let [formData, setFormData] = useState({
-    fromName:  `${props.userInfo?.first_name} ${props.userInfo?.last_name}`,
-    fromEmail: props.userInfo?.email,
+    fromName: "Dowell UX Living Lab",
+    fromEmail: "dowell@dowellresearch.uk",
     email: "",
     name: "",
     subject: "Link Shortener",
     body: "This link will take you to a page where you access the information you need. You can also scan the Qrcode attached.",
-    api_key: "",
+    api_key: props?.apiKey,
     qrcode_image_url: props?.qrcode?.qrcode_image_url,
   });
 
@@ -52,6 +53,7 @@ const SendEmailComponent = (props) => {
       fromEmail: formData?.fromEmail,
       name: formData?.name,
       email: formData?.email,
+      api_key: formData?.api_key,
       subject: formData?.subject,
       body: formData?.body
     };
@@ -64,9 +66,9 @@ const SendEmailComponent = (props) => {
         <title>Email Template</title>
         </head>
         <body>
-            <p style="color: #000000;">${requestData?.body}</p><br>
+            <div style="color: #000000;">${requestData?.body}</div>
             <a href=${props?.qrcode?.link}>${props?.qrcode?.link}</a><br>
-            <img style="width: 250px; height: auto;" src=${formData?.qrcode_image_url} alt="Attached Image" />
+            <img style="width: 250px; height: auto;" src=${formData?.qrcode_image_url} alt="Attached Qrcode Image" />
         </body>
         </html>
     `;
@@ -102,6 +104,9 @@ const SendEmailComponent = (props) => {
     }
   };
 
+  
+  
+
   return (
     <div>
        <Dialog>
@@ -116,24 +121,7 @@ const SendEmailComponent = (props) => {
             </DialogTitle>
 
             <DialogDescription>
-              <div className='mb-2'>
-                <label
-                  for="api_key"
-                  className="block edit text-sm font-bold mb-1"
-                >
-                  Api Key
-                </label>
-                <TextInput
-                  name="api_key"
-                  type="text"
-                  value={formData.api_key}
-                  onChange={handleChange}
-                  placeholder="Enter Your Api Key"
-                />
-              </div>
-
-
-              <div className='mb-2'>
+              {/* <div className='mb-2'>
                 <label
                   for="fromName"
                   class="block edit text-white text-sm font-bold mb-1"
@@ -148,8 +136,8 @@ const SendEmailComponent = (props) => {
                   placeholder="Enter Your Name"
                 />
               </div>
-
-              <div className="mb-2">
+               */}
+              {/* <div className="mb-2">
                 <TextInput
                   name="fromEmail"
                   type="fromEmail"
@@ -157,7 +145,7 @@ const SendEmailComponent = (props) => {
                   readonly
                   value={formData.fromEmail}
                 />
-              </div>
+              </div> */}
 
               <div className="mb-2">
                 <label
@@ -185,7 +173,7 @@ const SendEmailComponent = (props) => {
                 />
               </div>
 
-              <div className="mb-2">
+              {/* <div className="mb-2">
                 <p className="text-xs text-gray-500 mt-1 ml-1">Email Subject</p>
                 <TextInput
                   name="subject"
@@ -194,7 +182,7 @@ const SendEmailComponent = (props) => {
                   value={formData.subject}
                   onChange={handleChange}
                 />
-              </div>
+              </div> */}
 
               <div className="mb-2">
                 <p className="text-xs text-gray-500 mt-2 ml-1">Email Body</p>
@@ -207,6 +195,9 @@ const SendEmailComponent = (props) => {
                   onChange={handleChange}
                   className='text-black w-full h-32 p-4 border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500 resize-y align-top'
                 />
+                <p className="text-xs text-gray-400 mt-1 ml-3">
+                  Note: The Qrcode and shortened Link are attached to the email. Feel free Personalize the Email Body to your satisfaction.
+                </p>
               </div>
 
                 
@@ -223,7 +214,7 @@ const SendEmailComponent = (props) => {
                   onClick={handleSubmit}
                   disabled={sending || formData.api_key === "" || formData.name === "" || formData.email === ""}
                 >
-                  {sending ? <Loader2 className="mr-2 h-4 w-4 text-4xl animate-spin" /> : 'Send Link'}
+                  {sending ? <Loader2 className="mr-2 h-4 w-4 text-4xl animate-spin" /> : 'Share'}
                 </button>
               </div>
             </DialogDescription>

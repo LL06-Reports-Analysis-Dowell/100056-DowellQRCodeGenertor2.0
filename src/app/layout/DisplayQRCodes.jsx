@@ -32,6 +32,7 @@ const DisplayQRCodes = (props) => {
     q?.name?.toLowerCase().includes(props.searchQuery.toLowerCase())
   );
 
+
   return (
 
     <div className="md:mr-10 md:ml-10">
@@ -110,7 +111,7 @@ const DisplayQRCodes = (props) => {
               </Dialog>
 
               <div className="icon ml-3">
-                <SendEmailComponent qrcode={qrcode} infoFucntion={props.getUserInfo} userInfo={props.userInfo}/>
+                <SendEmailComponent qrcode={qrcode} infoFucntion={props.getUserInfo} userInfo={props.userInfo} apiKey={props.apiKey} />
               </div>
               <div className="icon ml-3">
                 <EditComponent qrcode={qrcode} infoFucntion={props.getUserInfo}/>

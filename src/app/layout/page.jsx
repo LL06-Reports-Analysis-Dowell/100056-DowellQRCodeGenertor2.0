@@ -27,9 +27,28 @@ const QRCodeForm = (props) => {
       const responseData = await response.json();
       console.log("status", responseData.ok);
       setQRCodes(responseData?.response?.data);
+      console.log("api_key", responseData?.response?.data)
       setLoading(false)
     } catch (error) {
       setLoading(false)
+      console.error(error.message);
+    }
+  };
+
+  const [ apiKey, setApiKey ] = useState()
+
+  const fetchApiKey = async () => {
+    const apiUrl = `https://100105.pythonanywhere.com/api/v3/user/?type=get_api_key&workspace_id=${props.userInfo?.client_adin_id}`;
+
+    try {
+      // setLoading(true)
+      const response = await fetch(apiUrl);
+      const responseData = await response.json();
+
+      setApiKey(responseData?.data?.api_key);
+      // setLoading(false)
+    } catch (error) {
+      // setLoading(false)
       console.error(error.message);
     }
   };
@@ -48,11 +67,14 @@ const QRCodeForm = (props) => {
     setSearchQuery('');
   };
 
-
+  useEffect(() => {
+    fetchApiKey();
+  }, []);
 
   useEffect(() => {
     fetchQrCodes();
   }, []);
+
 
   // post api 
   let [displayData, setDisplayData] = useState({});
@@ -224,6 +246,7 @@ const QRCodeForm = (props) => {
                 qrcodes?.length > 0 ? 
                 <DisplayQRCodes 
                   qrcodes={qrcodes} 
+                  apiKey={apiKey}
                   getUserInfo={fetchQrCodes} 
                   searchQuery={searchQuery} 
                   userInfo={props?.userInfo} 
