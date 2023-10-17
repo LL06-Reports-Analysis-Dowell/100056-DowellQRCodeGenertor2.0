@@ -28,7 +28,7 @@ const DisplayQRCodes = (props) => {
     toast.info("Link Copied")
   };
 
-  const filteredQRCodes = props.qrcodes.filter((q) =>
+  const filteredQRCodes = props?.qrcodes?.filter((q) =>
     q?.name?.toLowerCase().includes(props.searchQuery.toLowerCase())
   );
 
@@ -111,7 +111,7 @@ const DisplayQRCodes = (props) => {
               </Dialog>
 
               <div className="icon ml-3">
-                <SendEmailComponent qrcode={qrcode} infoFucntion={props.getUserInfo} userInfo={props.userInfo} apiKey={props.apiKey} />
+                <SendEmailComponent qrcode={qrcode} infoFucntion={props.getUserInfo} userInfo={props?.userInfo} apiKey={props.apiKey} />
               </div>
               <div className="icon ml-3">
                 <EditComponent qrcode={qrcode} infoFucntion={props.getUserInfo}/>

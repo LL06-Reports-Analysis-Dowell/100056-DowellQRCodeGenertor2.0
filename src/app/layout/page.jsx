@@ -25,9 +25,7 @@ const QRCodeForm = (props) => {
       const response = await fetch(apiUrl);
 
       const responseData = await response.json();
-      console.log("status", responseData.ok);
-      setQRCodes(responseData?.response?.data);
-      console.log("api_key", responseData?.response?.data)
+      setQRCodes(responseData?.response);
       setLoading(false)
     } catch (error) {
       setLoading(false)
@@ -38,7 +36,7 @@ const QRCodeForm = (props) => {
   const [ apiKey, setApiKey ] = useState()
 
   const fetchApiKey = async () => {
-    const apiUrl = `https://100105.pythonanywhere.com/api/v3/user/?type=get_api_key&workspace_id=${props.userInfo?.client_adin_id}`;
+    const apiUrl = `https://100105.pythonanywhere.com/api/v3/user/?type=get_api_key&workspace_id=${props.userInfo?.client_admin_id}`;
 
     try {
       // setLoading(true)
