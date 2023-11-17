@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from datetime import datetime
+from django.utils import timezone
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
@@ -106,8 +108,6 @@ class Links(APIView):
             
             # Check if there are any active links
             active_links = [link for link in response["data"] if link["is_active"]]
-
-            print("Active Links", active_links)
             
             if len(active_links) > 0:
 
@@ -117,12 +117,12 @@ class Links(APIView):
                 # Update the "is_opened" status to True
                 field = {"link_id": open_link["link_id"]}
                 dowellconnection(*qrcode_management,"update",field, update_field)
-
+                return redirect(open_link["link"])
                 # Redirect to the open link and pass link_id to link
-                if has_query_params(open_link["link"]):
-                    return redirect(open_link["link"] + "&link_id=" + open_link["link_id"])
-                else:
-                    return redirect(open_link["link"] + "?link_id=" + open_link["link_id"])
+                # if has_query_params(open_link["link"]):
+                #     return redirect(open_link["link"] + "&link_id=" + open_link["link_id"])
+                # else:
+                #     return redirect(open_link["link"] + "?link_id=" + open_link["link_id"])
                     
             else:
                 # Check if there are any inactive links
@@ -198,10 +198,14 @@ class codeqr(APIView):
             else:
                 logo_url = None
 
+            current_datetime = timezone.now()
+
             field = {
                 "qrcode_id": create_uuid(),
                 "qrcode_color": qrcode_color,
-                "is_active": is_active
+                "is_active": is_active,
+                "created_on": current_datetime.isoformat(),
+                "updated_on": None
             }
 
             update_field = {
@@ -217,9 +221,9 @@ class codeqr(APIView):
                 try:
                     # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                     # insertion_thread.start()
-                    self.mongodb_worker(field,update_field)
-                except:
-                    return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    self.mongodb_worker(field ,update_field)
+                except Exception as e:
+                    return Response({"error": e}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response({"success": f"QR code created successfully.", "qrcode": field}, status=status.HTTP_201_CREATED)
 
      
@@ -245,7 +249,8 @@ class codeqr(APIView):
         response = dowellconnection(*qrcode_management, "fetch", field, {})
         res = json.loads(response)
         if len(res["data"]):
-            return Response({"response": res}, status=status.HTTP_200_OK)
+            reversed_data = res["data"][::-1]
+            return Response({"response": reversed_data}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "No qrcodes found"}, status=404)
 
@@ -288,9 +293,6 @@ class codeqrupdate(APIView):
             param1 = request.data.get("word", word)
             param2 = request.data.get("word2", word2)
             param3 = request.data.get("word3", word3)
-
-            print(param1, param2, param3)
-            print(word, word2, word3)
             
             field = {"word": word, "word2": word2, "word3": word3}
 
@@ -310,6 +312,10 @@ class codeqrupdate(APIView):
         try:
             link = request.data.get("link", qrcode_["link_"])
             master_link = qrcode_["link"]
+
+            name = request.data.get("name")
+            is_active = request.data.get("is_active", qrcode_["is_active"])
+            
             
             # update the Link
             try:
@@ -341,11 +347,18 @@ class codeqrupdate(APIView):
             file_name = generate_file_name()
             qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
 
+            try:
+                created_on = qrcode_["created_on"]
+            except:
+                created_on = None
+
+            current_datetime = timezone.now()
             field = {"qrcode_id": id}
             update_field = {
                 "user_id": qrcode_["user_id"],
                 "company_id": qrcode_["company_id"],
-                "is_active": request.data.get("is_active", qrcode_["is_active"]),
+                "name": name,
+                "is_active": is_active,
                 "qrcode_color": qrcode_color,
                 "link": master_link,
                 "link_": link,
@@ -353,6 +366,8 @@ class codeqrupdate(APIView):
                 "word2": param2,
                 "word3": param3,
                 "logo_url": logo_url,
+                "created_on": created_on,
+                "updated_on": current_datetime.isoformat(),
                 "qrcode_image_url": qrcode_image_url,
             }
 
