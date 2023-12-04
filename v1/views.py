@@ -108,8 +108,9 @@ class codeqr(APIView):
 
             if serializer.is_valid():
                 try:
-                    insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
-                    insertion_thread.start()
+                    self.mongodb_worker(field, update_field)
+                    # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+                    # insertion_thread.start()
                     # return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
                     return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -196,10 +197,10 @@ class codeqrupdate(APIView):
         
         try:
             qrcode_ = self.get_object(request, id)
-            qrcode_image_url = qrcode_["qrcode_image_url"]
-            logo_url = qrcode_["logo_url"]
+            # qrcode_image_url = qrcode_.get("qrcode_image_url", "")
+            # logo_url = qrcode_.get("logo_url", "")
         except: 
-            return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_401_NOT_FOUND)
+            return Response({"error": "No qrcodes found with given id"}, status=status.HTTP_404_NOT_FOUND)
         
         
         company_id = request.data.get("company_id", qrcode_["company_id"])
@@ -296,8 +297,6 @@ class codeqrupdate(APIView):
                 return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # else:
-        #     return Response(response_text, status=404)
       
 
 
@@ -325,7 +324,7 @@ class codeqractivate(APIView):
             qrcode_logo_url = qrcode_["logo_url"]
             qrcode_color = qrcode_["qrcode_color"]
         except: 
-            return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_401_NOT_FOUND)
+            return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_404_NOT_FOUND)
         
 
         img_qr = create_qrcode(qrcode_master_link, qrcode_color, logo)
@@ -354,14 +353,3 @@ class codeqractivate(APIView):
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-
-# {'_id': '64b91a4008e37d23a962ae76', 
-#  'qrcode_id': '8158418661488464366', 'logo_size': 20,
-#    'qrcode_color': '#000000', 'api_key': 'a91dd5e5-0e93-4928-9a6c-e61ec6a1698c', 
-#    'company_id': 'discord', 'created_by': 'mohamed', 
-#    'description': 'testing the api .', 'is_active': False, 
-#    'qrcode_type': 'Link', 'link': 'https://discord.com', 
-#    'qrcode_image_url': 'http://67.217.61.253/qrCodes/qrcode_1689852462.jpg', 
-#    'logo_url': None}

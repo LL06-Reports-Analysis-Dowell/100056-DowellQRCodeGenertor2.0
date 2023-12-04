@@ -190,7 +190,7 @@ class codeqrupdate(APIView):
             qrcode_image_url = qrcode_["qrcode_image_url"]
             logo_url = qrcode_["logo_url"]
         except: 
-            return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_401_NOT_FOUND)
+            return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_404_NOT_FOUND)
         
         company_id = request.data.get("company_id", qrcode_["company_id"])
         link = request.data.get("link", qrcode_["link"])
