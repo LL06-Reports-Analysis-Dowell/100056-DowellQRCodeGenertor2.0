@@ -93,7 +93,7 @@ def is_valid_hex_color(color):
         return False
     return True
 
-def create_qrcode(link, qrcode_color, logo):
+def create_qrcode(link, qrcode_color, logo = None):
     # create qr_code
     qr_code = qrcode.QRCode(
         version=1, 

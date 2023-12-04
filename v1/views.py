@@ -197,8 +197,8 @@ class codeqrupdate(APIView):
         
         try:
             qrcode_ = self.get_object(request, id)
-            # qrcode_image_url = qrcode_.get("qrcode_image_url", "")
-            # logo_url = qrcode_.get("logo_url", "")
+            qrcode_image_url = qrcode_.get("qrcode_image_url", "")
+            logo_url = qrcode_.get("logo_url", "")
         except: 
             return Response({"error": "No qrcodes found with given id"}, status=status.HTTP_404_NOT_FOUND)
         
@@ -260,7 +260,9 @@ class codeqrupdate(APIView):
                 file_name = generate_file_name()
                 qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
             else:
-                pass
+                img_qr = create_qrcode(link, qrcode_color)
+                file_name = generate_file_name()
+                qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
             
 
         logoSize = logo_size
