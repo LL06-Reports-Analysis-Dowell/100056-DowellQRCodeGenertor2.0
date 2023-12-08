@@ -41,8 +41,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'app',
     'qrcode_version_3',
-    'linkShortening',
-    'linkShortening2'
+    'linkShortening'
 ]
 
 MIDDLEWARE = [
