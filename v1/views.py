@@ -256,11 +256,11 @@ class codeqrupdate(APIView):
             qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
         else:
             if logo:
-                img_qr = create_qrcode(link, qrcode_color, logo)
+                img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.",  qrcode_color, logo)
                 file_name = generate_file_name()
                 qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
             else:
-                img_qr = create_qrcode(link, qrcode_color)
+                img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.", qrcode_color)
                 file_name = generate_file_name()
                 qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
             
