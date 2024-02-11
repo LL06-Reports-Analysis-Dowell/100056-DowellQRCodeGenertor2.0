@@ -10,11 +10,18 @@ import { Input } from "@/components/ui/input";
 import { Loader } from "./Loader";
 import NotFound from "../../components/notFound"
 import Link from "next/link";
+import OccurenceModal from "../../components/Modal";
+import axios from 'axios';
 
 const QRCodeForm = (props) => {
   // get api 
   const [qrcodes, setQRCodes] = useState();
   const [loading, setLoading] = useState(false)
+
+  const [occurrence, setOccurrence] = useState(null);
+  const [showOccurrence, setShowOccurrence] = useState(false);
+  const [loadingGetOccurence, setLoadingOccurence] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
    
 
   const fetchQrCodes = async () => {
@@ -83,6 +90,7 @@ const QRCodeForm = (props) => {
     user_id: props.userInfo?.userID,
     link: "",
     name: "",
+    email: "",
   });
 
   const handleChange = (e) => {
@@ -93,8 +101,41 @@ const QRCodeForm = (props) => {
     }));
   };
 
-  const handleSubmit = async () => {
-    
+  const handleOccurrence = async () => {
+    let response = null;
+    setLoadingOccurence(true)
+    // Prepare the data to send to the backend
+    try {
+      response = await axios.get(
+        `https://100105.pythonanywhere.com/api/v3/experience_database_services/?type=get_user_email&product_number=UXLIVINGLAB005&email=${formData.email}`
+      );
+      if (response.data.occurrences === 0) {
+        await axios.post(
+          `https://100105.pythonanywhere.com/api/v3/experience_database_services/?type=register_user`,
+          {
+            product_number: "UXLIVINGLAB005",
+            email: formData.email,
+          }
+        );
+      }
+      setLoadingOccurence(false)
+      setOccurrence(response?.data?.occurrences);
+      setShowOccurrence(true);
+      setModalOpen(true);
+      // console.log("ShowModal", modalOpen)
+    } catch(e) {
+        setLoadingOccurence(false)
+        console.log("Error", e)
+    }
+  };
+  
+  const handleSubmit = async (e) => {
+    console.log("Hit")
+    e.preventDefault();
+    handleOccurrence()
+  };
+
+  const handleFormData = async () => {
     if (formData.link != "") {
       const apiUrl =
       `https://www.uxlive.me/api/qrcode/v1/qr-code/`
@@ -142,7 +183,7 @@ const QRCodeForm = (props) => {
     } else {
       setSubmitting(false)
     }
-  };
+  }
 
   
   
@@ -192,9 +233,9 @@ const QRCodeForm = (props) => {
                 )
               }
 
-            <div className="flex flex-col justify-center items-center mt-14 rounded-lg overflow-auto">
+            <div className="flex flex-col justify-center items-center mt-20 rounded-lg overflow-auto">
               <img src="message.svg" alt="Your Name" class="text-center" />
-              <h1 className="header text-2xl text-center text-white font-bold">
+              <h1 className="header text-2xl text-center text-black font-bold">
                 Welcome to Dowell URL Shortener <span className="name">{props.userInfo?.first_name}</span>
               </h1>
               <p className="subText text-center">
@@ -203,16 +244,17 @@ const QRCodeForm = (props) => {
             </div>
 
             <div className="w-screen rounded-lg overflow-auto">
-              <div className="container mx-auto p-4 my-5">
+              <div className="container mx-auto p-4 my-2">
                 <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-2">
-                  <div className="flex flex-col md:flex-row w-full md:w-1/2 space-y-2 md:space-y-0 md:space-x-2">
+                  <form onSubmit={handleSubmit}>
+                  <div className="flex flex-col md:flex-row w-full space-y-2 md:space-y-0 md:space-x-2">
                     <Input
                       type="text"
                       name="name"
                       value={formData.name || ""}
                       onChange={handleChange}
                       placeholder="Name"
-                      className="w-full md:w-1/3 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500"
+                      className="w-full py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
                     />
                     
                     <Input
@@ -221,19 +263,29 @@ const QRCodeForm = (props) => {
                       value={formData.link || ""}
                       onChange={handleChange}
                       placeholder="Enter the link here"
-                      className="w-full md:w-2/3 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none  focus:border-green-500 justify-center items-center space-y-2"
+                      className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
+                    />
+
+                    <Input
+                      type="email"
+                      name="email"
+                      value={formData.email || ""}
+                      onChange={handleChange}
+                      placeholder="Enter Email"
+                      className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
                     />
                     
+                    <button
+                      disabled={loadingGetOccurence || formData.link === "" || formData.name === ""}
+                      type="submit"
+                      className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded flex items-center justify-center"
+                    >
+                      {loadingGetOccurence ? <Loader2 className="text-4xl animate-spin" /> : 'Submit'}
+                    </button>{" "}
                   </div>
-                  
-                  <button
-                    disabled={submitting || formData.link === "" || formData.name === ""}
-                    type="button"
-                    onClick={handleSubmit}
-                    className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded flex items-center justify-center"
-                  >
-                    {submitting ? <Loader2 className="text-4xl animate-spin" /> : 'Submit'}
-                  </button>{" "}
+                    
+                   
+                  </form>
                 </div>
               </div>
             </div>
@@ -252,6 +304,17 @@ const QRCodeForm = (props) => {
                 <NotFound message="No Links Found" />
               }
             </div>
+
+            {showOccurrence && modalOpen && (
+              <OccurenceModal
+                email={formData?.email}
+                showModal={modalOpen}
+                setOpenModal={setModalOpen}
+                showOccurrence={showOccurrence}
+                occurrence={occurrence}
+                handleFormData={handleFormData}
+              />
+            )}
             
           </div>
         </>

@@ -46,7 +46,7 @@ const DisplayQRCodes = (props) => {
           >
             <div className="mr-3 mb-3 md:mb-0 md:mr-0">
               <p className="urlText text-xs">Name</p>
-              <p>{qrcode?.name}</p>
+              <p className="text-black">{qrcode?.name}</p>
 
               <p className="timeText text-xs">
                 {

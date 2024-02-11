@@ -4,6 +4,7 @@
 
 body {
     background-color: #ffffff;
+    color: #000000 !important;
 }
 
 .header {
@@ -52,6 +53,7 @@ body {
 
 .shortenUrl{
     overflow-wrap: break-word;
+    color: #000000
 
     /* white-space: nowrap;
   overflow: hidden;
@@ -89,6 +91,7 @@ body {
     color: #1c201d;
 }
 
+.icon {color: #000000}
 .icon:hover {
     color: #2eda68;
 }
@@ -98,3 +101,50 @@ body {
     width: 100%;
 }
 
+.modal-divs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-link {
+    text-decoration: none;
+    color: #ffffff;
+  }
+  
+  .btn-link:hover {
+    color: #ffffff;
+  }
+  
+  .btn-flex {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+  }
+
+
+  .btn-custom-primary {
+    background-color: var(--bs-primary) !important;
+    color: #ffffff !important;
+    border-color: var(--bs-primary) !important;
+  }
+  
+  .btn-custom-secondary {
+    background-color: var(--bs-secondary) !important;
+    color: #ffffff !important;
+    border-color: var(--bs-secondary) !important;
+  }
+  
+  .btn-custom-danger {
+    background-color: var(--bs-danger) !important;
+    color: #ffffff !important;
+    border-color: var(--bs-danger) !important;
+  }
+  
+  .btn-custom-success {
+    background-color: var(--bs-success) !important;
+    color: #ffffff !important;
+    border-color: var(--bs-success) !important;
+  }
+  
