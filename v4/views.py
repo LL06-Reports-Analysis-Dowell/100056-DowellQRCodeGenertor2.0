@@ -16,8 +16,21 @@ from .helper import (
     upload_image_to_interserver
 )
 from .constant import *
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from base64 import b64encode
+import os
+
+from Crypto.Util.Padding import unpad
+from base64 import b64decode
 
 from .serializers import DoWellActivateQrCodeSerializer, DoWellUpdateQrCodeSerializer
+
+# Define your app identifier
+APP_IDENTIFIER = "YourAppIdentifier123"
+
+# Secret key for encryption (make sure to keep it secure)
+SECRET_KEY = os.urandom(32)
 
 
 
@@ -29,7 +42,37 @@ class serverStatus(APIView):
     def get(self, request):
         return Response({"info":"QrCode Backend servies running fine."}, status= status.HTTP_200_OK)
     
+def encrypt_data(data):
+    # Convert data to bytes
+    data_bytes = str(data).encode('utf-8')
+    # Generate an Initialization Vector (IV)
+    iv = os.urandom(16)
+    # Create AES cipher
+    cipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
+    # Pad the data to match the block size
+    padded_data = pad(data_bytes, AES.block_size)
+    # Encrypt the padded data
+    encrypted_data = cipher.encrypt(padded_data)
+    # Combine IV and encrypted data
+    encrypted_data_with_iv = iv + encrypted_data
+    # Base64 encode the result for transport
+    return b64encode(encrypted_data_with_iv)
 
+# def decrypt_data(encrypted_data):
+#     # Base64 decode the encrypted data
+#     encrypted_data_with_iv = b64decode(encrypted_data)
+#     # Extract IV from the encrypted data
+#     iv = encrypted_data_with_iv[:16]
+#     # Extract encrypted data (excluding IV)
+#     encrypted_data = encrypted_data_with_iv[16:]
+#     # Create AES cipher
+#     cipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
+#     # Decrypt the encrypted data
+#     decrypted_data = cipher.decrypt(encrypted_data)
+#     # Unpad the decrypted data
+#     unpadded_data = unpad(decrypted_data, AES.block_size)
+#     # Decode the unpadded data to string
+#     return unpadded_data.decode('utf-8')
 
 class codeqr(APIView):
     @method_decorator(csrf_exempt)
@@ -103,6 +146,9 @@ class codeqr(APIView):
                 "status":"nothing to update"
             }
 
+            # Encrypt the data before embedding it into the QR code
+            encrypted_data = encrypt_data(field)
+
             # This function checks qrcode_type field and assign them appropriate properties
             serializer, field = qrcode_type_defination(qrcode_id, qrcode_type, request, qrcode_color, logo, field, logo_url)
 
@@ -117,6 +163,7 @@ class codeqr(APIView):
                 
                 del field["master_link"]
                 del field["link"]
+                field['encrypted_data'] = encrypted_data
                 qrcodes_created.append(field)
 
         if qrcodes_created:
@@ -126,7 +173,6 @@ class codeqr(APIView):
     #     return Response(response_text, status=status.HTTP_400_BAD_REQUEST)
 
         
-
      
     def mongodb_worker(self, field, update_field):
         dowellconnection(*qrcode_management,"insert", field, update_field)
