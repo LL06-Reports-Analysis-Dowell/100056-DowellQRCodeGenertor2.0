@@ -1,4 +1,8 @@
 import json
+import os
+import requests
+from urllib.parse import urlparse
+
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -162,50 +166,131 @@ class Links(APIView):
         post_links_url = request.build_absolute_uri(post_links_path)
         master_link = post_links_url + f"?api_key={api_key}"
         return redirect(master_link)
+    
+    def get_qr_code(self, field):
+        res = dowellconnection(*qrcode_management,"fetch",field, {})
+        response = json.loads(res)
+
+        if response["isSuccess"]:
+            qrcode_ = response["data"][0]
+            print("qrcode", qrcode_)
+            qrcode_image_url = qrcode_["qrcode_image_url"]
+            
+            # Parse the URL to extract the filename
+            parsed_url = urlparse(qrcode_image_url)
+            file_name = os.path.basename(parsed_url.path)
+            return file_name
+    
+    def update_qr_code(self, link_data, file_name, field):
+        img_qr = create_qrcode(link_data, "#000000")
+        qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+        # get qrcode with api_key
+        update_field = {
+            "qrcode_image_url": qrcode_image_url,
+        }
+        res = dowellconnection(*qrcode_management,"update",field, update_field)
+        response = json.loads(res)
+        return response
+
+    def onSuccessFinalize(self, product, request, link_id, is_finalized):
+        if product == "maps":
+            masterlink_path = reverse('master_link')
+            master_link_url = request.build_absolute_uri(masterlink_path)
+
+            # finalize the link
+            field = {
+                "link_id": link_id,
+            }
+       
+            update_field = {
+                "is_finalized": is_finalized,
+                "is_opened": True
+            }
+            dowellconnection(*qrcode_management,"update",field, update_field)
+        
+            # get link then fetch qrcode with its api_key
+            res = requests.get(f"{master_link_url}?link_id={link_id}")
+            data = res.json()
+            api_key = data['response']['data'][0]['api_key']
+
+            print("Api Key", api_key)
+    
+            # fetch all links which is_finalized is false
+            try:
+                field = {"api_key": api_key, "is_finalized": False}
+                res = dowellconnection(*qrcode_management, "fetch", field, {})
+                response = json.loads(res)
+                link_data = response["data"][0]
+                    
+                field = { "key": api_key }
+
+                # get qrcode with api_key
+                file_name = self.get_qr_code(field)
+                self.update_qr_code(link_data, file_name, field)
+
+            except:
+                field = {"key": api_key}
+                # update qrcode with given api key
+                link_data = "All links finalized."
+                file_name = self.get_qr_code(field)
+                print(file_name)
+                # get qrcode with api_key
+                response = self.update_qr_code(link_data, file_name, field)
+                print("Res", response)
+
+                return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
     def put(self, request):
-        link_id = request.GET.get("link_id")
+        product = request.GET.get("product")
+        link_id = request.GET.get("link_id")    
         is_finalized = request.data.get("is_finalized", True)
 
         field = {
-            "link_id": link_id
+            "link_id": link_id,
         }
        
         update_field = {
             "is_finalized": is_finalized,
         }
 
-        serializer = LinkFinalizeSerializer(data=update_field)
-        if serializer.is_valid():
-            try:
-                res = dowellconnection(*qrcode_management,"fetch",field, {})
-                response = json.loads(res)
-            
-                is_opened = response["data"][0]["is_opened"]
-                is_finalized = response["data"][0]["is_finalized"]
-            except:
-                return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+        if product == "maps":
+            self.onSuccessFinalize(product, request, link_id, is_finalized)
+            return Response({"success": "link successfully finalized"}, status=status.HTTP_200_OK)
+        
+        else:
 
-            if is_opened and is_finalized:
-                return Response({"message": "link already opened and is finalized", "response": json.loads(res)}, status=status.HTTP_302_FOUND)
-            elif is_opened and not is_finalized:
-                response = dowellconnection(*qrcode_management,"update",field, update_field)
-                response = json.loads(response)
-                res = dowellconnection(*qrcode_management,"fetch",field, {})
+            serializer = LinkFinalizeSerializer(data=update_field)
+            if serializer.is_valid():
+                try:
+                    res = dowellconnection(*qrcode_management,"fetch",field, {})
+                    response = json.loads(res)
+                
+                    is_opened = response["data"][0]["is_opened"]
+                    is_finalized = response["data"][0]["is_finalized"]
+                except:
+                    return Response({"error": "An error occurred when trying to access db"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
 
-                # Check if the update was successful
-                if response["isSuccess"]:
-                    return Response({"response": json.loads(res), 
-                                     "message": "link successfully finalized"},
-                                       status=status.HTTP_200_OK
-                                    )
+                if is_opened and is_finalized:
+                    return Response({"message": "link already opened and is finalized", "response": json.loads(res)}, status=status.HTTP_302_FOUND)
+                
+                elif is_opened and not is_finalized:
+                    response = dowellconnection(*qrcode_management,"update",field, update_field)
+                    response = json.loads(response)
+                    res = dowellconnection(*qrcode_management,"fetch",field, {})
+
+                    # Check if the update was successful
+                    if response["isSuccess"]:
+                        return Response({"response": json.loads(res), 
+                                        "message": "link successfully finalized"},
+                                        status=status.HTTP_200_OK
+                                        )
+                    else:
+                        return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+                
                 else:
-                    return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
-            
-            else:
-                return Response({"error": "link cannot be finalized and is not open"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": "link cannot be finalized and is not open"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     
     def mongodb_worker(self, field, update_field):
@@ -218,6 +303,8 @@ class codeqr(APIView):
         return super().dispatch(*args, **kwargs)
 
     def post(self, request):
+        product = request.GET.get("product")
+
         company_id = request.data.get("company_id")
         qrcode_type = request.data.get("qrcode_type")
         # link = request.data.get("link")
@@ -282,7 +369,7 @@ class codeqr(APIView):
             }
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url)
+            serializer, field = qrcode_type_defination(qrcode_type, product, request, qrcode_color, logo, field, logo_url)
 
             if serializer.is_valid(raise_exception=True):
                 try:
@@ -306,6 +393,7 @@ class codeqr(APIView):
         try:
             company_id = request.GET.get('company_id')
             product_name = request.GET.get('product_name')
+            api_key = request.GET.get('api_key')
         except:
             pass
 
@@ -313,6 +401,8 @@ class codeqr(APIView):
             field = {"company_id": company_id}
         elif product_name:
             field = {"product_name": product_name}
+        elif api_key:
+            field = {"key": api_key}
         else:
             # I if no params are passed get all qrcodes
             response = dowellconnection(*qrcode_management, "fetch", {}, {})

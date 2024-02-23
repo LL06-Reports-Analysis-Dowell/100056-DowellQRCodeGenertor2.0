@@ -129,7 +129,7 @@ def is_valid_hex_color(color):
     return True
 
 
-def create_qrcode(link, qrcode_color, logo):
+def create_qrcode(link, qrcode_color, logo=None):
     # create qr_code
     qr_code = qrcode.QRCode(
         version=1, 
@@ -220,7 +220,7 @@ def create_uuid():
     unique_id = str(unique_id)
     return unique_id
 
-def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo_url=None):
+def qrcode_type_defination(qrcode_type, product, request, qrcode_color, logo, field, logo_url=None):
     serializer = None    
     if qrcode_type == "Product":
         title = request.data.get("title")
@@ -279,6 +279,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
 
         posted_links = []
         api_key = create_uuid()
+
         for link in links:
             # post links to db
             link_id = create_uuid()
@@ -294,7 +295,11 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
         master_link = post_links_url + f"?api_key={api_key}"
 
         # qrcode_links = [link["response"]["link"] for link in posted_links]
-        img_qr = create_qrcode(master_link, qrcode_color, logo)
+
+        if product == "maps":
+            img_qr = create_qrcode(posted_links[0], qrcode_color, logo)
+        else:
+            img_qr = create_qrcode(master_link, qrcode_color, logo)
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)
@@ -306,6 +311,7 @@ def qrcode_type_defination(qrcode_type, request, qrcode_color, logo, field, logo
             "masterlink": master_link,
             "qrcode_image_url": qr_code_url,
             "logo_url": logo_url,
+            "key": api_key
         }
         
         field = {**field, **link_}
