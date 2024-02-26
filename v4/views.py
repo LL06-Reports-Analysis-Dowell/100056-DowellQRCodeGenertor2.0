@@ -133,7 +133,7 @@ class codeqr(APIView):
             # Encrypt the data before embedding it into the QR code
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_id_encrypted, qrcode_type, request, qrcode_color, logo, field, logo_url)
+            serializer, field = qrcode_type_defination(qrcode_id_encrypted, iv_b64, qrcode_type, request, qrcode_color, logo, field, logo_url)
 
             qrcodes_created.append(field)
             # if serializer.is_valid():
