@@ -1,4 +1,5 @@
 
+import base64
 import json
 import threading
 from django.shortcuts import render
@@ -26,13 +27,22 @@ from base64 import b64decode
 
 from .serializers import DoWellActivateQrCodeSerializer, DoWellUpdateQrCodeSerializer
 
-# Define your app identifier
-APP_IDENTIFIER = "YourAppIdentifier123"
+
 
 # Secret key for encryption (make sure to keep it secure)
 SECRET_KEY = os.urandom(32)
 
+def encrypt_qrcode_id(qrcode_id):
+    cipher = AES.new(SECRET_KEY, AES.MODE_CBC)
+    data = qrcode_id.encode('utf-8')
+    padded_data = pad(data, AES.block_size)
+    ct_bytes = cipher.encrypt(padded_data)
+    return ct_bytes, cipher.iv
 
+def decrypt_qrcode_id(encrypted_qrcode_id, iv):
+    decipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
+    plaintext = unpad(decipher.decrypt(encrypted_qrcode_id), AES.block_size)
+    return plaintext
 
 def inactive(request):
     return render(request, template_name='inactive_qrcode.html')
@@ -42,38 +52,6 @@ class serverStatus(APIView):
     def get(self, request):
         return Response({"info":"QrCode Backend servies running fine."}, status= status.HTTP_200_OK)
     
-def encrypt_data(data):
-    # Convert data to bytes
-    data_bytes = str(data).encode('utf-8')
-    # Generate an Initialization Vector (IV)
-    iv = os.urandom(16)
-    # Create AES cipher
-    cipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
-    # Pad the data to match the block size
-    padded_data = pad(data_bytes, AES.block_size)
-    # Encrypt the padded data
-    encrypted_data = cipher.encrypt(padded_data)
-    # Combine IV and encrypted data
-    encrypted_data_with_iv = iv + encrypted_data
-    # Base64 encode the result for transport
-    return b64encode(encrypted_data_with_iv)
-
-# def decrypt_data(encrypted_data):
-#     # Base64 decode the encrypted data
-#     encrypted_data_with_iv = b64decode(encrypted_data)
-#     # Extract IV from the encrypted data
-#     iv = encrypted_data_with_iv[:16]
-#     # Extract encrypted data (excluding IV)
-#     encrypted_data = encrypted_data_with_iv[16:]
-#     # Create AES cipher
-#     cipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
-#     # Decrypt the encrypted data
-#     decrypted_data = cipher.decrypt(encrypted_data)
-#     # Unpad the decrypted data
-#     unpadded_data = unpad(decrypted_data, AES.block_size)
-#     # Decode the unpadded data to string
-#     return unpadded_data.decode('utf-8')
-
 class codeqr(APIView):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
@@ -129,9 +107,15 @@ class codeqr(APIView):
                 logo_url = None
 
             qrcode_id = create_uuid()
+            encrypted_qrcode_id, iv = encrypt_qrcode_id(qrcode_id)
+
+            qrcode_id_encrypted = base64.b64encode(encrypted_qrcode_id).decode('utf-8')
+            iv_b64 = base64.b64encode(iv).decode('utf-8')
+            
             field = {
                 "master_link": master_link,
-                "qrcode_id": qrcode_id,
+                "qrcode_id": qrcode_id_encrypted,
+                "iv": iv_b64,
                 "logo_size": logo_size,
                 "qrcode_color": qrcode_color,
                 "company_id": company_id,
@@ -147,33 +131,74 @@ class codeqr(APIView):
             }
 
             # Encrypt the data before embedding it into the QR code
-            encrypted_data = encrypt_data(field)
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_id, qrcode_type, request, qrcode_color, logo, field, logo_url)
+            serializer, field = qrcode_type_defination(qrcode_id_encrypted, qrcode_type, request, qrcode_color, logo, field, logo_url)
 
-            if serializer.is_valid():
-                try:
-                    self.mongodb_worker(field, update_field)
-                    # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
-                    # insertion_thread.start()
-                    # return Response({"response": field}, status=status.HTTP_201_CREATED)
-                except:
-                    return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            qrcodes_created.append(field)
+            # if serializer.is_valid():
+            #     try:
+            #         self.mongodb_worker(field, update_field)
+            #         # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+            #         # insertion_thread.start()
+            #         # return Response({"response": field}, status=status.HTTP_201_CREATED)
+            #     except:
+            #         return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
-                del field["master_link"]
-                del field["link"]
-                field['encrypted_data'] = encrypted_data
-                qrcodes_created.append(field)
+            #     del field["master_link"]
+            #     del field["link"]
+            #     qrcodes_created.append(field)
 
         if qrcodes_created:
             return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     # else:
+
     #     return Response(response_text, status=status.HTTP_400_BAD_REQUEST)
 
+# @method_decorator(csrf_exempt, name='dispatch')
+# class DecryptQRCode(APIView):
+#     def post(self, request):
+#         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
+#         iv_b64 = request.data.get("iv")
         
-     
+#         if encrypted_qrcode_id_b64 is None:
+#             return Response({"error": "No qrcode_id provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+#         try:
+#             encrypted_qrcode_id = base64.b64decode(encrypted_qrcode_id_b64)
+#             iv = base64.b64decode(iv_b64)
+            
+#             cipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
+#             decrypted_qrcode_id_bytes = unpad(cipher.decrypt(encrypted_qrcode_id), AES.block_size)
+#             decrypted_qrcode_id = decrypted_qrcode_id_bytes.decode('utf-8')
+            
+#             return Response({"qrcode_id": decrypted_qrcode_id})
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class DecryptQRCode(APIView):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    def post(self, request):
+        encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
+        iv_b64 = request.data.get("iv")
+        
+        encrypted_qrcode_id = base64.b64decode(encrypted_qrcode_id_b64)
+        iv = base64.b64decode(iv_b64)
+
+        # Decrypt the encrypted QR code ID back to its original UUID
+        decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
+
+        # Convert the UUID to string for readability
+        decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
+
+        return Response({"qrcode_id": decrypted_qrcode_id_str}, status=status.HTTP_200_OK)
+
+
+
     def mongodb_worker(self, field, update_field):
         dowellconnection(*qrcode_management,"insert", field, update_field)
     
