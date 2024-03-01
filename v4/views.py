@@ -113,9 +113,10 @@ class codeqr(APIView):
             iv_b64 = base64.b64encode(iv).decode('utf-8')
             
             field = {
-                "master_link": master_link,
+                "master_link": master_link,    
                 "qrcode_id": qrcode_id_encrypted,
                 "iv": iv_b64,
+                "qrcode_id_decrypted": qrcode_id,
                 "logo_size": logo_size,
                 "qrcode_color": qrcode_color,
                 "company_id": company_id,
