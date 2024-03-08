@@ -14,7 +14,10 @@ import QRCodeForm from "./layout/page";
 const HomePage = () => {
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
-  const [userInfo, setUserInfo] = useState()
+  const [userInfo, setUserInfo] = useState(() => {
+    const savedUserInfo = localStorage.getItem('userInfo');
+    return savedUserInfo ? JSON.parse(savedUserInfo) : null;
+  })
 
   const getUserInfo = async () => {
     // setLoadingFetchUserInfo(true);
@@ -26,6 +29,10 @@ const HomePage = () => {
 
       .then((response) => {
         setUserInfo(response?.data?.userinfo);
+        localStorage.setItem(
+          'userInfo',
+          JSON.stringify(response?.data?.userinfo)
+        );
         // setLoadingFetchUserInfo(false);
       })
       .catch((error) => {
@@ -36,15 +43,15 @@ const HomePage = () => {
 
 
   useEffect(() => {
-    if (!session_id) {
-
-      window.location.href =
-        "https://100014.pythonanywhere.com/?redirect_url=" +
-        `${window.location.href}`;
-      return;
+    if (!userInfo) {
+      if (!session_id) {
+        window.location.href =
+          "https://100014.pythonanywhere.com/?redirect_url=" +
+          `${window.location.href}`;
+        return;
+      }
+      getUserInfo()
     }
-    getUserInfo()
-    // setLoggedIn(true);
   }, []);
 
   return (

@@ -90,7 +90,6 @@ const QRCodeForm = (props) => {
     user_id: props.userInfo?.userID,
     link: "",
     name: "",
-    email: "",
   });
 
   const handleChange = (e) => {
@@ -101,39 +100,34 @@ const QRCodeForm = (props) => {
     }));
   };
 
-  const handleOccurrence = async () => {
-    let response = null;
-    setLoadingOccurence(true)
-    // Prepare the data to send to the backend
-    try {
-      response = await axios.get(
-        `https://100105.pythonanywhere.com/api/v3/experience_database_services/?type=get_user_email&product_number=UXLIVINGLAB005&email=${formData.email}`
-      );
-      if (response.data.occurrences === 0) {
-        await axios.post(
-          `https://100105.pythonanywhere.com/api/v3/experience_database_services/?type=register_user`,
-          {
-            product_number: "UXLIVINGLAB005",
-            email: formData.email,
-          }
-        );
-      }
-      setLoadingOccurence(false)
-      setOccurrence(response?.data?.occurrences);
-      setShowOccurrence(true);
-      setModalOpen(true);
-      // console.log("ShowModal", modalOpen)
-    } catch(e) {
-        setLoadingOccurence(false)
-        console.log("Error", e)
-    }
-  };
+  // const handleOccurrence = async () => {
+  //   let response = null;
+  //   setLoadingOccurence(true)
+  //   // Prepare the data to send to the backend
+  //   try {
+  //     response = await axios.get(
+  //       `https://100105.pythonanywhere.com/api/v3/experience_database_services/?type=get_user_email&product_number=UXLIVINGLAB005&email=${formData.email}`
+  //     );
+  //     if (response.data.occurrences === 0) {
+  //       await axios.post(
+  //         `https://100105.pythonanywhere.com/api/v3/experience_database_services/?type=register_user`,
+  //         {
+  //           product_number: "UXLIVINGLAB005",
+  //           email: formData.email,
+  //         }
+  //       );
+  //     }
+  //     setLoadingOccurence(false)
+  //     setOccurrence(response?.data?.occurrences);
+  //     setShowOccurrence(true);
+  //     setModalOpen(true);
+  //     // console.log("ShowModal", modalOpen)
+  //   } catch(e) {
+  //       setLoadingOccurence(false)
+  //       console.log("Error", e)
+  //   }
+  // };
   
-  const handleSubmit = async (e) => {
-    console.log("Hit")
-    e.preventDefault();
-    handleOccurrence()
-  };
 
   const handleFormData = async () => {
     if (formData.link != "") {
@@ -185,6 +179,11 @@ const QRCodeForm = (props) => {
     }
   }
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // handleOccurrence()
+    handleFormData()
+  };
   
   
   return (
@@ -266,21 +265,21 @@ const QRCodeForm = (props) => {
                       className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
                     />
 
-                    <Input
+                    {/* <Input
                       type="email"
                       name="email"
                       value={formData.email || ""}
                       onChange={handleChange}
                       placeholder="Enter Email"
                       className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
-                    />
+                    /> */}
                     
                     <button
-                      disabled={loadingGetOccurence || formData.link === "" || formData.name === ""}
+                      disabled={submitting || formData.link === "" || formData.name === ""}
                       type="submit"
                       className="w-full md:w-auto px-4 py-2 btnStyle text-white font-semibold py-2 px-4 rounded flex items-center justify-center"
                     >
-                      {loadingGetOccurence ? <Loader2 className="text-4xl animate-spin" /> : 'Submit'}
+                      {submitting ? <Loader2 className="text-4xl animate-spin" /> : 'Submit'}
                     </button>{" "}
                   </div>
                     
