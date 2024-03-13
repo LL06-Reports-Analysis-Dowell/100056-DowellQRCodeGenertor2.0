@@ -12,7 +12,13 @@ import cloudinary.uploader
 import cloudinary
 
 from .serializers import DoWellQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from base64 import b64encode
+import os
 
+from Crypto.Util.Padding import unpad
+from base64 import b64decode
 
 cloudinary.config(
     cloud_name="din7lejen",
@@ -301,3 +307,17 @@ def processApikey(api_key):
     response = requests.post(url, json=payload)
     response_text = json.loads(response.text)
     return response_text
+
+SECRET_KEY = os.urandom(32)
+
+def encrypt_qrcode_id(qrcode_id):
+    cipher = AES.new(SECRET_KEY, AES.MODE_CBC)
+    data = qrcode_id.encode('utf-8')
+    padded_data = pad(data, AES.block_size)
+    ct_bytes = cipher.encrypt(padded_data)
+    return ct_bytes, cipher.iv
+
+def decrypt_qrcode_id(encrypted_qrcode_id, iv):
+    decipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
+    plaintext = unpad(decipher.decrypt(encrypted_qrcode_id), AES.block_size)
+    return plaintext

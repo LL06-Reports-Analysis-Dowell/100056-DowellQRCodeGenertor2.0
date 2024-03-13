@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
-    create_uuid, datacube_data_insertion, generate_file_name, is_valid_hex_color, create_qrcode,
+    create_uuid, datacube_data_insertion, decrypt_qrcode_id, encrypt_qrcode_id, generate_file_name, is_valid_hex_color, create_qrcode,
     dowellconnection, processApikey, qrcode_type_defination, update_cloudinary_image, 
     upload_image_to_interserver
 )
@@ -30,19 +30,9 @@ from .serializers import DoWellActivateQrCodeSerializer, DoWellUpdateQrCodeSeria
 
 
 # Secret key for encryption (make sure to keep it secure)
-SECRET_KEY = os.urandom(32)
 
-def encrypt_qrcode_id(qrcode_id):
-    cipher = AES.new(SECRET_KEY, AES.MODE_CBC)
-    data = qrcode_id.encode('utf-8')
-    padded_data = pad(data, AES.block_size)
-    ct_bytes = cipher.encrypt(padded_data)
-    return ct_bytes, cipher.iv
 
-def decrypt_qrcode_id(encrypted_qrcode_id, iv):
-    decipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
-    plaintext = unpad(decipher.decrypt(encrypted_qrcode_id), AES.block_size)
-    return plaintext
+
 
 def inactive(request):
     return render(request, template_name='inactive_qrcode.html')
