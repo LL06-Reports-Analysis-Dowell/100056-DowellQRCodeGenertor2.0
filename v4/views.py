@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
-    create_uuid, generate_file_name, is_valid_hex_color, create_qrcode,
+    create_uuid, datacube_data_insertion, generate_file_name, is_valid_hex_color, create_qrcode,
     dowellconnection, processApikey, qrcode_type_defination, update_cloudinary_image, 
     upload_image_to_interserver
 )
@@ -136,19 +136,19 @@ class codeqr(APIView):
             # This function checks qrcode_type field and assign them appropriate properties
             serializer, field = qrcode_type_defination(qrcode_id_encrypted, iv_b64, qrcode_type, request, qrcode_color, logo, field, logo_url)
 
-            qrcodes_created.append(field)
-            # if serializer.is_valid():
-            #     try:
-            #         self.mongodb_worker(field, update_field)
-            #         # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
-            #         # insertion_thread.start()
-            #         # return Response({"response": field}, status=status.HTTP_201_CREATED)
-            #     except:
-            #         return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # qrcodes_created.append(field)
+            if serializer.is_valid():
+                try:
+                    self.database_worker(field, update_field)
+                    # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
+                    # insertion_thread.start()
+                    # return Response({"response": field}, status=status.HTTP_201_CREATED)
+                except:
+                    return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
-            #     del field["master_link"]
-            #     del field["link"]
-            #     qrcodes_created.append(field)
+                del field["master_link"]
+                del field["link"]
+                qrcodes_created.append(field)
 
         if qrcodes_created:
             return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
@@ -200,8 +200,8 @@ class DecryptQRCode(APIView):
 
 
 
-    def mongodb_worker(self, field, update_field):
-        dowellconnection(*qrcode_management,"insert", field, update_field)
+    def database_worker(self, field, update_field):
+        datacube_data_insertion(*qrcode_management,"insert", field, update_field)
     
     
     def get(self, request):

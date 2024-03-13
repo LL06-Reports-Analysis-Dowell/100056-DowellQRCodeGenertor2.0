@@ -45,6 +45,30 @@ def dowellconnection(cluster,database,collection,document,team_member_ID,functio
 
     return res
 
+def datacube_data_insertion(api_key, database_name, collection_name, data):
+    """
+    Insert data into a collection in the DataCube database.
+
+    :param api_key: The API key for authentication.
+    :param database_name: The name of the database.
+    :param collection_name: The name of the collection.
+    :param data: The data to be inserted into the collection.
+    :return: The response text from the server.
+    """
+    url = "https://datacube.uxlivinglab.online/db_api/crud/"
+
+    payload = {
+        "api_key": api_key,
+        "db_name": database_name,
+        "coll_name": collection_name,
+        "operation": "insert",
+        "data": data,
+        "payment": False
+    }
+
+    response = requests.post(url, json=payload)
+    return response.text
+
 
 def get_event_id():
 
