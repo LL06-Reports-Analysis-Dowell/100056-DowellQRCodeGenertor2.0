@@ -1,19 +1,19 @@
-
 import base64
 import json
 import threading
 from django.shortcuts import render
-
+from v4.dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from core.settings import Apikey, DATABASE_NAME, COLLECTION_NAME
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
-    create_uuid, datacube_data_insertion, decrypt_qrcode_id, encrypt_qrcode_id, generate_file_name, is_valid_hex_color, create_qrcode,
-    dowellconnection, processApikey, qrcode_type_defination, update_cloudinary_image, 
+    create_uuid, datacube_data_insertion, decrypt_qrcode_id, encrypt_qrcode_id, generate_file_name, is_valid_hex_color,
+    create_qrcode,
+    dowellconnection, processApikey, qrcode_type_defination, update_cloudinary_image,
     upload_image_to_interserver
 )
 from .constant import *
@@ -28,34 +28,33 @@ from base64 import b64decode
 from .serializers import DoWellActivateQrCodeSerializer, DoWellUpdateQrCodeSerializer
 
 
-
 # Secret key for encryption (make sure to keep it secure)
-
-
 
 
 def inactive(request):
     return render(request, template_name='inactive_qrcode.html')
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
     def get(self, request):
-        return Response({"info":"QrCode Backend servies running fine."}, status= status.HTTP_200_OK)
-    
+        return Response({"info": "QrCode Backend servies running fine."}, status=status.HTTP_200_OK)
+
+
 class codeqr(APIView):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
-    
+
     def post(self, request):
         # api_key = request.GET.get('api_key')
-        
+
         company_id = request.data.get("company_id")
         qrcode_type = request.data.get("qrcode_type")
 
         master_link = request.data.get("master_link")
         product_name = request.data.get("product_name")
-        logo = request.FILES.get('logo')  
+        logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
         qrcode_color = request.data.get('qrcode_color', "#000000")
 
@@ -64,7 +63,6 @@ class codeqr(APIView):
         is_active = request.data.get("is_active", False)
         quantity = request.data.get("quantity")
 
-
         try:
             if logo_size <= 0:
                 raise ValueError("Logo size must be a positive integer.")
@@ -72,14 +70,14 @@ class codeqr(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         if not is_valid_hex_color(qrcode_color):
-            return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
-                
-        
+            return Response({"error": "Invalid logo color. Must be a valid hex color code."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         if logo:
-            logo_file = logo.read() # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)     
+            logo_file = logo.read()  # This line affects the create_qrcode function below(converts InMemoryUploadedFile to bytes)
         else:
             pass
-        
+
         qrcodes_created = []
 
         # chek if quantity is passed if not set to 1
@@ -87,7 +85,7 @@ class codeqr(APIView):
             quantity = int(quantity)
         else:
             quantity = 1
-            
+
         for _ in range(quantity):
             logo_url = None
 
@@ -101,9 +99,9 @@ class codeqr(APIView):
 
             qrcode_id_encrypted = base64.b64encode(encrypted_qrcode_id).decode('utf-8')
             iv_b64 = base64.b64encode(iv).decode('utf-8')
-            
+
             field = {
-                "master_link": master_link,    
+                "master_link": master_link,
                 "qrcode_id": qrcode_id_encrypted,
                 "iv": iv_b64,
                 "qrcode_id_decrypted": qrcode_id,
@@ -114,69 +112,73 @@ class codeqr(APIView):
                 "description": description,
                 "product_name": product_name,
                 "is_active": is_active,
-                "qrcode_type": qrcode_type, 
+                "qrcode_type": qrcode_type,
             }
 
             update_field = {
-                "status":"nothing to update"
+                "status": "nothing to update"
             }
 
             # Encrypt the data before embedding it into the QR code
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_id_encrypted, iv_b64, qrcode_type, request, qrcode_color, logo, field, logo_url)
+            serializer, field = qrcode_type_defination(qrcode_id_encrypted, iv_b64, qrcode_type, request, qrcode_color,
+                                                       logo, field, logo_url)
 
             # qrcodes_created.append(field)
             if serializer.is_valid():
                 try:
-                    self.database_worker(field, update_field)
+                    QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
                     # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                     # insertion_thread.start()
                     # return Response({"response": field}, status=status.HTTP_201_CREATED)
                 except:
-                    return Response({"error": "An error occurred while starting the insertion thread"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
+                    return Response({"error": "An error occurred while starting the insertion thread"},
+                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
                 del field["master_link"]
                 del field["link"]
                 qrcodes_created.append(field)
 
         if qrcodes_created:
-            return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created}, status=status.HTTP_201_CREATED)
+            return Response({"response": f"{quantity} QR codes created successfully.", "qrcodes": qrcodes_created},
+                            status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     # else:
 
     #     return Response(response_text, status=status.HTTP_400_BAD_REQUEST)
+
 
 # @method_decorator(csrf_exempt, name='dispatch')
 # class DecryptQRCode(APIView):
 #     def post(self, request):
 #         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
 #         iv_b64 = request.data.get("iv")
-        
+
 #         if encrypted_qrcode_id_b64 is None:
 #             return Response({"error": "No qrcode_id provided"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 #         try:
 #             encrypted_qrcode_id = base64.b64decode(encrypted_qrcode_id_b64)
 #             iv = base64.b64decode(iv_b64)
-            
+
 #             cipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
 #             decrypted_qrcode_id_bytes = unpad(cipher.decrypt(encrypted_qrcode_id), AES.block_size)
 #             decrypted_qrcode_id = decrypted_qrcode_id_bytes.decode('utf-8')
-            
+
 #             return Response({"qrcode_id": decrypted_qrcode_id})
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 class DecryptQRCode(APIView):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
-    
+
     def post(self, request):
         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
         iv_b64 = request.data.get("iv")
-        
+
         encrypted_qrcode_id = base64.b64decode(encrypted_qrcode_id_b64)
         iv = base64.b64decode(iv_b64)
 
@@ -188,17 +190,14 @@ class DecryptQRCode(APIView):
 
         return Response({"qrcode_id": decrypted_qrcode_id_str}, status=status.HTTP_200_OK)
 
-
-
     def database_worker(self, field, update_field):
-        datacube_data_insertion(*qrcode_management,"insert", field, update_field)
-    
-    
+        datacube_data_insertion(*qrcode_management, "insert", field, update_field)
+
     def get(self, request):
         created_by = request.GET.get('created_by')
 
         update_field = {
-            "status":"nothing to update"
+            "status": "nothing to update"
         }
         if created_by:
             field = {"created_by": created_by}
@@ -211,60 +210,57 @@ class DecryptQRCode(APIView):
         for item in qrcode_list:
             try:
                 del item["master_link"]
-            except: 
+            except:
                 pass
             del item["link"]
 
         if len(qrcode_list) < 1:
             return Response({"message": f"no qrcodes found created by {created_by}"}, status=400)
         return Response({"response": res}, status=status.HTTP_200_OK)
- 
-
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqrupdate(APIView):
 
     def get_object(self, request, id):
-        field = {"qrcode_id": id}  
-        res = dowellconnection(*qrcode_management, "fetch", field, {})
+        field = {"qrcode_id": id}
+        res = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        # res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
-        
-        if response["isSuccess"]:
+
+        if response["success"]:
             return response["data"][0]
-       
-    
+
     def get(self, request, id):
-        field = {"qrcode_id": id}  
-        res = dowellconnection(*qrcode_management, "fetch", field, {})
+        field = {"qrcode_id": id}
+        res = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        # res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
 
         data = response["data"]
 
         # Check if the fetch was successful
-        if response["isSuccess"] and len(data) > 0:
+        if response["success"] and len(data) > 0:
             del data[0]["master_link"]
             del data[0]["link"]
-     
+
             return Response({"response": data}, status=status.HTTP_200_OK)
         elif len(response["data"]) < 1:
             return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
-    
-    
+
     def put(self, request, id):
         # get cloudinary qrcode image in order to update it
         logo_url = ""
-        
+
         try:
             qrcode_ = self.get_object(request, id)
             qrcode_image_url = qrcode_.get("qrcode_image_url", "")
             logo_url = qrcode_.get("logo_url", "")
-        except: 
+        except:
             return Response({"error": "No qrcodes found with given id"}, status=status.HTTP_404_NOT_FOUND)
-        
-        
+
         company_id = request.data.get("company_id", qrcode_["company_id"])
         link = request.data.get("link", qrcode_["link"])
 
@@ -272,14 +268,13 @@ class codeqrupdate(APIView):
             master_link = request.data.get("master_link", qrcode_["master_link"])
         except:
             master_link = request.data.get("master_link")
-      
+
         if not master_link:
             return Response({"message": "Masterlink not found master_link in required"})
-            
+
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
 
-       
         try:
             product_name = request.data.get('product_name', qrcode_["product_name"])
         except:
@@ -298,8 +293,9 @@ class codeqrupdate(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         if not is_valid_hex_color(qrcode_color):
-            return Response({"error": "Invalid logo color. Must be a valid hex color code."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"error": "Invalid logo color. Must be a valid hex color code."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         if not logo and not logo_url:
             logo_url = None
         elif not logo_url and logo:
@@ -318,21 +314,22 @@ class codeqrupdate(APIView):
             qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
         else:
             if logo:
-                img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.",  qrcode_color, logo)
+                img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.",
+                                       qrcode_color, logo)
                 file_name = generate_file_name()
                 qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
             else:
-                img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.", qrcode_color)
+                img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.",
+                                       qrcode_color)
                 file_name = generate_file_name()
                 qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-            
 
         logoSize = logo_size
 
         field = {
             "qrcode_id": id
         }
-    
+
         update_field = {
             "qrcode_id": id,
             "logo_size": logoSize,
@@ -350,30 +347,30 @@ class codeqrupdate(APIView):
 
         serializer = DoWellUpdateQrCodeSerializer(data=update_field)
         if serializer.is_valid():
-            res = dowellconnection(*qrcode_management,"update",field, update_field)
+            # res = dowellconnection(*qrcode_management,"update",field, update_field)
+            res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, query, data)
             response = json.loads(res)
 
             # Check if the update was successful
-            if response["isSuccess"]:
+            if response["success"]:
                 del update_field["master_link"]
-                return Response({"response": update_field, "message": "Qrcode Updated Successfully"}, status=status.HTTP_200_OK)
+                return Response({"response": update_field, "message": "Qrcode Updated Successfully"},
+                                status=status.HTTP_200_OK)
             else:
                 return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-      
-
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class codeqractivate(APIView):
 
     def get_object(self, request, id):
-        field = {"qrcode_id": id}  
-        res = dowellconnection(*qrcode_management, "fetch", field, {})
+        field = {"qrcode_id": id}
+        res = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        # res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
-        
-        if response["isSuccess"]:
+
+        if response["success"]:
             return response["data"][0]
 
     def put(self, request, id):
@@ -387,33 +384,30 @@ class codeqractivate(APIView):
             qrcode_master_link = qrcode_["master_link"]
             qrcode_logo_url = qrcode_["logo_url"]
             qrcode_color = qrcode_["qrcode_color"]
-        except: 
+        except:
             return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_404_NOT_FOUND)
-        
 
         img_qr = create_qrcode(qrcode_master_link, qrcode_color, logo)
 
         # update qrcode and logo image in cloudinary
         file_name = generate_file_name()
         qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-    
+
         update_field = {
             "is_active": True,
             "qrcode_image_url": qrcode_image_url
         }
 
-        res = dowellconnection(*qrcode_management, "update", field, update_field)
+        # res = dowellconnection(*qrcode_management, "update", field, update_field)
+        res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, field, update_field)
         response = json.loads(res)
 
         data = self.get_object(request, id)
 
-
         # Check if the update was successful
-        if response["isSuccess"]:
+        if response["success"]:
             del data["master_link"]
             del data["link"]
             return Response({"response": data, "message": "Qrcode activated successfully"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
-
-
