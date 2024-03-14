@@ -128,6 +128,7 @@ class codeqr(APIView):
             # qrcodes_created.append(field)
             if serializer.is_valid():
                 try:
+                    print(Apikey)
                     QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
                     # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                     # insertion_thread.start()
@@ -201,9 +202,11 @@ class DecryptQRCode(APIView):
         }
         if created_by:
             field = {"created_by": created_by}
-            response = dowellconnection(*qrcode_management, "fetch", field, update_field)
+            response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+
+            # response = dowellconnection(*qrcode_management, "fetch", field, update_field)
         else:
-            response = dowellconnection(*qrcode_management, "fetch", {}, update_field)
+            response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
 
         res = json.loads(response)
         qrcode_list = res["data"]

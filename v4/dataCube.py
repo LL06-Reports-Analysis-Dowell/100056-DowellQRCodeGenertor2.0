@@ -20,10 +20,11 @@ def QR_code_datacube_data_insertion(api_key, database_name, collection_name, dat
         "operation": "insert",
         "data": data,
     }
-
+    # print(payload)
     response = requests.post(url, json=payload)
-    print(response)
+    print(response.text)
     return response.text
+
 
 
 def datacube_data_retrieval(api_key, database_name, collection_name, data):
