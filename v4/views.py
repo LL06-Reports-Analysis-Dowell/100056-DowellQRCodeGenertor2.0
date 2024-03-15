@@ -351,7 +351,7 @@ class codeqrupdate(APIView):
         serializer = DoWellUpdateQrCodeSerializer(data=update_field)
         if serializer.is_valid():
             # res = dowellconnection(*qrcode_management,"update",field, update_field)
-            res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, query, data)
+            res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, field, update_field)
             response = json.loads(res)
 
             # Check if the update was successful
