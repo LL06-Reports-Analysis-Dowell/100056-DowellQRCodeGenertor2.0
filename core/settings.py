@@ -17,7 +17,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
+load_dotenv('/home/100099/100056-DowellQRCodeGenertor2.0/.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
