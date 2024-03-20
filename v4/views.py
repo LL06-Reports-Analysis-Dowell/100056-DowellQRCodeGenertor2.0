@@ -159,25 +159,50 @@ class DecryptQRCode(APIView):
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
+
     def post(self, request):
         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
         iv_b64 = request.data.get("iv")
 
+
         encrypted_qrcode_id = base64.urlsafe_b64decode(encrypted_qrcode_id_b64)
         iv = decode_base64_url_safe(iv_b64)
+
 
         # Decrypt the encrypted QR code ID back to its original UUID
         decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
 
+
         # Convert the UUID to string for readability
         decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
 
-        field = {"qrcode_id_decrypted": decrypted_qrcode_id_str}
-        response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
-        res = json.loads(response)
-        qrcode_list = res["data"]
 
-        return Response({"Data": qrcode_list}, status=status.HTTP_200_OK)
+        return Response({"qrcode_id": decrypted_qrcode_id_str}, status=status.HTTP_200_OK)
+
+# class DecryptQRCode(APIView):
+#     @method_decorator(csrf_exempt)
+#     def dispatch(self, *args, **kwargs):
+#         return super().dispatch(*args, **kwargs)
+
+#     def post(self, request):
+#         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
+#         iv_b64 = request.data.get("iv")
+
+#         encrypted_qrcode_id = base64.urlsafe_b64decode(encrypted_qrcode_id_b64)
+#         iv = decode_base64_url_safe(iv_b64)
+
+#         # Decrypt the encrypted QR code ID back to its original UUID
+#         decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
+
+#         # Convert the UUID to string for readability
+#         decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
+
+#         field = {"qrcode_id_decrypted": decrypted_qrcode_id_str}
+#         response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+#         res = json.loads(response)
+#         qrcode_list = res["data"]
+
+#         return Response({"Data": qrcode_list}, status=status.HTTP_200_OK)
 
     def database_worker(self, field, update_field):
         datacube_data_insertion(*qrcode_management, "insert", field, update_field)
