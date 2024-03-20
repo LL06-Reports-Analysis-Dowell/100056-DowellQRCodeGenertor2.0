@@ -1,3 +1,4 @@
+import base64
 import io
 import time
 import uuid
@@ -321,3 +322,12 @@ def decrypt_qrcode_id(encrypted_qrcode_id, iv):
     decipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
     plaintext = unpad(decipher.decrypt(encrypted_qrcode_id), AES.block_size)
     return plaintext
+
+
+# Example of URL-safe base64 encoding
+def encode_base64_url_safe(data):
+    return base64.urlsafe_b64encode(data).decode('utf-8')
+
+# Example of URL-safe base64 decoding
+def decode_base64_url_safe(data):
+    return base64.urlsafe_b64decode(data)

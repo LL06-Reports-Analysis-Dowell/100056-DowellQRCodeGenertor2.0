@@ -11,7 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
-    create_uuid, datacube_data_insertion, decrypt_qrcode_id, encrypt_qrcode_id, generate_file_name, is_valid_hex_color,
+    create_uuid, datacube_data_insertion, decode_base64_url_safe, decrypt_qrcode_id, encode_base64_url_safe, encrypt_qrcode_id, generate_file_name, is_valid_hex_color,
     create_qrcode,
     dowellconnection, processApikey, qrcode_type_defination, update_cloudinary_image,
     upload_image_to_interserver
@@ -97,8 +97,10 @@ class codeqr(APIView):
             qrcode_id = create_uuid()
             encrypted_qrcode_id, iv = encrypt_qrcode_id(qrcode_id)
 
-            qrcode_id_encrypted = base64.b64encode(encrypted_qrcode_id).decode('utf-8')
-            iv_b64 = base64.b64encode(iv).decode('utf-8')
+            # qrcode_id_encrypted = base64.b64encode(encrypted_qrcode_id).decode('utf-8')
+            # iv_b64 = base64.b64encode(iv).decode('utf-8')
+            qrcode_id_encrypted = encode_base64_url_safe(encrypted_qrcode_id)
+            iv_b64 = encode_base64_url_safe(iv)
 
             field = {
                 "master_link": master_link,
@@ -150,26 +152,6 @@ class codeqr(APIView):
     #     return Response(response_text, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @method_decorator(csrf_exempt, name='dispatch')
-# class DecryptQRCode(APIView):
-#     def post(self, request):
-#         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
-#         iv_b64 = request.data.get("iv")
-
-#         if encrypted_qrcode_id_b64 is None:
-#             return Response({"error": "No qrcode_id provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             encrypted_qrcode_id = base64.b64decode(encrypted_qrcode_id_b64)
-#             iv = base64.b64decode(iv_b64)
-
-#             cipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
-#             decrypted_qrcode_id_bytes = unpad(cipher.decrypt(encrypted_qrcode_id), AES.block_size)
-#             decrypted_qrcode_id = decrypted_qrcode_id_bytes.decode('utf-8')
-
-#             return Response({"qrcode_id": decrypted_qrcode_id})
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class DecryptQRCode(APIView):
     @method_decorator(csrf_exempt)
@@ -180,8 +162,8 @@ class DecryptQRCode(APIView):
         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
         iv_b64 = request.data.get("iv")
 
-        encrypted_qrcode_id = base64.b64decode(encrypted_qrcode_id_b64)
-        iv = base64.b64decode(iv_b64)
+        encrypted_qrcode_id = base64.urlsafe_b64decode(encrypted_qrcode_id_b64)
+        iv = decode_base64_url_safe(iv_b64)
 
         # Decrypt the encrypted QR code ID back to its original UUID
         decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
