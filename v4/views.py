@@ -210,7 +210,7 @@ class DecryptQRCode(APIView):
     def get(self, request):
         created_by = request.GET.get('id')
         print(created_by)
-        field = {"_id": created_by}
+        field = {"qrcode_id_decrypted": created_by}
         if created_by:
             response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
         else:
