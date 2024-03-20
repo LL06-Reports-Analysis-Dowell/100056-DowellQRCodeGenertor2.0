@@ -131,7 +131,8 @@ class codeqr(APIView):
             if serializer.is_valid():
                 try:
                     print(Apikey)
-                    QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+                    data = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+                    print(data)
                     # insertion_thread = threading.Thread(target=self.mongodb_worker, args=(field, update_field))
                     # insertion_thread.start()
                     # return Response({"response": field}, status=status.HTTP_201_CREATED)
@@ -171,22 +172,22 @@ class DecryptQRCode(APIView):
         # Convert the UUID to string for readability
         decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
 
-        return Response({"qrcode_id": decrypted_qrcode_id_str}, status=status.HTTP_200_OK)
+        field = {"qrcode_id_decrypted": decrypted_qrcode_id_str}
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        res = json.loads(response)
+        qrcode_list = res["data"]
+
+        return Response({"Data": qrcode_list}, status=status.HTTP_200_OK)
 
     def database_worker(self, field, update_field):
         datacube_data_insertion(*qrcode_management, "insert", field, update_field)
 
     def get(self, request):
-        created_by = request.GET.get('created_by')
-
-        update_field = {
-            "status": "nothing to update"
-        }
+        created_by = request.GET.get('id')
+        print(created_by)
+        field = {"_id": created_by}
         if created_by:
-            field = {"created_by": created_by}
             response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
-
-            # response = dowellconnection(*qrcode_management, "fetch", field, update_field)
         else:
             response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
 
@@ -333,7 +334,7 @@ class codeqrupdate(APIView):
         serializer = DoWellUpdateQrCodeSerializer(data=update_field)
         if serializer.is_valid():
             # res = dowellconnection(*qrcode_management,"update",field, update_field)
-            res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, query, data)
+            res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, field, update_field)
             response = json.loads(res)
 
             # Check if the update was successful
