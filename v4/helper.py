@@ -213,13 +213,13 @@ def update_cloudinary_image(image_url, your_updated_image_file):
 
 
 def create_uuid():
-    unique_id = uuid.uuid1().int >> 64
+    unique_id = uuid.uuid4()
     unique_id = str(unique_id)
     return unique_id
 
 
 
-def qrcode_type_defination(qrcode_id_encrypted, iv_b64, qrcode_type, request, qrcode_color, logo, field, logo_url=None):
+def qrcode_type_defination(qrcode_id_encrypted, is_active, qrcode_type, request, qrcode_color, logo, field, logo_url=None):
     serializer = None    
     if qrcode_type == "Product":
         title = request.data.get("title")
@@ -272,7 +272,7 @@ def qrcode_type_defination(qrcode_id_encrypted, iv_b64, qrcode_type, request, qr
     elif qrcode_type == "Link":
         link = request.data.get("link")
         # link = "https://100099.pythonanywhere.com/api/v1/inactive/"
-        img_qr = create_qrcode(f"This QrCode is encrypted with {qrcode_id_encrypted} and {iv_b64} Decrypt it then Activate and Rescan.", qrcode_color, logo)
+        img_qr = create_qrcode(f"This QrCode is encrypted with {qrcode_id_encrypted} and {is_active} Decrypt it then Activate and Rescan.", qrcode_color, logo)
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)
