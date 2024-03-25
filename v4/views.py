@@ -95,17 +95,16 @@ class codeqr(APIView):
                 logo_url = None
 
             qrcode_id = create_uuid()
-            encrypted_qrcode_id, iv = encrypt_qrcode_id(qrcode_id)
+            # encrypted_qrcode_id, iv = encrypt_qrcode_id(qrcode_id)
 
             # qrcode_id_encrypted = base64.b64encode(encrypted_qrcode_id).decode('utf-8')
             # iv_b64 = base64.b64encode(iv).decode('utf-8')
-            qrcode_id_encrypted = encode_base64_url_safe(encrypted_qrcode_id)
-            iv_b64 = encode_base64_url_safe(iv)
+            # qrcode_id_encrypted = encode_base64_url_safe(encrypted_qrcode_id)
+            # iv_b64 = encode_base64_url_safe(iv)
 
             field = {
                 "master_link": master_link,
-                "qrcode_id": qrcode_id_encrypted,
-                "iv": iv_b64,
+                "qrcode_id": qrcode_id,
                 "qrcode_id_decrypted": qrcode_id,
                 "logo_size": logo_size,
                 "qrcode_color": qrcode_color,
@@ -124,7 +123,7 @@ class codeqr(APIView):
             # Encrypt the data before embedding it into the QR code
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_id_encrypted, iv_b64, qrcode_type, request, qrcode_color,
+            serializer, field = qrcode_type_defination(qrcode_id,is_active, qrcode_type, request, qrcode_color,
                                                        logo, field, logo_url)
 
             # qrcodes_created.append(field)
@@ -161,23 +160,43 @@ class DecryptQRCode(APIView):
 
 
     def post(self, request):
-        encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
-        iv_b64 = request.data.get("iv")
+        qrcode_id = request.data.get("qrcode_id")
+        # created_by = request.GET.get('id')
+        print(qrcode_id)
+        field = {"qrcode_id": qrcode_id}
+        if qrcode_id:
+            response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        else:
+            response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+
+        res = json.loads(response)
+        qrcode_list = res["data"]
+        for item in qrcode_list:
+            try:
+                del item["master_link"]
+            except:
+                pass
+            del item["link"]
+
+        if len(qrcode_list) < 1:
+            return Response({"message": f"no qrcodes found created by {qrcode_id}"}, status=400)
+        return Response({"response": res}, status=status.HTTP_200_OK)
+        # iv_b64 = request.data.get("iv")
 
 
-        encrypted_qrcode_id = base64.urlsafe_b64decode(encrypted_qrcode_id_b64)
-        iv = decode_base64_url_safe(iv_b64)
+        # encrypted_qrcode_id = base64.urlsafe_b64decode(encrypted_qrcode_id_b64)
+        # iv = decode_base64_url_safe(iv_b64)
 
 
         # Decrypt the encrypted QR code ID back to its original UUID
-        decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
+        # decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
 
 
         # Convert the UUID to string for readability
-        decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
+        # decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
 
 
-        return Response({"qrcode_id": decrypted_qrcode_id_str}, status=status.HTTP_200_OK)
+        # return Response({"qrcode_id": decrypted_qrcode_id_str}, status=status.HTTP_200_OK)
 
 # class DecryptQRCode(APIView):
 #     @method_decorator(csrf_exempt)
