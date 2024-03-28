@@ -42,6 +42,28 @@ class serverStatus(APIView):
 
 
 class codeqr(APIView):
+
+    def get(self, request):
+        created_by = request.GET.get('created_by')
+        print(created_by)
+        field = {"created_by": created_by}
+        if created_by:
+            response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        else:
+            response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+
+        res = json.loads(response)
+        qrcode_list = res["data"]
+        for item in qrcode_list:
+            try:
+                del item["master_link"]
+            except:
+                pass
+            del item["link"]
+
+        if len(qrcode_list) < 1:
+            return Response({"message": f"no qrcodes found created by {created_by}"}, status=400)
+        return Response({"response": res}, status=status.HTTP_200_OK)
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
@@ -61,6 +83,7 @@ class codeqr(APIView):
         created_by = request.data.get("created_by")
         description = request.data.get("description")
         is_active = request.data.get("is_active", False)
+        playStoreLink = 'https://dowellresearch.uk/'
         quantity = request.data.get("quantity")
 
         try:
@@ -114,6 +137,7 @@ class codeqr(APIView):
                 "product_name": product_name,
                 "is_active": is_active,
                 "qrcode_type": qrcode_type,
+                'playStoreLink':playStoreLink
             }
 
             update_field = {
