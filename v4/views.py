@@ -83,7 +83,7 @@ class codeqr(APIView):
         created_by = request.data.get("created_by")
         description = request.data.get("description")
         is_active = request.data.get("is_active", False)
-        playStoreLink = 'https://dowellresearch.uk/'
+        playStoreLink = 'https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1'
         quantity = request.data.get("quantity")
 
         try:
