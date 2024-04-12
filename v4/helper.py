@@ -9,8 +9,8 @@ import qrcode
 import requests
 from PIL import Image, ImageDraw
 
-import cloudinary.uploader
-import cloudinary
+# import cloudinary.uploader
+# import cloudinary
 
 from .serializers import DoWellQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
 from Crypto.Cipher import AES
@@ -20,14 +20,14 @@ import os
 
 from Crypto.Util.Padding import unpad
 from base64 import b64decode
-
-cloudinary.config(
-    cloud_name="din7lejen",
-    api_key=835315697185388,
-    api_secret="6uovHssSAvgpP-j82Z2qrra3bEE",
-    api_proxy= 'http://proxy.server:3128'
-)
-
+#
+# cloudinary.config(
+#     cloud_name="din7lejen",
+#     api_key=835315697185388,
+#     api_secret="6uovHssSAvgpP-j82Z2qrra3bEE",
+#     api_proxy= 'http://proxy.server:3128'
+# )
+#
 
 def dowellconnection(cluster,database,collection,document,team_member_ID,function_ID,command,field,update_field):
     url = "http://uxlivinglab.pythonanywhere.com"
@@ -206,9 +206,9 @@ def update_cloudinary_image(image_url, your_updated_image_file):
     public_id = image_url.split('/')[-1].split('.')[0]
 
     # Upload the updated image to Cloudinary and retrieve the URL of the new image
-    response = cloudinary.uploader.upload(your_updated_image_file, public_id=public_id)
-    new_image_url = response['secure_url']
-    return new_image_url
+    # response = cloudinary.uploader.upload(your_updated_image_file, public_id=public_id)
+    # new_image_url = response['secure_url']
+    # return new_image_url
 
 
 
@@ -272,7 +272,7 @@ def qrcode_type_defination(qrcode_id_encrypted, is_active, qrcode_type, request,
     elif qrcode_type == "Link":
         link = request.data.get("link")
         # link = "https://100099.pythonanywhere.com/api/v1/inactive/"
-        img_qr = create_qrcode(f"This QrCode is encrypted with {qrcode_id_encrypted} and is_active {is_active} Decrypt it then Activate and Rescan.", qrcode_color, logo)
+        img_qr = create_qrcode(f"This QrCode is encrypted with {qrcode_id_encrypted} and is_active {is_active} Decrypt it then Activate and Rescan.Click this link to Download https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1", qrcode_color, logo)
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)

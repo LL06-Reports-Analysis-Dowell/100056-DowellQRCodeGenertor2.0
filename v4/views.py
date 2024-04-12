@@ -48,7 +48,8 @@ class codeqr(APIView):
         print(created_by)
         field = {"created_by": created_by}
         if created_by:
-            response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+            response = json.loads(datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field))
+            return Response(reversed(response['data']))
         else:
             response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
 

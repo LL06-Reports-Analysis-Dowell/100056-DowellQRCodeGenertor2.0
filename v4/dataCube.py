@@ -48,7 +48,7 @@ def datacube_data_retrieval(api_key, database_name, collection_name, data):
         "coll_name": collection_name,
         "operation": "fetch",
         "filters": data,
-        "limit": 1,
+        "limit": 10000,
         "offset": 0
     }
 
