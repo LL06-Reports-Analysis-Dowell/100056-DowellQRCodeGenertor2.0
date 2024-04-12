@@ -442,19 +442,20 @@ class codeqractivate(APIView):
         except:
             return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_404_NOT_FOUND)
 
-        img_qr = create_qrcode(qrcode_master_link, qrcode_color, logo)
+        # img_qr = create_qrcode(qrcode_master_link, qrcode_color, logo)
+        #
+        # # update qrcode and logo image in cloudinary
+        # file_name = generate_file_name()
+        # qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
 
-        # update qrcode and logo image in cloudinary
-        file_name = generate_file_name()
-        qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-
+        qrcode_["is_active"] = True
         update_field = {
             "is_active": True,
-            "qrcode_image_url": qrcode_image_url
+            # "qrcode_image_url": qrcode_image_url
         }
 
         # res = dowellconnection(*qrcode_management, "update", field, update_field)
-        res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, field, update_field)
+        res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, field, qrcode_)
         response = json.loads(res)
 
         data = self.get_object(request, id)
