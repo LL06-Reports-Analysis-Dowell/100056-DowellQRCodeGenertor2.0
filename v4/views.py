@@ -421,7 +421,9 @@ class codeqractivate(APIView):
 
     def get_object(self, request, id):
         field = {"qrcode_id": id}
+        print(field)
         res = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        print(res)
         # res = dowellconnection(*qrcode_management, "fetch", field, {})
         response = json.loads(res)
 
@@ -439,12 +441,14 @@ class codeqractivate(APIView):
             qrcode_master_link = qrcode_["master_link"]
             qrcode_logo_url = qrcode_["logo_url"]
             qrcode_color = qrcode_["qrcode_color"]
+            qr_id = qrcode_["_id"]
         except:
             return Response({"error": "no qrcodes found with given id"}, status=status.HTTP_404_NOT_FOUND)
 
+        # Presumably create_qrcode is a function to generate QR code images
         # img_qr = create_qrcode(qrcode_master_link, qrcode_color, logo)
         #
-        # # update qrcode and logo image in cloudinary
+        # Presumably upload_image_to_interserver uploads an image to a server and returns the URL
         # file_name = generate_file_name()
         # qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
 
@@ -454,8 +458,8 @@ class codeqractivate(APIView):
             # "qrcode_image_url": qrcode_image_url
         }
 
-        # res = dowellconnection(*qrcode_management, "update", field, update_field)
-        res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, field, qrcode_)
+        # Exclude '_id' from the update operation
+        res = datacube_data_update(Apikey, DATABASE_NAME, COLLECTION_NAME, {"_id": qr_id}, update_field)
         response = json.loads(res)
 
         data = self.get_object(request, id)
@@ -467,3 +471,4 @@ class codeqractivate(APIView):
             return Response({"response": data, "message": "Qrcode activated successfully"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+
