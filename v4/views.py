@@ -50,8 +50,7 @@ class codeqr(APIView):
         if created_by:
             response = json.loads(datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field))
             response = {
-                'response': f'{created_by} list of QR_codes',
-                'qrcodes': reversed(response['data'])
+                'response': reversed(response['data'])
             }
             return Response(response)
         else:
