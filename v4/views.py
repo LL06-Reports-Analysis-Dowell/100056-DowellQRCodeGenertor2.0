@@ -49,7 +49,11 @@ class codeqr(APIView):
         field = {"created_by": created_by}
         if created_by:
             response = json.loads(datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field))
-            return Response(reversed(response['data']))
+            response = {
+                'response': f'{created_by} list of QR_codes',
+                'qrcodes': reversed(response['data'])
+            }
+            return Response(response)
         else:
             response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
 
@@ -86,6 +90,7 @@ class codeqr(APIView):
         is_active = request.data.get("is_active", False)
         playStoreLink = 'https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1'
         quantity = request.data.get("quantity")
+        link = None
 
         try:
             if logo_size <= 0:
@@ -138,7 +143,8 @@ class codeqr(APIView):
                 "product_name": product_name,
                 "is_active": is_active,
                 "qrcode_type": qrcode_type,
-                'playStoreLink':playStoreLink
+                'playStoreLink':playStoreLink,
+                'Link': link
             }
 
             update_field = {
@@ -339,6 +345,7 @@ class codeqrupdate(APIView):
         created_by = request.data.get("created_by", qrcode_["created_by"])
         description = request.data.get("description", qrcode_["description"])
         is_active = request.data.get("is_active", qrcode_["is_active"])
+        link = request.data.get("link", qrcode_["link"])
 
         # Validate logo size
         try:
@@ -397,7 +404,8 @@ class codeqrupdate(APIView):
             "is_active": is_active,
             "qrcode_type": qrcode_["qrcode_type"],
             "qrcode_image_url": qrcode_image_url,
-            "logo_url": logo_url
+            "logo_url": logo_url,
+            "link":link
         }
 
         serializer = DoWellUpdateQrCodeSerializer(data=update_field)
