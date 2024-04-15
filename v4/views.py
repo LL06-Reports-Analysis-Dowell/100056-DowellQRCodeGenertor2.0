@@ -2,7 +2,7 @@ import base64
 import json
 import threading
 from django.shortcuts import render
-from v4.dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update
+from v4.dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update, datacube_data_delete
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -515,6 +515,15 @@ class decryptQrCode(APIView):
                 return Response({"qrcode_id": qrcode_id, "message": "Unauthorized",
                                  "playStoreLink": "https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1"},
                                 status=status.HTTP_401_UNAUTHORIZED)
+
+
+    def delete(self, request, created_by, format=None):
+        field = {
+            "created_by": created_by,
+        }
+        response=datacube_data_delete(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        return Response({'response': json.loads(response)},
+                        status=status.HTTP_200_OK)
 
 
 

@@ -10,4 +10,5 @@ urlpatterns = [
     path('update-qr-code/<str:id>/', codeqrupdate.as_view()),
     path('inactive/', inactive, name="inactive"),
     path('activate-qr-code/<str:id>/', codeqractivate.as_view()),
+    path('delete/<created_by>/', decryptQrCode.as_view(), name='delete_by_creator'),
 ]

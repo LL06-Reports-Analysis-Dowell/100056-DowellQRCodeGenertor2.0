@@ -83,3 +83,23 @@ def datacube_data_update(api_key, db_name, coll_name, query, update_data):
     print(response.text)
     return response.text
 
+def datacube_data_delete(api_key, db_name, collection_name, query):
+    """
+    Delete data from a collection in the DataCube database.
+
+    :param api_key: The API key for authentication.
+    :param db_name: The name of the database.
+    :param collection_name: The name of the collection.
+    :param query: The query to select the documents to delete.
+    :return: The response text from the server.
+    """
+    url = "https://datacube.uxlivinglab.online/db_api/crud/"
+    payload = {
+        "api_key": api_key,
+        "db_name": db_name,
+        "coll_name": collection_name,
+        "operation": "delete",
+        "query": query
+    }
+    response = requests.delete(url, json=payload)
+    return response.text
