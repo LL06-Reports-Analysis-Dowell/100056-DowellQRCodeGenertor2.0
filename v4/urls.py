@@ -6,6 +6,7 @@ urlpatterns = [
 
     path('qr-code/', codeqr.as_view()),
     path('decrypt-qrcode/', DecryptQRCode.as_view(), name='decrypt_qrcode'),
+    path('decrypt/<str:qrcode_id>/', decryptQrCode.as_view(), name='decrypt_qrcode'),
     path('update-qr-code/<str:id>/', codeqrupdate.as_view()),
     path('inactive/', inactive, name="inactive"),
     path('activate-qr-code/<str:id>/', codeqractivate.as_view()),

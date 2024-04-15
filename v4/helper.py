@@ -271,9 +271,12 @@ def qrcode_type_defination(qrcode_id_encrypted, is_active, qrcode_type, request,
         
     elif qrcode_type == "Link":
         link = request.data.get("link")
-        # link = "https://100099.pythonanywhere.com/api/v1/inactive/"
-        img_qr = create_qrcode(f"This QrCode is encrypted with {qrcode_id_encrypted} and is_active {is_active} Decrypt it then Activate and Rescan.",qrcode_color, logo)
-                               # f"Click this link to Download https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1",
+        link = f"https://100099.pythonanywhere.com/{field['qrcode_id']}"
+        print(link)
+        img_qr = create_qrcode(link,qrcode_color, logo)
+        # f"Click this link to Download https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1",
+        # img_qr = create_qrcode(f"This QrCode is encrypted with {qrcode_id_encrypted} and is_active {is_active} Decrypt it then Activate and Rescan.",qrcode_color, logo)
+        #                        # f"Click this link to Download https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1",
 
 
         file_name = generate_file_name()

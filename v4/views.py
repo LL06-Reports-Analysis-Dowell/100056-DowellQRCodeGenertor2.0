@@ -89,7 +89,7 @@ class codeqr(APIView):
         is_active = request.data.get("is_active", False)
         playStoreLink = 'https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1'
         quantity = request.data.get("quantity")
-        link = None
+        redirect_link = None
 
         try:
             if logo_size <= 0:
@@ -143,7 +143,7 @@ class codeqr(APIView):
                 "is_active": is_active,
                 "qrcode_type": qrcode_type,
                 'playStoreLink':playStoreLink,
-                'Link': link
+                'redirect_link': redirect_link
             }
 
             update_field = {
@@ -156,6 +156,8 @@ class codeqr(APIView):
             serializer, field = qrcode_type_defination(qrcode_id,is_active, qrcode_type, request, qrcode_color,
                                                        logo, field, logo_url)
 
+            print(serializer)
+            print(field)
             # qrcodes_created.append(field)
             if serializer.is_valid():
                 try:
@@ -170,7 +172,7 @@ class codeqr(APIView):
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                 del field["master_link"]
-                del field["link"]
+                # del field["link"]
                 qrcodes_created.append(field)
 
         if qrcodes_created:
@@ -344,7 +346,7 @@ class codeqrupdate(APIView):
         created_by = request.data.get("created_by", qrcode_["created_by"])
         description = request.data.get("description", qrcode_["description"])
         is_active = request.data.get("is_active", qrcode_["is_active"])
-        link = request.data.get("link", qrcode_["link"])
+        redirect_link = request.data.get("redirect_link", qrcode_["redirect_link"])
 
         # Validate logo size
         try:
@@ -368,24 +370,24 @@ class codeqrupdate(APIView):
         else:
             pass
 
-        # Create the QR code image/ Check if is_active is True and put masterlink
-        if is_active == True:
-            img_qr = create_qrcode(master_link, qrcode_color, logo)
-            file_name = generate_file_name()
-            qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-        else:
-            if logo:
-                img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.",
-                                       qrcode_color, logo)
-                file_name = generate_file_name()
-                qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-            else:
-                img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.",
-                                       qrcode_color)
-                file_name = generate_file_name()
-                qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
-
-        logoSize = logo_size
+        # # Create the QR code image/ Check if is_active is True and put masterlink
+        # if is_active == True:
+        #     img_qr = create_qrcode(master_link, qrcode_color, logo)
+        #     file_name = generate_file_name()
+        #     qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+        # else:
+        #     if logo:
+        #         img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.",
+        #                                qrcode_color, logo)
+        #         file_name = generate_file_name()
+        #         qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+        #     else:
+        #         img_qr = create_qrcode(f"This QrCode with ID {id} has been deactivated. Reactivate and Rescan.",
+        #                                qrcode_color)
+        #         file_name = generate_file_name()
+        #         qrcode_image_url = upload_image_to_interserver(img_qr, file_name)
+        #
+        # logoSize = logo_size
 
         field = {
             "qrcode_id": id
@@ -393,7 +395,7 @@ class codeqrupdate(APIView):
 
         update_field = {
             "qrcode_id": id,
-            "logo_size": logoSize,
+            "logo_size": logo_size,
             "product_name": product_name,
             "qrcode_color": qrcode_color,
             "master_link": master_link,
@@ -404,7 +406,8 @@ class codeqrupdate(APIView):
             "qrcode_type": qrcode_["qrcode_type"],
             "qrcode_image_url": qrcode_image_url,
             "logo_url": logo_url,
-            "link":link
+            "redirect_link":redirect_link,
+
         }
 
         serializer = DoWellUpdateQrCodeSerializer(data=update_field)
@@ -474,8 +477,44 @@ class codeqractivate(APIView):
         # Check if the update was successful
         if response["success"]:
             del data["master_link"]
-            del data["link"]
+            # del data["link"]
             return Response({"response": data, "message": "Qrcode activated successfully"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class decryptQrCode(APIView):
+    def get(self, request, qrcode_id ):
+        field = {
+            "qrcode_id": qrcode_id,
+        }
+
+        if qrcode_id:
+            response = json.loads(datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field))
+            if response['success']:
+                # Check if data is present
+                if response.get('data'):
+                    # Check if the first item in data is active
+                    if response['data'][0]['is_active']:
+                        reversed_data = list(reversed(response['data']))
+                        return Response({'response': reversed_data, "message": "You are Authorized"},
+                                        status=status.HTTP_200_OK)
+                    else:
+                        reversed_data = list(reversed(response['data']))
+                        return Response({'response': reversed_data,
+                                         "message": "You are Authorized But Please Activate the QR code and then Rescan"},
+                                        status=status.HTTP_200_OK)
+                else:
+                    # Handle case where data is empty
+                    return Response({"qrcode_id": qrcode_id, "message": "Unauthorized",
+                                     "playStoreLink": "https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1"},
+                                    status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                return Response({"qrcode_id": qrcode_id, "message": "Unauthorized",
+                                 "playStoreLink": "https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1"},
+                                status=status.HTTP_401_UNAUTHORIZED)
+
+
 
