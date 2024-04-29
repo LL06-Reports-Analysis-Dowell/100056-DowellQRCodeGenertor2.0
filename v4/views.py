@@ -89,7 +89,7 @@ class codeqr(APIView):
         is_active = request.data.get("is_active", False)
         playStoreLink = 'https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1'
         quantity = request.data.get("quantity")
-        redirect_link = None
+        redirect_link = request.data.get("redirect_link")
 
         try:
             if logo_size <= 0:
