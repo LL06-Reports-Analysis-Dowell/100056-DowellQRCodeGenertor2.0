@@ -2,7 +2,8 @@ import base64
 import json
 import threading
 from django.shortcuts import render
-from v4.dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update, datacube_data_delete
+from v4.dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update, \
+    datacube_data_delete
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,7 +12,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
-    create_uuid, datacube_data_insertion, decode_base64_url_safe, decrypt_qrcode_id, encode_base64_url_safe, encrypt_qrcode_id, generate_file_name, is_valid_hex_color,
+    create_uuid, datacube_data_insertion, decode_base64_url_safe, decrypt_qrcode_id, encode_base64_url_safe,
+    encrypt_qrcode_id, generate_file_name, is_valid_hex_color,
     create_qrcode,
     dowellconnection, processApikey, qrcode_type_defination, update_cloudinary_image,
     upload_image_to_interserver
@@ -68,6 +70,7 @@ class codeqr(APIView):
         if len(qrcode_list) < 1:
             return Response({"message": f"no qrcodes found created by {created_by}"}, status=400)
         return Response({"response": res}, status=status.HTTP_200_OK)
+
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
@@ -142,7 +145,7 @@ class codeqr(APIView):
                 "product_name": product_name,
                 "is_active": is_active,
                 "qrcode_type": qrcode_type,
-                'playStoreLink':playStoreLink,
+                'playStoreLink': playStoreLink,
                 'redirect_link': redirect_link
             }
 
@@ -153,7 +156,7 @@ class codeqr(APIView):
             # Encrypt the data before embedding it into the QR code
 
             # This function checks qrcode_type field and assign them appropriate properties
-            serializer, field = qrcode_type_defination(qrcode_id,is_active, qrcode_type, request, qrcode_color,
+            serializer, field = qrcode_type_defination(qrcode_id, is_active, qrcode_type, request, qrcode_color,
                                                        logo, field, logo_url)
 
             print(serializer)
@@ -184,12 +187,10 @@ class codeqr(APIView):
     #     return Response(response_text, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class DecryptQRCode(APIView):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
-
 
     def post(self, request):
         qrcode_id = request.data.get("qrcode_id")
@@ -215,45 +216,41 @@ class DecryptQRCode(APIView):
         return Response({"response": res}, status=status.HTTP_200_OK)
         # iv_b64 = request.data.get("iv")
 
-
         # encrypted_qrcode_id = base64.urlsafe_b64decode(encrypted_qrcode_id_b64)
         # iv = decode_base64_url_safe(iv_b64)
-
 
         # Decrypt the encrypted QR code ID back to its original UUID
         # decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
 
-
         # Convert the UUID to string for readability
         # decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
 
-
         # return Response({"qrcode_id": decrypted_qrcode_id_str}, status=status.HTTP_200_OK)
 
-# class DecryptQRCode(APIView):
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, *args, **kwargs):
-#         return super().dispatch(*args, **kwargs)
+    # class DecryptQRCode(APIView):
+    #     @method_decorator(csrf_exempt)
+    #     def dispatch(self, *args, **kwargs):
+    #         return super().dispatch(*args, **kwargs)
 
-#     def post(self, request):
-#         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
-#         iv_b64 = request.data.get("iv")
+    #     def post(self, request):
+    #         encrypted_qrcode_id_b64 = request.data.get("qrcode_id")
+    #         iv_b64 = request.data.get("iv")
 
-#         encrypted_qrcode_id = base64.urlsafe_b64decode(encrypted_qrcode_id_b64)
-#         iv = decode_base64_url_safe(iv_b64)
+    #         encrypted_qrcode_id = base64.urlsafe_b64decode(encrypted_qrcode_id_b64)
+    #         iv = decode_base64_url_safe(iv_b64)
 
-#         # Decrypt the encrypted QR code ID back to its original UUID
-#         decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
+    #         # Decrypt the encrypted QR code ID back to its original UUID
+    #         decrypted_qrcode_id = decrypt_qrcode_id(encrypted_qrcode_id, iv)
 
-#         # Convert the UUID to string for readability
-#         decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
+    #         # Convert the UUID to string for readability
+    #         decrypted_qrcode_id_str = str(decrypted_qrcode_id)[2:-1]
 
-#         field = {"qrcode_id_decrypted": decrypted_qrcode_id_str}
-#         response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
-#         res = json.loads(response)
-#         qrcode_list = res["data"]
+    #         field = {"qrcode_id_decrypted": decrypted_qrcode_id_str}
+    #         response = datacube_data_retrieval(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+    #         res = json.loads(response)
+    #         qrcode_list = res["data"]
 
-#         return Response({"Data": qrcode_list}, status=status.HTTP_200_OK)
+    #         return Response({"Data": qrcode_list}, status=status.HTTP_200_OK)
 
     def database_worker(self, field, update_field):
         datacube_data_insertion(*qrcode_management, "insert", field, update_field)
@@ -326,13 +323,13 @@ class codeqrupdate(APIView):
         company_id = request.data.get("company_id", qrcode_["company_id"])
         link = request.data.get("link", qrcode_["link"])
 
-        try:
-            master_link = request.data.get("master_link", qrcode_["master_link"])
-        except:
-            master_link = request.data.get("master_link")
+        # try:
+        #     master_link = request.data.get("master_link", qrcode_["master_link"])
+        # except:
+        #     master_link = request.data.get("master_link")
 
-        if not master_link:
-            return Response({"message": "Masterlink not found master_link in required"})
+        # if not master_link:
+        #     return Response({"message": "Masterlink not found master_link in required"})
 
         logo = request.FILES.get('logo')
         logo_size = int(request.data.get("logo_size", "20"))
@@ -398,7 +395,7 @@ class codeqrupdate(APIView):
             "logo_size": logo_size,
             "product_name": product_name,
             "qrcode_color": qrcode_color,
-            "master_link": master_link,
+            # "master_link": master_link,
             "company_id": company_id,
             "created_by": created_by,
             "description": description,
@@ -406,7 +403,7 @@ class codeqrupdate(APIView):
             "qrcode_type": qrcode_["qrcode_type"],
             "qrcode_image_url": qrcode_image_url,
             "logo_url": logo_url,
-            "redirect_link":redirect_link,
+            "redirect_link": redirect_link,
 
         }
 
@@ -418,7 +415,7 @@ class codeqrupdate(APIView):
 
             # Check if the update was successful
             if response["success"]:
-                del update_field["master_link"]
+                # del update_field["master_link"]
                 return Response({"response": update_field, "message": "Qrcode Updated Successfully"},
                                 status=status.HTTP_200_OK)
             else:
@@ -483,10 +480,8 @@ class codeqractivate(APIView):
             return Response({"error": response["error"]}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 class decryptQrCode(APIView):
-    def get(self, request, qrcode_id ):
+    def get(self, request, qrcode_id):
         field = {
             "qrcode_id": qrcode_id,
         }
@@ -516,14 +511,10 @@ class decryptQrCode(APIView):
                                  "playStoreLink": "https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1"},
                                 status=status.HTTP_401_UNAUTHORIZED)
 
-
     def delete(self, request, created_by, format=None):
         field = {
             "created_by": created_by,
         }
-        response=datacube_data_delete(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
+        response = datacube_data_delete(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
         return Response({'response': json.loads(response)},
                         status=status.HTTP_200_OK)
-
-
-
