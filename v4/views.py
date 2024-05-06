@@ -518,3 +518,11 @@ class decryptQrCode(APIView):
         response = datacube_data_delete(Apikey, DATABASE_NAME, COLLECTION_NAME, field)
         return Response({'response': json.loads(response)},
                         status=status.HTTP_200_OK)
+
+
+
+def redirect_link(request, qrcode_id):
+    # You can use qrcode_id to get any data from your database if necessary
+    # For example, you could fetch a user or specific data related to this QR code
+    context = {'qrcode_id': qrcode_id}
+    return render(request, 'RedirectLink.html', context)

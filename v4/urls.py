@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import *
+from v4 import views
 
 urlpatterns = [
     path('server-status/', serverStatus.as_view()),
@@ -10,5 +11,6 @@ urlpatterns = [
     path('update-qr-code/<str:id>/', codeqrupdate.as_view()),
     path('inactive/', inactive, name="inactive"),
     path('activate-qr-code/<str:id>/', codeqractivate.as_view()),
+    path('<str:qrcode_id>/', views.redirect_link, name='qr_code_view'),
     path('delete/<created_by>/', decryptQrCode.as_view(), name='delete_by_creator'),
 ]

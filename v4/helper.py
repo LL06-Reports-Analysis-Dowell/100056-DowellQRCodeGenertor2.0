@@ -272,6 +272,8 @@ def qrcode_type_defination(qrcode_id_encrypted, is_active, qrcode_type, request,
     elif qrcode_type == "Link":
         link = request.data.get("link")
         link = f"https://100099.pythonanywhere.com/{field['qrcode_id']}"
+        # link = f"https://100099.pythonanywhere.com/api/v5/{field['qrcode_id']}"
+
         print(link)
         img_qr = create_qrcode(link,qrcode_color, logo)
         # img_qr = create_qrcode(f"This QrCode is encrypted with {qrcode_id_encrypted} and is_active {is_active} Decrypt it then Activate and Rescan.",qrcode_color, logo)
