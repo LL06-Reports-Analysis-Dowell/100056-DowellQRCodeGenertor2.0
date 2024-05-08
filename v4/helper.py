@@ -271,7 +271,8 @@ def qrcode_type_defination(qrcode_id_encrypted, is_active, qrcode_type, request,
         
     elif qrcode_type == "Link":
         link = request.data.get("link")
-        link = f"https://100099.pythonanywhere.com/{field['qrcode_id']}"
+        # link = f"https://100099.pythonanywhere.com/{field['qrcode_id']}"
+        link = f"https://www.qrcodereviews.uxlivinglab.online/{field['qrcode_id']}"
         # link = f"https://100099.pythonanywhere.com/api/v5/{field['qrcode_id']}"
 
         print(link)

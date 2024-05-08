@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
+from defaultPage import *
 
 
 urlpatterns = [
@@ -27,6 +28,7 @@ urlpatterns = [
     path('api/v3/',include('qrcode_version_3.urls')),
     path('',include('linkShortening.urls')),
     path('api/v5/', include('v4.urls')),
+    path('<str:qrid>/', openPage, name='default_page')
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

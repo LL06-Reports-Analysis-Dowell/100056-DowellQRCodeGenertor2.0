@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Company</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #007bff, #00bfff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 90%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 30px;
+            margin: 10px;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.2s;
+            max-width: 200px; /* Added max-width */
+            width: 100%; /* Added width */
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .icon {
+            margin-right: 10px;
+            color: #fff; /* Set icon color to match original logo */
+        }
+
+        /* Adjust buttons for mobile */
+        @media (max-width: 768px) {
+            .container {
+                max-width: 100%;
+            }
+
+            .logo {
+                max-width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img class="logo" src="https://dowellfileuploader.uxlivinglab.online/hr/logo-2-min-min.png" alt="Your Company Logo">
+        <div class="buttons">
+            <a class="button" href="https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app" target="_blank"><i class="fab fa-google-play icon"></i>Get it on Google Play</a>
+            <a class="button" href="https://apps.apple.com/us/app/dowell-qr-code-scanner/id6479631413" target="_blank"><i class="fab fa-app-store-ios icon"></i>Get it on App Store</a>
+        </div>
+    </div>
+</body>
+</html>
