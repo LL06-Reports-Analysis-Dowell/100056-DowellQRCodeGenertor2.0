@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/v3/',include('qrcode_version_3.urls')),
     path('',include('linkShortening.urls')),
     path('api/v5/', include('v4.urls')),
+    path('api/v6/', include('V6MasterLink.urls')),
     path('<str:qrid>/', openPage, name='default_page')
 ]
 
