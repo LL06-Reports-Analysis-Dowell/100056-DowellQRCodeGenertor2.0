@@ -1,14 +1,9 @@
 from django.urls import path
-from .views import (
-    QRCodeListCreateView,
-    QRCodeDetailView,
-    QRCodeActivateView,
-    QRCodeUpdateDataView
-)
+from .views import QRCodeAPIView, MasterQRCodeAPIView
 
 urlpatterns = [
-    path('qrcodes/', QRCodeListCreateView.as_view(), name='qrcode-list-create'),
-    path('qrcodes/<int:pk>/', QRCodeDetailView.as_view(), name='qrcode-detail'),
-    path('qrcodes/<int:pk>/activate/', QRCodeActivateView.as_view(), name='qrcode-activate'),
-    path('qrcodes/<int:pk>/update-data/', QRCodeUpdateDataView.as_view(), name='qrcode-update-data'),
+    path('qrcodes/', QRCodeAPIView.as_view(), name='qrcode-list-create'),
+    path('qrcodes/<int:pk>/', QRCodeAPIView.as_view(), name='qrcode-detail'),
+    path('master-qrcodes/', MasterQRCodeAPIView.as_view(), name='master-qrcode-create'),
+    path('activate-qr-code/<str:master_qr_code_id>/', MasterQRCodeAPIView.as_view(), name='activate-qr-code'),
 ]
