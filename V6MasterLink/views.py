@@ -12,6 +12,16 @@ QR_CODE_COLLECTION_NAME = 'qr_code_generate_collection'
 MASTER_QR_CODE_COLLECTION_NAME = 'master_qr_code_collection'
 DATABASE_NAME = 'qr_cdoe_generation'
 class QRCodeAPIView(APIView):
+    def get(self, request, qrcode_id):
+        filter_data = {"qrcode_id": qrcode_id}
+
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data)
+        response = json.loads(response)
+
+        if response['success'] and response['data']:
+            return Response(response['data'][0], status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "QR code not found"}, status=status.HTTP_404_NOT_FOUND)
     def post(self, request):
             num_qrcodes = request.data.get('num_qrcodes', 1)
             qrcode_type = request.data.get("qrcode_type")
@@ -75,13 +85,41 @@ class QRCodeAPIView(APIView):
             return Response({"response": f"{num_qrcodes} QR codes created successfully.", "qrcodes": qrcodes_created},
                             status=status.HTTP_201_CREATED)
 
+    def put(self, request, qrcode_id):
+
+        filter_data = {"qrcode_id": qrcode_id}
+
+        update_data = {
+            "logo_size": request.data.get("logo_size"),
+            "qrcode_color": request.data.get("qrcode_color"),
+            "created_by": request.data.get("created_by"),
+            "lat": request.data.get("lat"),
+            "long": request.data.get("long"),
+            "is_active": request.data.get("is_active"),
+            "qrcode_type": request.data.get("qrcode_type"),
+            "playStoreLink": request.data.get("playStoreLink"),
+            "redirect_link": request.data.get("redirect_link"),
+            "product_name": request.data.get("product_name"),
+            "title": request.data.get("title"),
+            "website": request.data.get("website")
+        }
+
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+
+        response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data, update_data)
+        response = json.loads(response)
+
+        if response['success']:
+            return Response({"response": "QR code updated successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class MasterQRCodeAPIView(APIView):
     def post(self, request):
         num_qrcodes = request.data.get('num_qrcodes', 1)
         created_by = request.data.get('created_by')
         data = {
-            "created_by" : 'user12345',
+            "created_by" : created_by,
         }
         response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME,data)
         response = json.loads(response)
