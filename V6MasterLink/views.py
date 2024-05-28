@@ -115,8 +115,8 @@ class QRCodeAPIView(APIView):
             return Response({"error": response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class MasterQRCodeAPIView(APIView):
-    def get(self, request, qrcode_id):
-        filter_data = {"qrcode_id": qrcode_id}
+    def get(self, request, master_qr_code_id):
+        filter_data = {"master_qr_code_id": master_qr_code_id}
 
         response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data)
         response = json.loads(response)
