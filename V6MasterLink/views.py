@@ -91,6 +91,7 @@ class QRCodeAPIView(APIView):
              "qrcodes_data": qrcodes_created},
             status=status.HTTP_201_CREATED)
 
+
     def put(self, request, qrcode_id):
         filter_data = {"qrcode_id": qrcode_id}
         update_data = {
@@ -117,6 +118,26 @@ class QRCodeAPIView(APIView):
             return Response({"response": "QR code updated successfully."}, status=status.HTTP_200_OK)
         else:
             return Response({"error": response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, qrcode_id):
+        filter_data = {"qrcode_id": qrcode_id}
+
+        # Attempt to retrieve the QR code to ensure it exists
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data)
+        response = json.loads(response)
+
+        if response['success'] and response['data']:
+            # Proceed to delete the QR code
+            updated_data = {"is_active": False}
+            delete_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, updated_data)
+            delete_response = json.loads(delete_response)
+
+            if delete_response['success']:
+                return Response({"message": "QR code deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({"error": delete_response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error": "QR code not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class MasterQRCodeAPIView(APIView):
