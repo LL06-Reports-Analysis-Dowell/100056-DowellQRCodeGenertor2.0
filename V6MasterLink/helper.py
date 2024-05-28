@@ -169,3 +169,25 @@ def qrcode_type_defination(qrcode_id_encrypted, is_active, qrcode_type, request,
         field = {**field, **data}
         serializer = DoWellQrCodeSerializer(data=field)
     return serializer, field
+
+
+def dowell_time(self, timezone):
+    """
+    Fetches current time from Dowell Clock API for the specified timezone.
+
+    :param timezone: The timezone for which to fetch the current time.
+    :return: A dictionary containing the response from the API, including the current time.
+    """
+
+    url = "https://100009.pythonanywhere.com/dowellclock/"
+    payload = json.dumps({
+        "timezone": timezone,
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+    res = json.loads(response.text)
+
+    return res

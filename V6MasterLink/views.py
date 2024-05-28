@@ -6,11 +6,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update
-from .helper import qrcode_type_defination, upload_image_to_interserver, create_qrcode, generate_file_name
+from .helper import qrcode_type_defination, upload_image_to_interserver, create_qrcode, generate_file_name, dowell_time
 
 Apikey = '1b834e07-c68b-4bf6-96dd-ab7cdc62f07f'
 QR_CODE_COLLECTION_NAME = 'qr_code_generate_collection'
 MASTER_QR_CODE_COLLECTION_NAME = 'master_qr_code_collection'
+QR_CODE_STAT_COLLECTION_NAME = 'Qr_code_stats'
 DATABASE_NAME = 'qr_cdoe_generation'
 
 
@@ -121,13 +122,10 @@ class QRCodeAPIView(APIView):
 
     def delete(self, request, qrcode_id):
         filter_data = {"qrcode_id": qrcode_id}
-
-        # Attempt to retrieve the QR code to ensure it exists
         response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data)
         response = json.loads(response)
 
         if response['success'] and response['data']:
-            # Proceed to delete the QR code
             updated_data = {"is_active": False}
             delete_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, updated_data)
             delete_response = json.loads(delete_response)
@@ -263,3 +261,36 @@ class MasterQRCodeAPIView(APIView):
 
         return Response({"response": "QR code has activated successfully.", "qr_code": qr_code_data_list},
                         status=status.HTTP_200_OK)
+
+
+class QRCodeStaticAPIView(APIView):
+    def post(self, request):
+        qrcode_id = request.data.get("qrcode_id")
+        timezone = request.data.get('timezone', 'UTC')
+        lat = request.data.get("lat")
+        long = request.data.get("long")
+
+        time_data = dowell_time(timezone)
+        if 'error' in time_data:
+            return Response({"error": "Failed to retrieve time from Dowell Clock"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        qrcode_id = f'33-{str(uuid.uuid4())}'
+        new_qrcode_data = {
+            "qrcode_id": qrcode_id,
+            "time": time_data['dowelltime'],
+            "lat": float(lat),
+            "long": float(long),
+        }
+
+        insert_response = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, QR_CODE_STAT_COLLECTION_NAME,
+                                                          new_qrcode_data)
+        insert_response = json.loads(insert_response)
+
+        if insert_response['success']:
+            return Response({"response": "QR code data saved successfully.", "qrcode_id": new_qrcode_data["qrcode_id"]},
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": insert_response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
