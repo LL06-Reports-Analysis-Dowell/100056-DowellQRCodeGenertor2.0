@@ -72,7 +72,7 @@ class QRCodeAPIView(APIView):
                         response = json.loads(response)
                         print(request)
                         if response['success']:
-                            qrcodes_created.append(response['data']['inserted_id'])
+                            qrcodes_created.append(qrcode_id)
                         else:
                             return Response({"error": response.get('message')},
                                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -82,7 +82,7 @@ class QRCodeAPIView(APIView):
                 else:
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response({"response": f"{num_qrcodes} QR codes created successfully.", "qrcodes": qrcode_id},
+            return Response({"response": f"{num_qrcodes} QR codes created successfully.", "qrcodes": qrcodes_created},
                             status=status.HTTP_201_CREATED)
 
     def put(self, request, qrcode_id):
@@ -155,11 +155,11 @@ class MasterQRCodeAPIView(APIView):
             response = json.loads(response)
             print(request)
             if response['success']:
-                qrcodes_created.append(response['data']['inserted_id'])
+                qrcodes_created.append(master_qr_code_id)
             else:
                 return Response({"error": response.get('message')},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({"response": f"master QR codes created successfully.", "qrcodes": master_qr_code_id},
+        return Response({"response": f"master QR codes created successfully.", "master_qrcode": qrcodes_created},
                         status=status.HTTP_201_CREATED)
 
     def put(self, request, master_qr_code_id):
