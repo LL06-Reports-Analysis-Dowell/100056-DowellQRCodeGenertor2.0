@@ -35,7 +35,7 @@ class QRCodeAPIView(APIView):
             playStoreLink = 'https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1'
             redirect_link = request.data.get("redirect_link")
             qrcodes_created = []
-
+            qrcode_id = ""
             logo_file = None
             if logo:
                 logo_file = logo.read()  # Converts InMemoryUploadedFile to bytes
@@ -82,7 +82,7 @@ class QRCodeAPIView(APIView):
                 else:
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response({"response": f"{num_qrcodes} QR codes created successfully.", "qrcodes": qrcodes_created},
+            return Response({"response": f"{num_qrcodes} QR codes created successfully.", "qrcodes": qrcode_id},
                             status=status.HTTP_201_CREATED)
 
     def put(self, request, qrcode_id):
@@ -126,6 +126,7 @@ class MasterQRCodeAPIView(APIView):
         qrcode_list = response["data"]
         list_qr_id = []
         qrcodes_created = []
+        master_qr_code_id = ''
         if response['success']:
             for i in qrcode_list:
                 list_qr_id.append({"qr_id":i["qrcode_id"]})
@@ -158,7 +159,7 @@ class MasterQRCodeAPIView(APIView):
             else:
                 return Response({"error": response.get('message')},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({"response": f"master QR codes created successfully.", "qrcodes": qrcodes_created},
+        return Response({"response": f"master QR codes created successfully.", "qrcodes": master_qr_code_id},
                         status=status.HTTP_201_CREATED)
 
     def put(self, request, master_qr_code_id):
