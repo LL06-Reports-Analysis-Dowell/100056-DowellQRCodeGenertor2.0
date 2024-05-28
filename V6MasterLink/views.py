@@ -115,6 +115,17 @@ class QRCodeAPIView(APIView):
             return Response({"error": response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class MasterQRCodeAPIView(APIView):
+    def get(self, request, qrcode_id):
+        filter_data = {"qrcode_id": qrcode_id}
+
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data)
+        response = json.loads(response)
+
+        if response['success'] and response['data']:
+            return Response(response['data'][0], status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "QR code not found"}, status=status.HTTP_404_NOT_FOUND)
+
     def post(self, request):
         num_qrcodes = request.data.get('num_qrcodes', 1)
         created_by = request.data.get('created_by')
