@@ -145,3 +145,12 @@ DATABASE_NAME = os.environ.get('DATABASE_NAME')
 COLLECTION_NAME = os.environ.get('COLLECTION_NAME')
 QR_CODE_COLLECTION_NAME = os.environ.get('QR_CODE_COLLECTION_NAME')
 MASTER_QR_CODE_COLLECTION_NAME = os.environ.get('MASTER_QR_CODE_COLLECTION_NAME')
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.example.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'jacklele2701@gmail.com'
+EMAIL_HOST_PASSWORD = 'aphm asnb nvpu znat'
+    

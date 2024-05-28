@@ -1,17 +1,20 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.http import Http404
-from datetime import datetime
-from .dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval,datacube_data_update
-from .helper import create_uuid, qrcode_type_defination, upload_image_to_interserver, create_qrcode, generate_file_name, dowell_time
-import uuid
 import json
-import requests
-Apikey= '1b834e07-c68b-4bf6-96dd-ab7cdc62f07f'
+import uuid
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update
+from .helper import qrcode_type_defination, upload_image_to_interserver, create_qrcode, generate_file_name, dowell_time
+
+Apikey = '1b834e07-c68b-4bf6-96dd-ab7cdc62f07f'
 QR_CODE_COLLECTION_NAME = 'qr_code_generate_collection'
 MASTER_QR_CODE_COLLECTION_NAME = 'master_qr_code_collection'
+QR_CODE_STAT_COLLECTION_NAME = 'Qr_code_stats'
 DATABASE_NAME = 'qr_cdoe_generation'
+
+
 class QRCodeAPIView(APIView):
     def get(self, request, qrcode_id):
         filter_data = {"qrcode_id": qrcode_id}
