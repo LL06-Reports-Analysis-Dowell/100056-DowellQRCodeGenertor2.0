@@ -218,12 +218,12 @@ class MasterQRCodeAPIView(APIView):
                     return Response({"error": f"Failed to update QR code {qr_code_to_update}"},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-                if email:
-                    subject = 'QR Code Activation'
-                    message = f'The QR code {qr_code_to_update} has been successfully activated.'
-                    from_email = settings.EMAIL_HOST_USER
-                    recipient_list = [email]
-                    send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+                # if email:
+                #     subject = 'QR Code Activation'
+                #     message = f'The QR code {qr_code_to_update} has been successfully activated.'
+                #     from_email = settings.EMAIL_HOST_USER
+                #     recipient_list = [email]
+                #     send_mail(subject, message, from_email, recipient_list, fail_silently=False)
 
             all_active = all(qr_code['is_active'] for qr_code in qr_code_data_list)
 
