@@ -121,33 +121,48 @@ class QRCodeAPIView(APIView):
 
 class MasterQRCodeAPIView(APIView):
     def get(self, request):
-        created_by = request.query_params.get('created_by')
-        if not created_by:
-            return Response({"error": "Missing 'created_by' parameter"}, status=status.HTTP_400_BAD_REQUEST)
+        action = request.query_params.get('action')
 
-        qr_code_data = {
-            "created_by": created_by
-        }
-        qr_codes_response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, qr_code_data)
-        qr_codes_response = json.loads(qr_codes_response)
+        if action == 'master_qr_code_id':
+            master_qr_code_id = request.query_params.get('master_qr_code_id')
+            if not master_qr_code_id:
+                return Response({"error": "Missing 'master_qr_code_id' parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not qr_codes_response['success']:
-            return Response({"error": qr_codes_response.get('message', 'Failed to retrieve Master QR codes')},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            filter_data = {"master_qr_code_id": master_qr_code_id}
+            response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data)
+            response = json.loads(response)
+            if response['success'] and response.get('data'):
+                return Response(response['data'][0], status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Master QR code not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        user_qr_ids = [qr['qrcode_id'] for qr in qr_codes_response['data']]
+        elif action == 'created_by':
+            created_by = request.query_params.get('created_by')
+            if not created_by:
+                return Response({"error": "Missing 'created_by' parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
-        master_qr_filter = {
-            "qr_code_ids.qr_id": {"$in": user_qr_ids}
-        }
-        master_qrs_response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, master_qr_filter)
-        master_qrs_response = json.loads(master_qrs_response)
+            qr_code_data = {"created_by": created_by}
+            qr_codes_response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, qr_code_data)
+            qr_codes_response = json.loads(qr_codes_response)
 
-        if master_qrs_response['success']:
-            return Response({"data": master_qrs_response['data']}, status=status.HTTP_200_OK)
+            if not qr_codes_response['success']:
+                return Response({"error": qr_codes_response.get('message', 'Failed to retrieve QR codes')},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            user_qr_ids = [qr['qrcode_id'] for qr in qr_codes_response['data']]
+
+            master_qr_filter = {"qr_code_ids.qr_id": {"$in": user_qr_ids}}
+            master_qrs_response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, master_qr_filter)
+            master_qrs_response = json.loads(master_qrs_response)
+
+            if master_qrs_response['success']:
+                return Response({"data": master_qrs_response['data']}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": master_qrs_response.get('message', f'Failed to retrieve master QR codes for user {created_by}')},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         else:
-            return Response({"error": master_qrs_response.get('message', f'Failed to retrieve master QR codes for user {created_by}')},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Invalid or missing action parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         created_by = request.data.get('created_by')
