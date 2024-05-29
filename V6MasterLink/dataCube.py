@@ -55,32 +55,6 @@ def datacube_data_retrieval(api_key, database_name, collection_name, data):
     response = requests.post(url, json=payload)
     return response.text
 
-def datacube_data_retrieval1(api_key, database_name, collection_name, data, limit=10000, offset=0):
-    """
-    Retrieve data from a collection in the DataCube database.
-
-    :param api_key: The API key for authentication.
-    :param database_name: The name of the database.
-    :param collection_name: The name of the collection.
-    :param data: Filters to apply when retrieving data.
-    :param limit: The maximum number of documents to retrieve.
-    :param offset: The number of documents to skip before starting to collect data.
-    :return: The response text from the server.
-    """
-    url = "https://datacube.uxlivinglab.online/db_api/get_data/"
-    payload = {
-        "api_key": api_key,
-        "db_name": database_name,
-        "coll_name": collection_name,
-        "operation": "fetch",
-        "filters": data,
-        "limit": limit,
-        "offset": offset
-    }
-
-    response = requests.post(url, json=payload)
-    return response.text
-
 
 def datacube_data_update(api_key, db_name, coll_name, query, update_data):
     """
