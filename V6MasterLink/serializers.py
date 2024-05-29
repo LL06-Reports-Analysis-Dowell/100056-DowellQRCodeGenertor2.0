@@ -1,5 +1,6 @@
 from rest_framework import serializers
-
+import uuid
+from datetime import datetime
 
 class DoWellQrCodeSerializer(serializers.Serializer):
     TYPE_CHOICES = (
@@ -72,3 +73,12 @@ class DoWellActivateQrCodeSerializer(serializers.Serializer):
     created_by = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     description = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     is_active = serializers.BooleanField(default=True)
+    
+
+class DoWellQRCodeCloneSerializer(serializers.Serializer):
+    original_qrcode = serializers.CharField(max_length=255)
+    data = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    is_active = serializers.BooleanField(default=False)
+    qrcode_id = serializers.CharField(max_length=255, required=False, allow_blank=True)
+
