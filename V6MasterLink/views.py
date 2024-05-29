@@ -165,49 +165,53 @@ class MasterQRCodeAPIView(APIView):
             return Response({"error": "Invalid or missing action parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
-        created_by = request.data.get('created_by')
-        data = {
-            "created_by" : created_by,
-        }
-        response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME,data)
-        response = json.loads(response)
-        qrcode_list = response["data"]
-        list_qr_id = []
-        qrcodes_created = []
-        if response['success']:
-            for i in qrcode_list:
-                list_qr_id.append({"qr_id":i["qrcode_id"]})
-            master_qr_code_id = f'11-{str(uuid.uuid4())}'
-            print(master_qr_code_id)
-            field ={
-                "master_qr_code_id":master_qr_code_id,
-                "master_qr_code_link": None,
-                "qr_code_ids": list_qr_id,
-                "is_used":False
-            }
+        id = request.data.get('generate_master_QR_code_id')
+        data = {"generate_master_QR_code_id": id}
 
-            link = f"https://www.qrcodereviews.uxlivinglab.online/{master_qr_code_id}"
-            logo = None
-            qrcode_color ='#000000'
-            img_qr = create_qrcode(link, qrcode_color, logo)
-            file_name = generate_file_name()
-            qr_code_url = upload_image_to_interserver(img_qr, file_name)
-            link_ = {
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, data)
+        response = json.loads(response)
+
+        if not response['success']:
+            return Response({"error": response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        qrcode_list = response["data"]
+        list_qr_id = [{"qr_id": i["qrcode_id"]} for i in qrcode_list]
+
+        master_qr_code_id = f'11-{str(uuid.uuid4())}'
+        field = {
+            "master_qr_code_id": master_qr_code_id,
+            "master_qr_code_link": None,
+            "qr_code_ids": list_qr_id,
+            "is_used": False
+        }
+
+        link = f"https://www.qrcodereviews.uxlivinglab.online/{master_qr_code_id}"
+        logo = None
+        qrcode_color = '#000000'
+        img_qr = create_qrcode(link, qrcode_color, logo)
+        file_name = generate_file_name()
+        qr_code_url = upload_image_to_interserver(img_qr, file_name)
+
+        field.update({
+            "master_qr_code_link": link,
+            "master_qrcode_image_url": qr_code_url,
+        })
+
+        response = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, field)
+        response = json.loads(response)
+
+        if response['success']:
+            fields = {
+                "master_qr_code_id": master_qr_code_id,
                 "master_qr_code_link": link,
+                "is_used": False,
                 "master_qrcode_image_url": qr_code_url,
+                "qr_code_data": qrcode_list
             }
-            field = {**field, **link_}
-            response = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME,
-                                                       field)
-            response = json.loads(response)
-            print(request)
-            if response['success']:
-                qrcodes_created.append(response['data']['inserted_id'])
-            else:
-                return Response({"error": response.get('message')},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({"response": f"master QR codes created successfully.", "qrcodes": qrcodes_created},
-                        status=status.HTTP_201_CREATED)
+            return Response({"response": "Master QR code created successfully.", "master_qrcode": fields},
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, master_qr_code_id):
         data = {
@@ -333,3 +337,4 @@ class QRCodeDataAPIView(APIView):
         else:
             return Response({"error": insert_response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
