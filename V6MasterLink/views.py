@@ -305,6 +305,36 @@ class MasterQRCodeAPIView(APIView):
         else:
             return Response({"error": "No QR code are available"}, status=status.HTTP_404_NOT_FOUND)
         
+    
+    def patch(self, request, master_qr_code_id):
+        filter_data = {"master_qr_code_id": master_qr_code_id}
+        
+        update_data = {
+            "name": request.data.get("name"),
+            "location": request.data.get("location"),
+            "is_used": request.data.get("is_used"),
+            "description": request.data.get("description"),
+        }
+        
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        if not update_data:
+            return Response({"error": "No data provided to update"}, status=status.HTTP_400_BAD_REQUEST)
+
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data)
+        response = json.loads(response)
+
+        if not response['success'] or not response['data']:
+            return Response({"error": "Master QR code not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        update_response = datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data, update_data)
+        update_response = json.loads(update_response)
+
+        if update_response['success']:
+            return Response({"response": "Master QR code updated successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": update_response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class CloneQRCodeAPIView(APIView):
     
