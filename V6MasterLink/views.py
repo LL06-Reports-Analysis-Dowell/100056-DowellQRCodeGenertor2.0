@@ -278,13 +278,12 @@ class MasterQRCodeAPIView(APIView):
                 "name": request.data.get("name"),
                 "location": request.data.get("location"),
                 "description": request.data.get("location"),
-                "redirect_link": request.data.get("redirect_link"),
             }
             update_data = {k: v for k, v in update_data.items() if v is not None}
-            master_update_response = datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME,
-                                                          field, update_data)
+            master_update_response = json.load(datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME,
+                                                          field, update_data))
             if master_update_response['success']:
-                return Response(qr_code_data_list)
+                return Response({"message": "QR_code Data Activated Successfully"})
         else:
             return Response({"error": "No QR code are available"}, status=status.HTTP_404_NOT_FOUND)
         
