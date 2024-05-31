@@ -19,6 +19,7 @@ def QR_code_datacube_data_insertion(api_key, database_name, collection_name, dat
         "coll_name": collection_name,
         "operation": "insert",
         "data": data,
+        "payment": False
     }
     # print(payload)
     response = requests.post(url, json=payload)
@@ -49,7 +50,8 @@ def datacube_data_retrieval(api_key, database_name, collection_name, data):
         "operation": "fetch",
         "filters": data,
         "limit": 10000,
-        "offset": 0
+        "offset": 0,
+        "payment": False
     }
 
     response = requests.post(url, json=payload)
@@ -76,6 +78,7 @@ def datacube_data_update(api_key, db_name, coll_name, query, update_data):
         "operation": "update",
         "query": query,
         "update_data": update_data,
+        "payment": False
     }
 
     response = requests.put(url, json=payload)
@@ -98,7 +101,8 @@ def datacube_data_delete(api_key, db_name, collection_name, query):
         "db_name": db_name,
         "coll_name": collection_name,
         "operation": "delete",
-        "query": query
+        "query": query,
+        "payment": False
     }
     response = requests.delete(url, json=payload)
     return response.text

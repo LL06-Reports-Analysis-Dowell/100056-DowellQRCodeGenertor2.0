@@ -197,6 +197,7 @@ class MasterQRCodeAPIView(APIView):
             return Response({"error": response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         qrcode_list = response["data"]
+        num_of_QR_Code = len(response["data"])
         list_qr_id = [{"qr_id": i["qrcode_id"], "qrcode_image_url": i["qrcode_image_url"], "link": i["link"]} for i in qrcode_list]
 
         master_qr_code_id = f'11-{str(uuid.uuid4())}'
@@ -207,6 +208,7 @@ class MasterQRCodeAPIView(APIView):
             "location": location,
             "description": description,
             "is_used": False,
+            "num_of_QR_Code": num_of_QR_Code,
             "qr_code_ids": list_qr_id,
 
         }
