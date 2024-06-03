@@ -250,7 +250,7 @@ class MasterQRCodeAPIView(APIView):
             return Response({"error": "Master QR code not found"}, status=status.HTTP_404_NOT_FOUND)
         master_qr_data = response['data']
         if not master_qr_data[0]['is_used']:
-            qr_code_ids = [qr['qr_id'] for qr in master_qr_data[0]['qr_code_ids']]
+            qr_code_ids = [qr['qr_id'] for qr in master_qr_data[0]['qr_code_details']]
             filters = {
                 "qrcode_id": {"$in": qr_code_ids}
             }
