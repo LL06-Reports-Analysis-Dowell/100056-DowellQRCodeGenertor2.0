@@ -209,7 +209,7 @@ class MasterQRCodeAPIView(APIView):
             "description": description,
             "is_used": False,
             "num_of_QR_Code": num_of_QR_Code,
-            "qr_code_ids": list_qr_id,
+            "qr_code_details": list_qr_id,
 
         }
 
@@ -238,6 +238,9 @@ class MasterQRCodeAPIView(APIView):
         data = {
             "master_qr_code_id": master_qr_code_id
         }
+        if not master_qr_code_id.startswith("11"):
+            return Response({"error": "Please Enter Correct Master QR Code ID"}, status=status.HTTP_404_NOT_FOUND)
+
         redirect_link = request.data.get('redirect_link')
         response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, data)
         response = json.loads(response)
@@ -249,8 +252,7 @@ class MasterQRCodeAPIView(APIView):
             filters = {
                 "qrcode_id": {"$in": qr_code_ids}
             }
-            qr_code_data_response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME,
-                                                              filters)
+            qr_code_data_response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filters)
             qr_code_data_response = json.loads(qr_code_data_response)
 
             if not qr_code_data_response['success']:
@@ -262,23 +264,25 @@ class MasterQRCodeAPIView(APIView):
                 if not qr_code_data['is_active']:
                     qr_code_to_update = qr_code_data['qrcode_id']
                     break
+
             if qr_code_to_update:
                 field = {
-                    "qrcode_id":qr_code_to_update
+                    "qrcode_id": qr_code_to_update
                 }
                 update_data = {
                     "qrcode_id": qr_code_to_update,
                     "is_active": True,
-                    "redirect_link":redirect_link
+                    "redirect_link": redirect_link
                 }
-                update_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, field, update_data)
+                update_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, field,
+                                                       update_data)
                 update_response = json.loads(update_response)
                 if not update_response['success']:
                     return Response({"error": f"Failed to update QR code {qr_code_to_update}"},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
             all_active = all(qr_code['is_active'] for qr_code in qr_code_data_list)
 
-            field = {}
             if all_active:
                 field = {
                     "master_qr_code_id": master_qr_code_id,
@@ -288,7 +292,7 @@ class MasterQRCodeAPIView(APIView):
                     "is_used": True
                 }
                 master_update_response = datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME,
-                                                              field,master_update_data)
+                                                              field, master_update_data)
                 master_update_response = json.loads(master_update_response)
                 if not master_update_response['success']:
                     return Response({"error": "Failed to update master QR code"},
@@ -297,29 +301,29 @@ class MasterQRCodeAPIView(APIView):
             update_data = {
                 "name": request.data.get("name"),
                 "location": request.data.get("location"),
-                "description": request.data.get("location"),
+                "description": request.data.get("description"),
             }
             update_data = {k: v for k, v in update_data.items() if v is not None}
-            master_update_response = json.load(datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME,
-                                                          field, update_data))
+            master_update_response = datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, field,
+                                                          update_data)
+            master_update_response = json.loads(master_update_response)
             if master_update_response['success']:
                 return Response({"message": "QR_code Data Activated Successfully"})
         else:
             return Response({"error": "No QR code are available"}, status=status.HTTP_404_NOT_FOUND)
-        
-    
+
     def patch(self, request, master_qr_code_id):
         filter_data = {"master_qr_code_id": master_qr_code_id}
-        
+
         update_data = {
             "name": request.data.get("name"),
             "location": request.data.get("location"),
             "is_used": request.data.get("is_used"),
             "description": request.data.get("description"),
         }
-        
+
         update_data = {k: v for k, v in update_data.items() if v is not None}
-        
+
         if not update_data:
             return Response({"error": "No data provided to update"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -328,7 +332,7 @@ class MasterQRCodeAPIView(APIView):
 
         if not response['success'] or not response['data']:
             return Response({"error": "Master QR code not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         update_response = datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data, update_data)
         update_response = json.loads(update_response)
 
