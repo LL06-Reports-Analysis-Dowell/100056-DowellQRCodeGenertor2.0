@@ -242,6 +242,8 @@ class MasterQRCodeAPIView(APIView):
             return Response({"error": "Please Enter Correct Master QR Code ID"}, status=status.HTTP_404_NOT_FOUND)
 
         redirect_link = request.data.get('redirect_link')
+        lat = request.data.get('lat')
+        long = request.data.get('long')
         response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, data)
         response = json.loads(response)
         if not response['success']:
@@ -272,7 +274,9 @@ class MasterQRCodeAPIView(APIView):
                 update_data = {
                     "qrcode_id": qr_code_to_update,
                     "is_active": True,
-                    "redirect_link": redirect_link
+                    "redirect_link": redirect_link,
+                    "lat": lat,
+                    "long": long,
                 }
                 update_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, field,
                                                        update_data)
