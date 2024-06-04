@@ -169,7 +169,7 @@ class MasterQRCodeAPIView(APIView):
 
             user_qr_ids = [qr['qrcode_id'] for qr in qr_codes_response['data']]
 
-            master_qr_filter = {"qr_code_ids.qr_id": {"$in": user_qr_ids}}
+            master_qr_filter = {"qr_code_details.qr_id": {"$in": user_qr_ids}}
             master_qrs_response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, master_qr_filter)
             master_qrs_response = json.loads(master_qrs_response)
 
