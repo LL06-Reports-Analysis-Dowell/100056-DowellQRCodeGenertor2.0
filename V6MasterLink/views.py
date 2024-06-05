@@ -126,7 +126,7 @@ class QRCodeAPIView(APIView):
 
         if response['success'] and response['data']:
             updated_data = {"is_active": False}
-            delete_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, updated_data)
+            delete_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data, updated_data)
             delete_response = json.loads(delete_response)
 
             if delete_response['success']:
