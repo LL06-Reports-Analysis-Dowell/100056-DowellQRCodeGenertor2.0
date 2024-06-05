@@ -22,10 +22,10 @@ class DoWellQrCodeSerializer(serializers.Serializer):
 
 class AddressSerializer(serializers.Serializer):
     street_address = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
-    city = serializers.CharField(max_length=255)
+    city = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     state = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     zip_code = serializers.IntegerField(required=False, allow_null=True)
-    country = serializers.CharField(max_length=255)
+    country = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
 
 
 class ProductTypeSerializer(DoWellQrCodeSerializer):
@@ -39,10 +39,10 @@ class LinkTypeSerializer(DoWellQrCodeSerializer):
 
 
 class VcardSerializer(DoWellQrCodeSerializer):
-    first_name = serializers.CharField(max_length=255)
-    last_name = serializers.CharField(max_length=255)
-    phone_number = serializers.CharField(max_length=255)
-    address = AddressSerializer()
+    first_name = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+    last_name = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+    phone_number = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+    address = AddressSerializer(required=False)
 
 
 class DoWellUpdateQrCodeSerializer(serializers.Serializer):

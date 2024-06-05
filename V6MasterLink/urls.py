@@ -9,4 +9,5 @@ urlpatterns = [
     path('master-qrcodes/update/<str:master_qr_code_id>/', MasterQRCodeAPIView.as_view(), name='update-master-qr'),
     #path('clone-qrcode/', CloneQRCodeAPIView.as_view(), name='clone-qrcode'),
     path('qrcode-data/', QRCodeDataAPIView.as_view(), name='qrcode-data'),
+    path('qrcode-data/<str:qrcode_id>/', QRCodeDataAPIView.as_view(), name='qrcode-data-detail'),
 ]

@@ -111,32 +111,23 @@ def qrcode_type_defination(qrcode_id_encrypted, is_active, qrcode_type, request,
         # return serializer
 
     elif qrcode_type == "Vcard":
-        first_name = request.data.get("first_name")
-        last_name = request.data.get("last_name")
-        phone_number = request.data.get("phone_number")
-        street_address = request.data.get("address.street_address")
-        city = request.data.get("address.city")
-        state = request.data.get("address.state")
-        zip_code = request.data.get("address.zip_code")
-        country = request.data.get("address.country")
+        vcard = {
+            "first_name": request.data.get("first_name"),
+            "last_name": request.data.get("last_name"),
+            "phone_number": request.data.get("phone_number"),
+            "address": {
+                "street_address": request.data.get("address.street_address"),
+                "city": request.data.get("address.city"),
+                "state": request.data.get("address.state"),
+                "zip_code": request.data.get("address.zip_code"),
+                "country": request.data.get("address.country"),
+            }
+        }
 
-        img_qr = create_qrcode(request.data, qrcode_color, logo)
+        img_qr = create_qrcode(vcard, qrcode_color, logo)
 
         file_name = generate_file_name()
         qr_code_url = upload_image_to_interserver(img_qr, file_name)
-
-        vcard = {
-            "first_name": first_name,
-            "last_name": last_name,
-            "phone_number": phone_number,
-            "address": {
-                "street_address": street_address,
-                "city": city,
-                "state": state,
-                "zip_code": zip_code,
-                "country": country,
-            }
-        }
 
         field = {**field, **vcard}
         serializer = VcardSerializer(data=field)
