@@ -130,7 +130,7 @@ class QRCodeAPIView(APIView):
             delete_response = json.loads(delete_response)
 
             if delete_response['success']:
-                return Response({"message": "QR code deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+                return Response({"message": "QR code deleted successfully."}, status=status.HTTP_202_ACCEPTED)
             else:
                 return Response({"error": delete_response.get('message')},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
