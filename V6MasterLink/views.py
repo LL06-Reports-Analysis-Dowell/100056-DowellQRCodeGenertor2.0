@@ -404,5 +404,37 @@ class QRCodeDataAPIView(APIView):
                             status=status.HTTP_201_CREATED)
         else:
             return Response({"error": insert_response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
 
+
+    def get(self, request, qrcode_id):
+        filter_data = {"qrcode_id": qrcode_id}
+
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_STAT_COLLECTION_NAME, filter_data)
+        response = json.loads(response)
+        data = response.get("data", [])
+
+        detailed_report = []
+
+        if data:
+            for entry in data:
+                detailed_report.append({
+                    "qrcode_id": entry.get("qrcode_id"),
+                    "lat": entry.get("lat"),
+                    "long": entry.get("long"),
+                    "scanned_at": entry.get("time")
+                })
+            success = True
+            message = "The detailed report for qrcode scanner"
+        else:
+            success = False
+            message = "No data found for the specified qrcode_id"
+
+        report = {
+            "success": success,
+            "message": message,
+            "response": {
+                "total_scanned": len(data),
+                "detailed_report": detailed_report
+            }
+        }
+        return Response(response['data'], status=status.HTTP_200_OK)
