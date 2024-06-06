@@ -437,4 +437,4 @@ class QRCodeDataAPIView(APIView):
                 "detailed_report": detailed_report
             }
         }
-        return Response(response['data'], status=status.HTTP_200_OK)
+        return Response(report, status=status.HTTP_200_OK)
