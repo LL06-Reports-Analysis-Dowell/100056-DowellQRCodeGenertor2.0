@@ -381,7 +381,7 @@ class CloneQRCodeAPIView(APIView):
 class QRCodeDataAPIView(APIView):
     def post(self, request):
         qrcode_id = request.data.get("qrcode_id")
-        timezone = request.data.get('timezone', 'UTC')
+        timezone = request.data.get('timezone')
         lat = request.data.get("lat")
         long = request.data.get("long")
         
@@ -389,7 +389,6 @@ class QRCodeDataAPIView(APIView):
         if 'error' in time_data:
             return Response({"error": "Failed to retrieve time from Dowell Clock"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        qrcode_id = f'33-{str(uuid.uuid4())}'
         new_qrcode_data = {
             "qrcode_id": qrcode_id,
             "time": time_data['current_time'],
@@ -397,7 +396,7 @@ class QRCodeDataAPIView(APIView):
             "long": float(long),
         }
 
-        insert_response = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, new_qrcode_data)
+        insert_response = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, QR_CODE_STAT_COLLECTION_NAME, new_qrcode_data)
         insert_response = json.loads(insert_response)
 
         if insert_response['success']:
