@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from core.settings import Apikey, DATABASE_NAME, COLLECTION_NAME, QR_cdoe_generater_Report_V4
 from django.utils.decorators import method_decorator
 from .helper import dowell_time
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 from .helper import (
     create_uuid, datacube_data_insertion, decode_base64_url_safe, decrypt_qrcode_id, encode_base64_url_safe,
@@ -530,7 +530,8 @@ def redirect_link(request, qrcode_id):
 
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+
+@method_decorator(csrf_protect, name='dispatch')
 class QRCodeReportAPIView(APIView):
     def post(self, request):
         qrcode_id = request.data.get("qrcode_id")
