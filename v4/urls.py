@@ -11,7 +11,7 @@ urlpatterns = [
     path('update-qr-code/<str:id>/', codeqrupdate.as_view()),
     path('inactive/', inactive, name="inactive"),
     path('activate-qr-code/<str:id>/', codeqractivate.as_view()),
-    path('<str:qrcode_id>/', views.redirect_link, name='qr_code_view'),
+    path('redirect_link/<str:qrcode_id>/', views.redirect_link, name='qr_code_view'),
     path('delete/<created_by>/', decryptQrCode.as_view(), name='delete_by_creator'),
     path('qrcode-Report-data/', QRCodeReportAPIView.as_view(), name='qrcode-report-data'),
     path('qrcode-Report-data/<str:qrcode_id>/', QRCodeReportAPIView.as_view(), name='qrcode-report-data'),
