@@ -7,8 +7,9 @@ from v4.dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from core.settings import Apikey, DATABASE_NAME, COLLECTION_NAME
+from core.settings import Apikey, DATABASE_NAME, COLLECTION_NAME, QR_cdoe_generater_Report_V4
 from django.utils.decorators import method_decorator
+from .helper import dowell_time
 from django.views.decorators.csrf import csrf_exempt
 
 from .helper import (
@@ -526,3 +527,66 @@ def redirect_link(request, qrcode_id):
     # For example, you could fetch a user or specific data related to this QR code
     context = {'qrcode_id': qrcode_id}
     return render(request, 'RedirectLink.html', context)
+
+
+class QRCodeReportAPIView(APIView):
+    def post(self, request):
+        qrcode_id = request.data.get("qrcode_id")
+        timezone = request.data.get('timezone')
+        lat = request.data.get("lat")
+        long = request.data.get("long")
+
+        time_data = dowell_time(timezone)
+        if 'error' in time_data:
+            return Response({"error": "Failed to retrieve time from Dowell Clock"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        new_qrcode_data = {
+            "qrcode_id": qrcode_id,
+            "time": time_data['current_time'],
+            "lat": float(lat),
+            "long": float(long),
+        }
+
+        insert_response = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, QR_cdoe_generater_Report_V4,
+                                                          new_qrcode_data)
+        insert_response = json.loads(insert_response)
+
+        if insert_response['success']:
+            return Response({"response": "QR code data saved successfully.", "qrcode_id": new_qrcode_data["qrcode_id"]},
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": insert_response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request, qrcode_id):
+        filter_data = {"qrcode_id": qrcode_id}
+
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_cdoe_generater_Report_V4, filter_data)
+        response = json.loads(response)
+        data = response.get("data", [])
+
+        detailed_report = []
+
+        if data:
+            for entry in data:
+                detailed_report.append({
+                    "qrcode_id": entry.get("qrcode_id"),
+                    "lat": entry.get("lat"),
+                    "long": entry.get("long"),
+                    "scanned_at": entry.get("time")
+                })
+            success = True
+            message = "The detailed report for qrcode scanner"
+        else:
+            success = False
+            message = "No data found for the specified qrcode_id"
+
+        report = {
+            "success": success,
+            "message": message,
+            "response": {
+                "total_scanned": len(data),
+                "detailed_report": detailed_report
+            }
+        }
+        return Response(report, status=status.HTTP_200_OK)

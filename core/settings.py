@@ -144,6 +144,7 @@ Apikey = os.environ.get('apikey')
 DATABASE_NAME = os.environ.get('DATABASE_NAME')
 COLLECTION_NAME = os.environ.get('COLLECTION_NAME')
 QR_CODE_COLLECTION_NAME = os.environ.get('QR_CODE_COLLECTION_NAME')
+QR_cdoe_generater_Report_V4 = os.environ.get('QR_cdoe_generater_Report_V4')
 MASTER_QR_CODE_COLLECTION_NAME = os.environ.get('MASTER_QR_CODE_COLLECTION_NAME')
 # settings.py
 

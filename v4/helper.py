@@ -337,3 +337,24 @@ def encode_base64_url_safe(data):
 # Example of URL-safe base64 decoding
 def decode_base64_url_safe(data):
     return base64.urlsafe_b64decode(data)
+
+def dowell_time(timezone):
+    """
+    Fetches current time from Dowell Clock API for the specified timezone.
+
+    :param timezone: The timezone for which to fetch the current time.
+    :return: A dictionary containing the response from the API, including the current time.
+    """
+
+    url = "https://100009.pythonanywhere.com/dowellclock/"
+    payload = json.dumps({
+        "timezone": timezone,
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+    res = json.loads(response.text)
+
+    return res
