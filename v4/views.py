@@ -531,8 +531,12 @@ def redirect_link(request, qrcode_id):
 
 
 
-@method_decorator(csrf_protect, name='dispatch')
+
 class QRCodeReportAPIView(APIView):
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
     def post(self, request):
         qrcode_id = request.data.get("qrcode_id")
         timezone = request.data.get('timezone')
