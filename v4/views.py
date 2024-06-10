@@ -529,13 +529,14 @@ def redirect_link(request, qrcode_id):
     return render(request, 'RedirectLink.html', context)
 
 
+
+@method_decorator(csrf_exempt, name='dispatch')
 class QRCodeReportAPIView(APIView):
     def post(self, request):
         qrcode_id = request.data.get("qrcode_id")
         timezone = request.data.get('timezone')
         lat = request.data.get("lat")
         long = request.data.get("long")
-
         time_data = dowell_time(timezone)
         if 'error' in time_data:
             return Response({"error": "Failed to retrieve time from Dowell Clock"},
