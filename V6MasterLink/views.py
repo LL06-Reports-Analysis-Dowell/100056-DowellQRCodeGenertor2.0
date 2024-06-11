@@ -446,3 +446,5 @@ def redirect_link(request, qrcode_id):
         return render(request, 'RedirectLink.html', context)
     else:
         return Response("you Enter Wrong QR_code ID", status=status.HTTP_400_BAD_REQUEST)
+
+
