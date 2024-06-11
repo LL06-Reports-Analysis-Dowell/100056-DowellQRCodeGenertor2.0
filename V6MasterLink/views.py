@@ -443,7 +443,7 @@ class QRCodeDataAPIView(APIView):
 def redirect_link(request, qrcode_id):
     if qrcode_id.startswith("11") or qrcode_id.startswith("22"):
         context = {'qrcode_id': qrcode_id}
-        return render(request, 'RedirectLink.html', context)
+        return render(request, 'redirect_linkv6.html', context)
     else:
         return Response("you Enter Wrong QR_code ID", status=status.HTTP_400_BAD_REQUEST)
 
