@@ -1,6 +1,6 @@
 import json
 import uuid
-
+from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -198,7 +198,7 @@ class MasterQRCodeAPIView(APIView):
 
         qrcode_list = response["data"]
         num_of_QR_Code = len(response["data"])
-        list_qr_id = [{"qr_id": i["qrcode_id"], "qrcode_image_url": i["qrcode_image_url"], "link": i["link"]} for i in qrcode_list]
+        list_qr_id = [{"qr_id": i["qrcode_id"], "qrcode_image_url": i["qrcode_image_url"], "link": i["link"], "is_active": i['is_active']} for i in qrcode_list]
 
         master_qr_code_id = f'11-{str(uuid.uuid4())}'
         field = {
@@ -438,3 +438,11 @@ class QRCodeDataAPIView(APIView):
             }
         }
         return Response(report, status=status.HTTP_200_OK)
+
+
+def redirect_link(request, qrcode_id):
+    if qrcode_id.startswith("11") or qrcode_id.startswith("22"):
+        context = {'qrcode_id': qrcode_id}
+        return render(request, 'RedirectLink.html', context)
+    else:
+        return Response("you Enter Wrong QR_code ID", status=status.HTTP_400_BAD_REQUEST)
