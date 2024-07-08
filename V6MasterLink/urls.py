@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import QRCodeAPIView, MasterQRCodeAPIView, CloneQRCodeAPIView, QRCodeDataAPIView, redirect_link
+from .views import QRCodeAPIView, MasterQRCodeAPIView, CloneQRCodeAPIView, QRCodeDataAPIView, redirect_link,FindQRCodeAPIView,CreateQRCode
 
 urlpatterns = [
     path('qrcodes/', QRCodeAPIView.as_view(), name='qrcode-list-create'),
@@ -11,4 +11,7 @@ urlpatterns = [
     path('redirect_link/<str:qrcode_id>/', redirect_link, name='qr_code_view'),
     path('qrcode-data/', QRCodeDataAPIView.as_view(), name='qrcode-data'),
     path('qrcode-data/<str:qrcode_id>/', QRCodeDataAPIView.as_view(), name='qrcode-data'),
+    path('find-mastercode/', FindQRCodeAPIView.as_view(), name='qrcode-data'),
+    path('create-mastercode/', CreateQRCode.as_view(), name='create-mastercode'),
+
 ]

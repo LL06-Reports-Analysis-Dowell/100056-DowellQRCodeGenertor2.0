@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update
-from .helper import qrcode_type_defination, upload_image_to_interserver, create_qrcode, generate_file_name, dowell_time
+from .helper import qrcode_type_defination, upload_image_to_interserver, create_qrcode, generate_file_name, dowell_time, check_the_post_under_required_lat_long
 
 Apikey = '1b834e07-c68b-4bf6-96dd-ab7cdc62f07f'
 QR_CODE_COLLECTION_NAME = 'qr_code_generate_collection'
@@ -423,7 +423,7 @@ class QRCodeDataAPIView(APIView):
                     "long": entry.get("long"),
                     "scanned_at": entry.get("time")
                 })
-            success = True
+            # success = True
             message = "The detailed report for qrcode scanner"
         else:
             success = False
@@ -439,6 +439,42 @@ class QRCodeDataAPIView(APIView):
         }
         return Response(report, status=status.HTTP_200_OK)
 
+class FindQRCodeAPIView(APIView):
+        def get(self, request):
+            master_id = request.query_params.get('master_id')
+            lat = request.query_params.get('lat')
+            long = request.query_params.get('long')
+
+            if not (master_id or (lat and long)):
+                return Response({"success": False, "message": "Missing required fields"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            filter_data = {}
+            results = []
+
+            if master_id:
+                filter_data["master_qr_code_id"] = master_id
+                response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data)
+                response = json.loads(response)
+                qr_codes = response['data'][0].get('qr_code_details', [])
+
+                for qr_code in qr_codes:
+                    qr_id = qr_code['qr_id']
+                    filter_data = {"qrcode_id": qr_id}
+                    qr_response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data)
+                    qr_response = json.loads(qr_response)
+
+                    for data in qr_response['data']:
+                        if data['lat'] == lat and data['long'] == long:
+                            results.append(data)
+                        else:
+                            results.append(check_the_post_under_required_lat_long(float(lat), float(long), data['lat'], data['long']))
+
+
+            if results:
+                return Response({"success": True, "response": results}, status=status.HTTP_200_OK)
+            else:
+                return Response({"success": False, "message": "No records found"}, status=status.HTTP_404_NOT_FOUND)
 
 def redirect_link(request, qrcode_id):
     if qrcode_id.startswith("11") or qrcode_id.startswith("22"):
@@ -448,3 +484,97 @@ def redirect_link(request, qrcode_id):
         return Response("you Enter Wrong QR_code ID", status=status.HTTP_400_BAD_REQUEST)
 
 
+class CreateQRCode(APIView):
+
+    def post(self, request):
+        try:
+            num_qrcodes = int(request.data.get('num_qrcodes', 1))
+            num_qrcodes = max(1, num_qrcodes)
+            qrcode_type = request.data.get("qrcode_type")
+            logo = request.FILES.get('logo')
+            logo_size = int(request.data.get("logo_size", "20"))
+            qrcode_color = request.data.get('qrcode_color', "#000000")
+            created_by = request.data.get("created_by")
+            lat = request.data.get("lat", "None")
+            long = request.data.get("long", "None")
+            is_active = request.data.get("is_active", False)
+            email = request.data.get('email')
+            name = request.data.get('name')
+            location = request.data.get('location')
+            description = request.data.get('description')
+            playStoreLink = 'https://play.google.com/store/apps/details?id=com.dowellqrcodescanner.app&pli=1'
+
+            qrcodes_created = []
+            master_qr_code_id = f'11-{uuid.uuid4()}'
+            common_id = str(uuid.uuid4())
+            logo_file = logo.read() if logo else None
+
+            for _ in range(num_qrcodes):
+                logo_url = upload_image_to_interserver(logo_file, logo.name) if logo_file else None
+                qrcode_id = f'22-{uuid.uuid4()}'
+
+                field = {
+                    "qrcode_id": qrcode_id,
+                    'master_qr_code_id': master_qr_code_id,
+                    "generate_master_QR_code_id": common_id,
+                    "logo_size": logo_size,
+                    "qrcode_color": qrcode_color,
+                    "created_by": created_by,
+                    "lat": lat,
+                    "long": long,
+                    "is_active": is_active,
+                    "qrcode_type": qrcode_type,
+                    'email': email,
+                    'name': name,
+                    'playStoreLink': playStoreLink,
+                    'redirect_link': None
+                }
+
+                serializer, field = qrcode_type_defination(qrcode_id, is_active, qrcode_type, request, qrcode_color,
+                                                           logo, field, logo_url)
+
+                if serializer.is_valid():
+                    response = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, field)
+                    response = json.loads(response)
+                    if response.get('success'):
+                        qrcodes_created.append(field)
+                    else:
+                        return Response({"error": response.get('message')},
+                                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            master_field = {
+                "master_qr_code_id": master_qr_code_id,
+                "master_qr_code_link": None,
+                "name": name,
+                "location": location,
+                "description": description,
+                "is_used": False,
+                "num_of_QR_Code": len(qrcodes_created),
+                "qr_code_details": qrcodes_created,
+            }
+
+            link = f"https://www.qrcodereviews.uxlivinglab.online/{master_qr_code_id}"
+            img_qr = create_qrcode(link, qrcode_color, None)
+            file_name = generate_file_name()
+            qr_code_url = upload_image_to_interserver(img_qr, file_name)
+
+            master_field.update({
+                "master_qr_code_link": link,
+                "master_qrcode_image_url": qr_code_url,
+            })
+
+            response = QR_code_datacube_data_insertion(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME,
+                                                       master_field)
+            response = json.loads(response)
+
+            if response.get('success'):
+                return Response({"response": "Master QR code created successfully.", "master_qrcode": master_field},
+                                status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": response.get('message')},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({"error": f"An error occurred: {str(e)}"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)

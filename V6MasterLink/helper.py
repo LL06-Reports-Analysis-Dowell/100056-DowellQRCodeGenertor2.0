@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw
 import uuid
 from .serializers import DoWellQrCodeSerializer, LinkTypeSerializer, ProductTypeSerializer, VcardSerializer
 import time
+from math import radians, sin, cos, sqrt, atan2
 def image_to_bytes(image):
     bytes_io = io.BytesIO()
     image.save(bytes_io, format='PNG')
@@ -190,3 +191,17 @@ def dowell_time(timezone):
         res= json.loads(response.text)
 
         return res
+
+
+def check_the_post_under_required_lat_long(lat1, lon1, lat2, lon2):
+    R = 6371000
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = R * c
+    return distance < 5
