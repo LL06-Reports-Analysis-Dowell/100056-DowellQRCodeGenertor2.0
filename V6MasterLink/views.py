@@ -448,31 +448,21 @@ class FindQRCodeAPIView(APIView):
             if not (master_id or (lat and long)):
                 return Response({"success": False, "message": "Missing required fields"},
                                 status=status.HTTP_400_BAD_REQUEST)
-
             filter_data = {}
             results = []
-
             if master_id:
                 filter_data["master_qr_code_id"] = master_id
                 response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data)
                 response = json.loads(response)
                 qr_codes = response['data'][0].get('qr_code_details', [])
-
-                for qr_code in qr_codes:
-                    qr_id = qr_code['qr_id']
-                    filter_data = {"qrcode_id": qr_id}
-                    qr_response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data)
-                    qr_response = json.loads(qr_response)
-
-                    for data in qr_response['data']:
-                        if data['lat'] == lat and data['long'] == long:
-                            results.append(data)
-                        else:
-                            results.append(check_the_post_under_required_lat_long(float(lat), float(long), data['lat'], data['long']))
-
+                for data in qr_codes:
+                    if data['lat'] == lat and data['long'] == long:
+                        results.append(data)
+                    else:
+                        results.append(check_the_post_under_required_lat_long(float(lat), float(long), data['lat'], data['long']))
 
             if results:
-                return Response({"success": True, "response": results}, status=status.HTTP_200_OK)
+                return Response({"success": True,"message": "location data", "response": results}, status=status.HTTP_200_OK)
             else:
                 return Response({"success": False, "message": "No records found"}, status=status.HTTP_404_NOT_FOUND)
 
