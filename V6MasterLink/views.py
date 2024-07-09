@@ -423,7 +423,7 @@ class QRCodeDataAPIView(APIView):
                     "long": entry.get("long"),
                     "scanned_at": entry.get("time")
                 })
-            # success = True
+            success = True
             message = "The detailed report for qrcode scanner"
         else:
             success = False
