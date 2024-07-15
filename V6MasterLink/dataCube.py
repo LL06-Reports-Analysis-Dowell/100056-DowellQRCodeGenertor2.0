@@ -19,6 +19,8 @@ def QR_code_datacube_data_insertion(api_key, database_name, collection_name, dat
         "coll_name": collection_name,
         "operation": "insert",
         "data": data,
+        "limit": 10000,
+        "offset": 0,
         "payment": False
     }
     # print(payload)

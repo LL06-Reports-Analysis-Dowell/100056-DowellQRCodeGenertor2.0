@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+import requests
 from .dataCube import QR_code_datacube_data_insertion, datacube_data_retrieval, datacube_data_update
 from .helper import qrcode_type_defination, upload_image_to_interserver, create_qrcode, generate_file_name, dowell_time, check_the_post_under_required_lat_long
 
@@ -250,7 +250,7 @@ class MasterQRCodeAPIView(APIView):
             return Response({"error": "Master QR code not found"}, status=status.HTTP_404_NOT_FOUND)
         master_qr_data = response['data']
         if not master_qr_data[0]['is_used']:
-            qr_code_ids = [qr['qr_id'] for qr in master_qr_data[0]['qr_code_details']]
+            qr_code_ids = [qr['qrcode_id'] for qr in master_qr_data[0]['qr_code_details']]
             filters = {
                 "qrcode_id": {"$in": qr_code_ids}
             }
@@ -327,6 +327,7 @@ class MasterQRCodeAPIView(APIView):
         }
 
         update_data = {k: v for k, v in update_data.items() if v is not None}
+
 
         if not update_data:
             return Response({"error": "No data provided to update"}, status=status.HTTP_400_BAD_REQUEST)
@@ -449,19 +450,33 @@ class FindQRCodeAPIView(APIView):
                 return Response({"success": False, "message": "Missing required fields"},
                                 status=status.HTTP_400_BAD_REQUEST)
             filter_data = {}
+            lat_long_list = []
             results = []
             if master_id:
                 filter_data["master_qr_code_id"] = master_id
-                response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, filter_data)
+                response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data)
                 response = json.loads(response)
-                qr_codes = response['data'][0].get('qr_code_details', [])
-                for data in qr_codes:
+                import pdb;pdb.set_trace()
+                for data in response['data']:
                     if data['lat'] == lat and data['long'] == long:
-                        results.append(data)
+                        lat_long_list.append([float(data['lat']), float(data['long'])]),
                     else:
-                        results.append(check_the_post_under_required_lat_long(float(lat), float(long), data['lat'], data['long']))
+                        return Response({"success": False, "message": "No records found"}, status=status.HTTP_404_NOT_FOUND)
+                payload = {
+                    "radius": 5.0,
+                    "reference_point": [float(lat), float(long)],
+                    "locations": lat_long_list
+                }
+                url = 'https://100070.pythonanywhere.com/check-distance/'
+                response = requests.post(url, json=payload)
+                if response.status_code == 200:
+                    print("POST request successful!")
+                    print("Response:", response.json())
+                else:
+                    print(f"POST request failed with status code {response.status_code}")
+                    print("Response content:", response.text)
 
-            if results:
+            if lat_long_list:
                 return Response({"success": True,"message": "location data", "response": results}, status=status.HTTP_200_OK)
             else:
                 return Response({"success": False, "message": "No records found"}, status=status.HTTP_404_NOT_FOUND)
@@ -488,7 +503,7 @@ class CreateQRCode(APIView):
             lat = request.data.get("lat", "None")
             long = request.data.get("long", "None")
             is_active = request.data.get("is_active", False)
-            email = request.data.get('email')
+            userinfo = request.data.get('userinfo')
             name = request.data.get('name')
             location = request.data.get('location')
             description = request.data.get('description')
@@ -514,7 +529,7 @@ class CreateQRCode(APIView):
                     "long": long,
                     "is_active": is_active,
                     "qrcode_type": qrcode_type,
-                    'email': email,
+                    'userinfo': userinfo,
                     'name': name,
                     'playStoreLink': playStoreLink,
                     'redirect_link': None
