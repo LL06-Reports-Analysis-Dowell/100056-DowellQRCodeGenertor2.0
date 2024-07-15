@@ -210,7 +210,6 @@ class MasterQRCodeAPIView(APIView):
             "is_used": False,
             "num_of_QR_Code": num_of_QR_Code,
             "qr_code_details": list_qr_id,
-
         }
 
         link = f"https://www.qrcodereviews.uxlivinglab.online/{master_qr_code_id}"
@@ -235,86 +234,103 @@ class MasterQRCodeAPIView(APIView):
             return Response({"error": response.get('message')}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, master_qr_code_id):
-        data = {
-            "master_qr_code_id": master_qr_code_id
-        }
+        data = {"master_qr_code_id": master_qr_code_id}
+
         if not master_qr_code_id.startswith("11"):
             return Response({"error": "Please Enter Correct Master QR Code ID"}, status=status.HTTP_404_NOT_FOUND)
 
         redirect_link = request.data.get('redirect_link')
         lat = request.data.get('lat')
         long = request.data.get('long')
-        response = datacube_data_retrieval(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, data)
-        response = json.loads(response)
+
+        response = self.retrieve_data(MASTER_QR_CODE_COLLECTION_NAME, data)
         if not response['success']:
             return Response({"error": "Master QR code not found"}, status=status.HTTP_404_NOT_FOUND)
-        master_qr_data = response['data']
-        if not master_qr_data[0]['is_used']:
-            qr_code_ids = [qr['qrcode_id'] for qr in master_qr_data[0]['qr_code_details']]
-            filters = {
-                "qrcode_id": {"$in": qr_code_ids}
-            }
-            qr_code_data_response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filters)
-            qr_code_data_response = json.loads(qr_code_data_response)
 
-            if not qr_code_data_response['success']:
-                return Response({"error": "Failed to retrieve QR codes"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            qr_code_data_list = qr_code_data_response['data']
-            qr_code_to_update = None
-            for qr_code_data in qr_code_data_list:
-                if not qr_code_data['is_active']:
-                    qr_code_to_update = qr_code_data['qrcode_id']
-                    break
+        master_qr_data = response['data'][0]
+        if not master_qr_data['is_used']:
+            qr_code_to_update = self.find_inactive_qr_code(master_qr_data['qr_code_details'])
 
             if qr_code_to_update:
-                field = {
-                    "qrcode_id": qr_code_to_update
-                }
-                update_data = {
-                    "qrcode_id": qr_code_to_update,
-                    "is_active": True,
-                    "redirect_link": redirect_link,
-                    "lat": lat,
-                    "long": long,
-                }
-                update_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, field,
-                                                       update_data)
-                update_response = json.loads(update_response)
-                if not update_response['success']:
-                    return Response({"error": f"Failed to update QR code {qr_code_to_update}"},
-                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                self.update_qr_code(master_qr_data['qr_code_details'], qr_code_to_update, redirect_link, lat, long)
+                if self.update_database_qr_code(qr_code_to_update, redirect_link, lat,
+                                                long) and self.update_database_master_qr_code(master_qr_code_id,
+                                                                                              master_qr_data):
+                    if self.check_all_qr_codes_active(master_qr_data['qr_code_details']):
+                        self.mark_master_qr_code_as_used(master_qr_code_id)
 
-            all_active = all(qr_code['is_active'] for qr_code in qr_code_data_list)
-
-            if all_active:
-                field = {
-                    "master_qr_code_id": master_qr_code_id,
-                }
-                master_update_data = {
-                    "master_qr_code_id": master_qr_code_id,
-                    "is_used": True
-                }
-                master_update_response = datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME,
-                                                              field, master_update_data)
-                master_update_response = json.loads(master_update_response)
-                if not master_update_response['success']:
-                    return Response({"error": "Failed to update master QR code"},
-                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            update_data = {
-                "name": request.data.get("name"),
-                "location": request.data.get("location"),
-                "description": request.data.get("description"),
-            }
-            update_data = {k: v for k, v in update_data.items() if v is not None}
-            master_update_response = datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, field,
-                                                          update_data)
-            master_update_response = json.loads(master_update_response)
-            if master_update_response['success']:
-                return Response({"message": "QR_code Data Activated Successfully"})
+                update_data = {k: v for k, v in request.data.items() if v is not None}
+                self.update_master_qr_code_data(master_qr_code_id, update_data)
+                return Response({"message": "QR code Data Activated Successfully"})
+            else:
+                return Response({"error": "No QR code are available"}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response({"error": "No QR code are available"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Master QR code is already used"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve_data(self, collection_name, data):
+        response = datacube_data_retrieval(Apikey, DATABASE_NAME, collection_name, data)
+        return json.loads(response)
+
+    def find_inactive_qr_code(self, qr_code_details):
+        qr_code_ids = [qr['qrcode_id'] for qr in qr_code_details]
+        filters = {"qrcode_id": {"$in": qr_code_ids}}
+        qr_code_data_response = self.retrieve_data(QR_CODE_COLLECTION_NAME, filters)
+
+        if qr_code_data_response['success']:
+            for qr_code_data in qr_code_data_response['data']:
+                if not qr_code_data['is_active']:
+                    return qr_code_data['qrcode_id']
+        return None
+
+    def update_qr_code(self, qr_code_details, qr_code_to_update, redirect_link, lat, long):
+        for qr_code in qr_code_details:
+            if qr_code['qrcode_id'] == qr_code_to_update:
+                qr_code['is_active'] = True
+                qr_code['redirect_link'] = redirect_link
+                qr_code['lat'] = lat
+                qr_code['long'] = long
+                break
+
+    def update_database_qr_code(self, qr_code_to_update, redirect_link, lat, long):
+        child_field = {"qrcode_id": qr_code_to_update}
+        update_data = {
+            "qrcode_id": qr_code_to_update,
+            "is_active": True,
+            "redirect_link": redirect_link,
+            "lat": lat,
+            "long": long,
+        }
+        update_response = datacube_data_update(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, child_field,
+                                               update_data)
+        return json.loads(update_response)['success']
+
+    def update_database_master_qr_code(self, master_qr_code_id, master_qr_data):
+        field = {"master_qr_code_id": master_qr_code_id}
+        update_data = {"qr_code_details": master_qr_data['qr_code_details']}
+        master_update_response = datacube_data_update(Apikey, DATABASE_NAME, MASTER_QR_CODE_COLLECTION_NAME, field,
+                                                      update_data)
+        return json.loads(master_update_response)['success']
+
+    def check_all_qr_codes_active(self, qr_code_details):
+        qr_code_ids = [qr['qrcode_id'] for qr in qr_code_details]
+        filters = {"qrcode_id": {"$in": qr_code_ids}}
+        qr_code_data_response = self.retrieve_data(QR_CODE_COLLECTION_NAME, filters)
+
+        if qr_code_data_response['success']:
+            return all(qr_code['is_active'] for qr_code in qr_code_data_response['data'])
+        return False
+
+    def mark_master_qr_code_as_used(self, master_qr_code_id):
+        self.update_database(MASTER_QR_CODE_COLLECTION_NAME, {"master_qr_code_id": master_qr_code_id},
+                             {"is_used": True})
+
+    def update_master_qr_code_data(self, master_qr_code_id, update_data):
+        self.update_database(MASTER_QR_CODE_COLLECTION_NAME, {"master_qr_code_id": master_qr_code_id}, update_data)
+
+    def update_database(self, collection_name, filters, update_data):
+        update_response = datacube_data_update(Apikey, DATABASE_NAME, collection_name, filters, update_data)
+        return json.loads(update_response)['success']
+
 
     def patch(self, request, master_qr_code_id):
         filter_data = {"master_qr_code_id": master_qr_code_id}
@@ -443,6 +459,9 @@ class QRCodeDataAPIView(APIView):
 class FindQRCodeAPIView(APIView):
         def get(self, request):
             master_id = request.query_params.get('master_id')
+            import pdb;
+            pdb.set_trace()
+            print(master_id)
             lat = request.query_params.get('lat')
             long = request.query_params.get('long')
 
@@ -456,20 +475,23 @@ class FindQRCodeAPIView(APIView):
                 filter_data["master_qr_code_id"] = master_id
                 response = datacube_data_retrieval(Apikey, DATABASE_NAME, QR_CODE_COLLECTION_NAME, filter_data)
                 response = json.loads(response)
-                import pdb;pdb.set_trace()
                 for data in response['data']:
-                    if data['lat'] == lat and data['long'] == long:
+                    if data['lat'] == float(lat) and data['long'] == float(long):
                         lat_long_list.append([float(data['lat']), float(data['long'])]),
+                        return Response({"success": True, "message": "data found aganist the lat long", results: response['data']},
+                                        status=status.HTTP_200_OK)
                     else:
                         return Response({"success": False, "message": "No records found"}, status=status.HTTP_404_NOT_FOUND)
+
+
                 payload = {
                     "radius": 5.0,
                     "reference_point": [float(lat), float(long)],
                     "locations": lat_long_list
                 }
                 url = 'https://100070.pythonanywhere.com/check-distance/'
-                response = requests.post(url, json=payload)
-                if response.status_code == 200:
+                loaction_response = requests.post(url, json=payload)
+                if loaction_response.status_code == 200:
                     print("POST request successful!")
                     print("Response:", response.json())
                 else:
@@ -480,6 +502,8 @@ class FindQRCodeAPIView(APIView):
                 return Response({"success": True,"message": "location data", "response": results}, status=status.HTTP_200_OK)
             else:
                 return Response({"success": False, "message": "No records found"}, status=status.HTTP_404_NOT_FOUND)
+
+
 
 def redirect_link(request, qrcode_id):
     if qrcode_id.startswith("11") or qrcode_id.startswith("22"):
