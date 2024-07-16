@@ -80,6 +80,8 @@ def datacube_data_update(api_key, db_name, coll_name, query, update_data):
         "operation": "update",
         "query": query,
         "update_data": update_data,
+        "limit": 10000,
+        "offset": 0,
         "payment": False
     }
 
@@ -104,6 +106,8 @@ def datacube_data_delete(api_key, db_name, collection_name, query):
         "coll_name": collection_name,
         "operation": "delete",
         "query": query,
+        "limit": 10000,
+        "offset": 0,
         "payment": False
     }
     response = requests.delete(url, json=payload)

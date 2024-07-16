@@ -198,7 +198,7 @@ class MasterQRCodeAPIView(APIView):
 
         qrcode_list = response["data"]
         num_of_QR_Code = len(response["data"])
-        list_qr_id = [{"qr_id": i["qrcode_id"], "qrcode_image_url": i["qrcode_image_url"], "link": i["link"], "is_active": i['is_active']} for i in qrcode_list]
+        list_qr_id = [{"qrcode_id": i["qrcode_id"], "qrcode_image_url": i["qrcode_image_url"], "link": i["link"], "is_active": i['is_active']} for i in qrcode_list]
 
         master_qr_code_id = f'11-{str(uuid.uuid4())}'
         field = {
@@ -272,6 +272,7 @@ class MasterQRCodeAPIView(APIView):
         return json.loads(response)
 
     def find_inactive_qr_code(self, qr_code_details):
+        import pdb; pdb.set_trace()
         qr_code_ids = [qr['qrcode_id'] for qr in qr_code_details]
         filters = {"qrcode_id": {"$in": qr_code_ids}}
         qr_code_data_response = self.retrieve_data(QR_CODE_COLLECTION_NAME, filters)
